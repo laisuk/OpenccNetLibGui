@@ -7,7 +7,7 @@ namespace OpenccNetLibGui.Views;
 
 public class MessageBox : Window
 {
-    public MessageBox(string message, string title)
+    private MessageBox(string message, string title)
     {
         Title = title;
         Width = 300;
