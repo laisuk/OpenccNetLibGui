@@ -193,7 +193,8 @@ public class MainWindowViewModel : ViewModelBase
             Title = "Open Text File",
             FileTypeFilter = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } }
+                new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = false
         });
@@ -217,7 +218,9 @@ public class MainWindowViewModel : ViewModelBase
             SuggestedFileName = "document.txt",
             FileTypeChoices = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } }
+                new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("All Files") { Patterns = new[] { "*.*" } }
+                
             }
         });
 
@@ -416,7 +419,8 @@ public class MainWindowViewModel : ViewModelBase
             Title = "Open Text File",
             FileTypeFilter = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } }
+                new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = true
         });

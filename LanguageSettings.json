@@ -16,14 +16,14 @@
       "name": "zh-Hans (简体)"
     }
   ],
-  "charcheck": 30,
+  "charCheck": 30,
   "punctuations": {
     "“": "「",
     "”": "」",
     "‘": "『",
     "’": "』"
   },
-  "textfiletypes": [
+  "textFileTypes": [
     ".txt",
     ".srt",
     ".vtt",
