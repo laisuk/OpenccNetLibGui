@@ -1,0 +1,41 @@
+{
+  "languages": [
+    {
+      "id": 0,
+      "code": "non-zho",
+      "name": "Non-zho (其它)"
+    },
+    {
+      "id": 1,
+      "code": "zh-Hant",
+      "name": "zh-Hant (繁体)"
+    },
+    {
+      "id": 2,
+      "code": "zh-Hans",
+      "name": "zh-Hans (简体)"
+    }
+  ],
+  "charcheck": 30,
+  "punctuations": {
+    "“": "「",
+    "”": "」",
+    "‘": "『",
+    "’": "』"
+  },
+  "textfiletypes": [
+    ".txt",
+    ".srt",
+    ".vtt",
+    ".ass",
+    ".xml",
+    ".ttml2",
+    ".csv",
+    ".json",
+    ".html",
+    ".cs",
+    ".py",
+    ".java",
+    ".md"
+  ]
+}

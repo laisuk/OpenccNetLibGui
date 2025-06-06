@@ -1,0 +1,273 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenccNetLibGui.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:helpers="clr-namespace:OpenccNetLibGui.Helpers"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="OpenccNetLibGui.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/openccnetlib.ico"
+        Title="OpenccNetLibGui"
+        Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="1000"
+        MinHeight="300">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80" />
+            <RowDefinition />
+            <RowDefinition Height="70" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Grid.Column="0" Height="70" VerticalAlignment="Bottom" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <RadioButton x:Name="RbT2S" Content="{Binding RbT2SContent}" Grid.Row="0" Grid.Column="0" FontSize="14"
+                         Padding="5,0,0,0" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"
+                         IsChecked="{Binding IsRbT2S}" GroupName="MainRb" />
+            <RadioButton x:Name="RbS2T" Content="{Binding RbS2TContent}" Grid.Row="0" Grid.Column="1" FontSize="14"
+                         Padding="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Center"
+                         GroupName="MainRb" IsChecked="{Binding IsRbS2T}" />
+            <RadioButton x:Name="RbCustom" Content="{Binding RbCustomContent}" Grid.Row="0" Grid.Column="2" FontSize="14"
+                         Padding="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" GroupName="MainRb"
+                         IsChecked="{Binding IsRbCustom}" />
+            <ComboBox Name="CbCustom" Grid.Column="2" Grid.Row="0" Margin="140,0,0,0"
+                      ItemsSource="{Binding CustomOptions}"
+                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                <Interaction.Behaviors>
+                    <EventTriggerBehavior EventName="GotFocus">
+                        <InvokeCommandAction Command="{Binding CmbCustomGotFocusCommand}" />
+                    </EventTriggerBehavior>
+                </Interaction.Behaviors>
+            </ComboBox>
+            <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <RadioButton x:Name="RbStd" Grid.Row="0" Grid.Column="0" Content="{Binding RbStdContent}" FontSize="14"
+                             Padding="5,0,0,0" Margin="20,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                             GroupName="SecondRb" IsChecked="{Binding IsRbStd}" />
+                <RadioButton x:Name="RbZhtw" Grid.Row="0" Grid.Column="1" Content="{Binding RbZhtwContent}"
+                             FontSize="14"
+                             Padding="5,0,0,0" Margin="15,0,0,0" VerticalAlignment="Center"
+                             HorizontalAlignment="Center"
+                             GroupName="SecondRb" IsChecked="{Binding IsRbZhtw}" />
+                <RadioButton x:Name="RbHk" Grid.Row="0" Grid.Column="2" Content="{Binding RbHkContent}" FontSize="14"
+                             Padding="5,0,0,0" Margin="20,0,0,0" VerticalAlignment="Center"
+                             HorizontalAlignment="Center" IsChecked="{Binding IsRbHk}"
+                             GroupName="SecondRb" />
+                <CheckBox x:Name="CbZhtw" Grid.Row="0" Grid.Column="3" Content="ZH-TW Idioms(中台惯用语)" FontSize="14"
+                          Padding="5,0,0,0" Margin="0,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                          IsChecked="{Binding IsCbZhtw}" IsEnabled="{Binding IsCbZhtwEnabled}" />
+                <CheckBox x:Name="CbPunctuation" Grid.Row="0" Grid.Column="4" Content="Punctuation (标点)"
+                          FontSize="14" Padding="5,0,0,0" Margin="5,0,0,0" VerticalAlignment="Center"
+                          HorizontalAlignment="Left" IsChecked="{Binding IsCbPunctuation}" />
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="50" />
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <TabControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="10,0,10,0">
+                <TabItem x:Name="TabMain" Header="Main Conversion" IsSelected="{Binding IsTabMain}"
+                         FontSize="14" FontWeight="{Binding TabMainFontWeight}">
+                    <Grid Background="#FFE5E5E5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="40" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <avaloniaEdit:TextEditor
+                            x:Name="TbSource" Grid.Row="0" Grid.Column="0" Margin="5,5,5,0"
+                            Document="{Binding TbSourceTextDocument}"
+                            FontFamily="Noto Sans SC" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True"
+                            TextChanged="TbSource_TextChanged"
+                            BorderThickness="2,2,2,2" BorderBrush="Black" Background="WhiteSmoke" WordWrap="True"
+                            FontSize="16" />
+                        <avaloniaEdit:TextEditor x:Name="TbDestination" Grid.Row="0" Grid.Column="1" Margin="5,5,5,0"
+                                                 Document="{Binding TbDestinationTextDocument}"
+                                                 BorderThickness="2,2,2,2" BorderBrush="Black" WordWrap="True"
+                                                 Background="WhiteSmoke" VerticalScrollBarVisibility="Visible"
+                                                 ShowLineNumbers="True"
+                                                 FontFamily="Noto Sans SC" FontSize="16" IsReadOnly="True" />
+                        <Label Grid.Row="1" Grid.Column="0" Content="Source:" HorizontalAlignment="Left"
+                               VerticalAlignment="Center" Margin="5,0,0,0" FontSize="16" BorderBrush="Black"
+                               BorderThickness="3,0,0,0" />
+                        <Label x:Name="LblSourceCode" Grid.Row="1" Grid.Column="0"
+                               Content="{Binding LblSourceCodeContent}"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="80,0,0,0" FontSize="16" />
+                        <Label x:Name="LblTotalChars" Grid.Row="1" Grid.Column="0"
+                               Content="{Binding LblTotalCharsContent}" HorizontalAlignment="Right"
+                               VerticalAlignment="Center" Margin="0,0,130,0" FontSize="14" />
+                        <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
+                               Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="Black"
+                               BorderThickness="3,0,0,0" />
+                        <Label x:Name="LblDestinationCode" Grid.Column="1"
+                               Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left"
+                               Margin="110,0,0,0" Grid.Row="1" VerticalAlignment="Center" FontSize="16" />
+                        <Button x:Name="BtnClearSource" Content="AC" Padding="0 2" Width="40"
+                                HorizontalAlignment="Right" HorizontalContentAlignment="Center"
+                                Margin="0,2,90,0" Grid.Row="1"
+                                Grid.Column="0" VerticalAlignment="Center" FontSize="14"
+                                Command="{Binding BtnClearTbSourceCommand}"
+                                FontWeight="Bold" />
+                        <Button x:Name="BtnPaste" Content="Paste" Padding="0 2" Width="80" HorizontalAlignment="Right"
+                                HorizontalContentAlignment="Center"
+                                Margin="0,2,5,0" Grid.Row="1"
+                                Grid.Column="0" VerticalAlignment="Center" FontSize="14"
+                                Command="{Binding BtnPasteCommand}" />
+                        <Button x:Name="BtnClearDestination" Grid.Column="1" Content="AC" Padding="0 2" Width="40"
+                                HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,90,0"
+                                Grid.Row="1" VerticalAlignment="Center"
+                                FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold" />
+                        <Button x:Name="BtnCopy" Grid.Column="1" Content="Copy" Padding="0 2" Width="80"
+                                HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,5,0"
+                                Grid.Row="1" VerticalAlignment="Center"
+                                FontSize="14" Command="{Binding BtnCopyCommand}" />
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="TabBatch" Header="Batch Conversion" IsSelected="{Binding IsTabBatch}" FontSize="14"
+                         FontWeight="{Binding TabBatchFontWeight}">
+                    <Grid Background="#FFE5E5E5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="40" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <ListBox x:Name="LbxSource" Grid.Row="0" Grid.Column="0" Margin="5,5,5,0"
+                                 BorderThickness="2,2,2,2" ItemsSource="{Binding LbxSourceItems}"
+                                 SelectedIndex="{Binding LbxSourceSelectedIndex, Mode=TwoWay}"
+                                 SelectedItem="{Binding LbxSourceSelectedItem, Mode=TwoWay}" />
+                        <Label Grid.Row="1" Grid.Column="0" Content="Source:" HorizontalAlignment="Left"
+                               VerticalAlignment="Center" Margin="5,0,0,0" FontSize="16" BorderBrush="Black"
+                               BorderThickness="3,0,0,0" />
+
+                        <TabControl Grid.Row="0" Grid.Column="1" TabStripPlacement="Bottom">
+                            <TabItem x:Name="TabMessage" Header="Message" FontSize="14"
+                                     IsSelected="{Binding IsTabMessage}"
+                                     FontWeight="Medium">
+                                <Grid>
+                                    <ListBox x:Name="LbxDestination" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0"
+                                             BorderThickness="2,2,2,2" ItemsSource="{Binding LbxDestinationItems}" />
+
+                                </Grid>
+                            </TabItem>
+                            <TabItem x:Name="TabPreview" Header="Preview" FontSize="14" FontWeight="Medium"
+                                     IsSelected="{Binding IsTabPreview}">
+                                <Grid>
+                                    <TextBox x:Name="TbPreview" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0"
+                                             BorderThickness="2,2,2,2" FontSize="16" IsReadOnly="True"
+                                             FontFamily="Noto Sans SC"
+                                             TextWrapping="Wrap" Text="{Binding TbPreviewText}" />
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+
+                        <Label Grid.Column="1" Content="Output:" HorizontalAlignment="Left" Margin="5,0,0,0"
+                               Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="Black"
+                               BorderThickness="3,0,0,0" />
+                        <Button x:Name="BtnAdd" Content="＋" Padding="0 2" Width="50" HorizontalAlignment="Left"
+                                HorizontalContentAlignment="Center"
+                                Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
+                                FontWeight="Bold" Command="{Binding BtnAddCommand}" />
+                        <Button x:Name="BtnRemove" Content="－" Padding="0 2" Width="50" HorizontalAlignment="Left"
+                                HorizontalContentAlignment="Center"
+                                Margin="125,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="Bold" Command="{Binding BtnRemoveCommand}" />
+                        <Button x:Name="BtnPreview" Content="Preview" Padding="0 2" Width="70"
+                                HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,135,2"
+                                Grid.Row="1" Grid.Column="0"
+                                VerticalAlignment="Center" FontSize="14" Command="{Binding BtnPreviewCommand}" />
+                        <Button x:Name="BtnDetect" Content="Detect" Padding="0 2" Width="70"
+                                HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,60,2"
+                                Grid.Row="1" Grid.Column="0"
+                                VerticalAlignment="Center" FontSize="14" Command="{Binding BtnDetectCommand}" />
+                        <Button x:Name="BtnClear" Content="AC" Padding="0 2" Width="50" HorizontalAlignment="Right"
+                                HorizontalContentAlignment="Center"
+                                Margin="0,2,5,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
+                                FontWeight="Bold" Command="{Binding BtnClearLbxSourceCommand}" />
+                        <TextBox x:Name="TbOutFolder" Grid.Row="1" Grid.Column="1" Width="290"
+                                 Text="{Binding TbOutFolderText}"
+                                 HorizontalAlignment="Left" VerticalAlignment="Center"
+                                 helpers:FocusAttachedProperty.IsFocused="{Binding IsTbOutFolderFocus}"
+                                 VerticalContentAlignment="Center" Margin="70,2,2,2" Padding="0 2" />
+                        <Button x:Name="BtnOutFolder" Content="…" Padding="0 2" Width="50" HorizontalAlignment="Right"
+                                HorizontalContentAlignment="Center"
+                                Margin="0,2,60,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
+                                FontWeight="Bold" Command="{Binding BtnSelectOutFolderCommand}" />
+                        <Button x:Name="BtnOutClear" Content="AC" Padding="0 2" Width="50" HorizontalAlignment="Right"
+                                HorizontalContentAlignment="Center"
+                                Margin="0,2,5,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
+                                FontWeight="Bold" Command="{Binding BtnMessagePreviewClearCommand}" />
+
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+        <Button x:Name="BtnProcess" Content="Process" Padding="0 2" Width="100" HorizontalAlignment="Center"
+                HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnProcessVisible}"
+                Margin="0,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
+                Command="{Binding BtnProcessCommand}" Foreground="Blue" />
+        <Button x:Name="BtnBatchStart" Content="Batch Start" Padding="0 2" Width="120" HorizontalAlignment="Center"
+                HorizontalContentAlignment="Center" Foreground="Blue"
+                Margin="0,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
+                IsVisible="{Binding IsBtnBatchStartVisible}" Command="{Binding BtnBatchStartCommand}" />
+        <Button x:Name="BtnOpenFile" Content="Open File" Padding="0 2" Width="80" HorizontalAlignment="Left"
+                HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnOpenFileVisible}"
+                Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
+                Command="{Binding BtnOpenFileCommand}" />
+        <Label x:Name="LblFileName" Content="{Binding LblFileNameContent}" Padding="0 2" HorizontalAlignment="Left"
+               Margin="110,0,0,0" Grid.Row="2" IsVisible="{Binding IsLblFileNameVisible}"
+               VerticalAlignment="Center" FontSize="14" />
+        <Button x:Name="BtnSaveFile" Content="Save As" Padding="0 2" Width="80" HorizontalAlignment="Right"
+                HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
+                Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
+                Command="{Binding BtnSaveFileCommand}" />
+        <Button x:Name="BtnExit" Content=" Exit " Padding="0 2" Width="50" HorizontalAlignment="Right"
+                HorizontalContentAlignment="Center"
+                Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
+                FontWeight="Bold" Click="BtnExit_Click" />
+        <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">
+            <Label x:Name="LblStatusBar" Content="{Binding LblStatusBarContent}" Padding="0 2" Margin="10,0,0,0"
+                   HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" />
+        </StackPanel>
+    </Grid>
+
+    <!--<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
+
+</Window>
