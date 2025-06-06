@@ -1,81 +1,75 @@
 # OpenccNetLibGui
 
-**OpenccNetLibGui** is a Chinese text conversion application built using Avalonia and the MVVM design pattern. It leverages the [OpenccNetLib](https://www.nuget.org/packages/OpenccNetLib) library to provide functionalities such as simplified and traditional Chinese conversion.
+**OpenccNetLibGui** is a Chinese text conversion application built with Avalonia and the MVVM design pattern. It leverages the [OpenccNetLib](https://www.nuget.org/packages/OpenccNetLib) library to provide simplified and traditional Chinese conversion.
 
 ## Features
 
 - **Chinese Conversion**: Convert between simplified and traditional Chinese text.
-- **Single/Batch Conversion**: Perform Chinese text convertion in single or batch mode.
+- **Single/Batch Conversion**: Perform Chinese text conversion in single or batch mode.
 
 ## Dependencies
 
 - [Avalonia](https://avaloniaui.net/): Cross-platform .NET UI framework.
-- [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit): A WPF-based text editor for Avalonia with virtualization text display support.
-- [OpenccNetLib](https://github.com/laisuk/OpenccNet): .Net Open Chinese Convert library for conversions between Traditional and Simplified Chinese.
-- [Newtonsoft.Json](https://www.newtonsoft.com/json): Popular high-performance JSON framework for .NET.
+- [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit): Text editor for Avalonia with virtualization support.
+- [OpenccNetLib](https://github.com/laisuk/OpenccNet): .NET library for conversions between Traditional and Simplified Chinese.
+- [Newtonsoft.Json](https://www.newtonsoft.com/json): High-performance JSON framework for .NET.
 
 ## Getting Started
 
 1. **Clone the repository**:
-
-   ```bash
-   git clone https://github.com/laisuk/OpenccNetLibGui.git
-
+```bash
+git clone https://github.com/laisuk/OpenccNetLibGui.git
+```
 2. **Navigate to the project directory**:
-
-    ```bash
-    cd OpenccNetLibGui
-
+```bash
+cd OpenccNetLibGui
+```
 3. **Restore dependencies**:
-    ```bash
-   dotnet restore
-
+```bash
+dotnet restore
+```
 4. **Build the project**:
-    ```bash
-    dotnet build
-
+```bash
+dotnet build
+```
 5. **Run the application**:
-    ```bash
-    dotnet run
+```bash
+dotnet run
+```
+## Usage
 
-# Usage
+### Single Mode
 
 ![image01](./Assets/image01.png)
 
-1. **Chinese Conversion Single Mode**:
-- Paste the text or open file you wish to convert (File/Text drag and drop are supported in Windows and MacOS).
-- Select the desired conversion configuration (e.g., Simplified to Traditional).
-- Click the "Process" button to see the results.
+1. Paste the text or open a file you wish to convert (file/text drag and drop are supported on Windows and macOS).
+2. Select the desired conversion configuration (e.g., Simplified to Traditional).
+3. Click the **Process** button to see the results.
 
 ---
 
-![image02](./Assets/image02.png)
+### Batch Mode
 
+![image02](./Assets/image02.png)
 ![image03](./Assets/image03.png)
 
-2. **Chinese Conversion Batch Mode**:
-- Select or drag file(s) into source list-box.
-- Select the desired conversion configuration.
-- Set the output folder.
-- Click the "Batch Start" button to start batch conversion.
+1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and macOS).
+2. Select the desired conversion configuration.
+3. Set the output folder.
+4. Click the **Batch Start** button to begin batch conversion.
 
-# Contributing
+## Contributing
+
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
-# License
+## License
+
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
 
+## Acknowledgements
 
-# Acknowledgements
-
-- [OpenCC](https://github.com/BYVoid/OpenCC) for Chinese text conversion Lexicon.
-- [OpenccNet](https://github.com/laisuk/OpenccNet) for Chinese convertion .Net library.
+- [OpenCC](https://github.com/BYVoid/OpenCC) for the Chinese text conversion lexicon.
+- [OpenccNet](https://github.com/laisuk/OpenccNet) for the .NET Chinese conversion library.
 - [Avalonia](https://avaloniaui.net/) for the cross-platform UI framework.
-- [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit) for the TextEditor with virtualization.
+- [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit) for the text editor with virtualization.
 - [Newtonsoft.Json](https://www.newtonsoft.com/json) for JSON parsing.
-
-
-
- 
-
- 
