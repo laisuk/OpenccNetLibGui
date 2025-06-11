@@ -117,8 +117,7 @@ public class MainWindowViewModel : ViewModelBase
         SelectedItem = CustomOptions[0]; // Set "Option 1" as default
     }
 
-    public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
-        Opencc opencc) :
+    public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService, Opencc opencc) :
         this()
     {
         _topLevelService = topLevelService;
@@ -619,6 +618,8 @@ public class MainWindowViewModel : ViewModelBase
 
     private string GetCurrentConfig()
     {
+        if (IsRbCustom) return SelectedItem![..SelectedItem!.IndexOf(' ')];            
+
         var config = IsRbS2T
             ? IsRbStd
                 ? "s2t"
@@ -634,9 +635,7 @@ public class MainWindowViewModel : ViewModelBase
                     : IsCbZhtw
                         ? "tw2sp"
                         : "tw2s";
-        return IsRbCustom
-            ? SelectedItem![..SelectedItem!.IndexOf(' ')]
-            : config;
+        return config;
     }
 
     public void TbSourceTextChanged()
