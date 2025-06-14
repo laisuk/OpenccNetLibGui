@@ -2,6 +2,19 @@
 
 **OpenccNetLibGui** is a Chinese text conversion application built with Avalonia and the MVVM design pattern. It leverages the [OpenccNetLib](https://www.nuget.org/packages/OpenccNetLib) library to provide simplified and traditional Chinese conversion.
 
+## 🚀 Download
+
+[![GitHub Release](https://img.shields.io/github/v/release/laisuk/OpenccNetLibGui?display_name=tag&sort=semver)](https://github.com/laisuk/OpenccNetLibGui/releases/latest)
+
+Download the latest version of **OpenccNetLibGui** for your platform:
+
+- 💻 **[Windows (win-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.0-win-x64.zip)**
+- 🐧 **[Linux (linux-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.0-linux-x64.zip)**
+- 🍎 **[macOS (osx-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.0-osx-x64.zip)**
+
+> 📦 These are **framework-dependent builds**, targeting `.NET 8`.  
+> You must have [.NET Runtime 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) installed to run them.
+
 ## Features
 
 - **Chinese Conversion**: Convert between simplified and traditional Chinese text.
