@@ -1,0 +1,63 @@
+name: Release Avalonia GUI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers only when pushing a version tag like v1.0.1
+
+jobs:
+  build:
+    name: Build ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            zip: Compress-Archive -Path "$folder\*" -DestinationPath "$folder.zip"
+            shell: pwsh
+          - os: ubuntu-latest
+            rid: linux-x64
+            zip: zip -r "$folder.zip" "$folder"
+            shell: bash
+          - os: macos-latest
+            rid: osx-x64
+            zip: zip -r "$folder.zip" "$folder"
+            shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required to access full tag history
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore
+      run: dotnet restore OpenccNetLibGui.sln
+
+    - name: Build
+      run: dotnet build OpenccNetLibGui.sln --configuration Release --no-restore
+
+    - name: Publish
+      run: dotnet publish OpenccNetLibGui/OpenccNetLibGui.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/ --no-self-contained
+
+    - name: Rename and zip
+      run: |
+        $tag = "${{ github.ref_name }}"
+        $folder = "OpenccNetLibGui-$tag-${{ matrix.rid }}"
+        mv publish "$folder"
+        ${{ matrix.zip }}
+      shell: ${{ matrix.shell }}
+
+    - name: Upload release asset
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        files: OpenccNetLibGui-*-*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
