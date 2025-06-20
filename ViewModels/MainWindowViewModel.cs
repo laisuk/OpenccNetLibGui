@@ -13,6 +13,7 @@ using ReactiveUI;
 using OpenccNetLibGui.Services;
 using OpenccNetLibGui.Views;
 using System.Diagnostics;
+using OpenccNetLibGui.Models;
 
 namespace OpenccNetLibGui.ViewModels;
 
@@ -117,15 +118,38 @@ public class MainWindowViewModel : ViewModelBase
         SelectedItem = CustomOptions[0]; // Set "Option 1" as default
     }
 
-    public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService, Opencc opencc) :
+    public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
+        Opencc opencc) :
         this()
     {
         _topLevelService = topLevelService;
         var languageSettings = languageSettingsService.LanguageSettings;
         _languagesInfo = languageSettings?.Languages;
         _textFileTypes = languageSettings?.TextFileTypes;
+
+        switch (languageSettings?.Dictionary)
+        {
+            case "dicts":
+                Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
+                LblStatusBarContent = "Using folder [dicts] dictionary";
+                break;
+            case "json":
+                Opencc.UseCustomDictionary(DictionaryLib.FromJson());
+                LblStatusBarContent = "Using JSON dictionary";
+                break;
+            case "cbor":
+                Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
+                LblStatusBarContent = "Using CBOR dictionary";
+                break;
+            default:
+                LblStatusBarContent = "Using default ZSTD dictionary";
+                break;
+        }
+
         _opencc = opencc;
     }
+
+    #region Reactive Command Region
 
     public ReactiveCommand<Unit, Unit> BtnPasteCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnCopyCommand { get; }
@@ -143,6 +167,8 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnMessagePreviewClearCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnBatchStartCommand { get; }
     public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
+
+    #endregion
 
     private async Task BtnPaste()
     {
@@ -219,7 +245,6 @@ public class MainWindowViewModel : ViewModelBase
             {
                 new("Text Files") { Patterns = new[] { "*.txt" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
-                
             }
         });
 
@@ -319,12 +344,12 @@ public class MainWindowViewModel : ViewModelBase
                     : RbZhtwContent;
         var iSZhTwIdioms = IsRbCustom
             ? RbCustomContent
-            : IsCbZhtw 
-                ? "Yes" 
+            : IsCbZhtw
+                ? "Yes"
                 : "No";
-        var isPunctuations = IsCbPunctuation 
-                ? "Yes" 
-                : "No";
+        var isPunctuations = IsCbPunctuation
+            ? "Yes"
+            : "No";
 
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
@@ -345,24 +370,13 @@ public class MainWindowViewModel : ViewModelBase
 
             if (!File.Exists(sourceFilePath))
             {
-                LbxDestinationItems.Add($"({count}) {sourceFilePath} -> File not found.");
+                LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ File not found.");
                 continue;
             }
 
             if (!_textFileTypes!.Contains(fileExt))
             {
-                LbxDestinationItems.Add($"({count}) [File skipped ({fileExt})] {sourceFilePath}");
-                continue;
-            }
-
-            string inputText;
-            try
-            {
-                inputText = await File.ReadAllTextAsync(sourceFilePath);
-            }
-            catch (Exception)
-            {
-                LbxDestinationItems.Add($"({count}) {sourceFilePath} -> Conversion error.");
+                LbxDestinationItems.Add($"({count}) [❌ File skipped ({fileExt})] {sourceFilePath}");
                 continue;
             }
 
@@ -378,13 +392,42 @@ public class MainWindowViewModel : ViewModelBase
                             ? $"_{config}"
                             : "_Other";
 
-            var convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
-
             var outputFilename = Path.Combine(Path.GetFullPath(TbOutFolderText),
                 filenameWithoutExt + suffix + fileExt);
-            await File.WriteAllTextAsync(outputFilename, convertedText);
 
-            LbxDestinationItems.Add($"({count}) {outputFilename} -> [Done ✓]");
+            if (fileExt is ".docx" or ".xlsx" or ".pptx" or ".odt")
+            {
+                var (success, message) = await ConvertOfficeDocModel.ConvertOfficeDocAsync(
+                    sourceFilePath,
+                    outputFilename,
+                    fileExt[1..], // remove leading dot
+                    _opencc!);
+
+                LbxDestinationItems.Add(
+                    success
+                        ? $"({count}) {outputFilename} -> {message}"
+                        : $"({count}) [File skipped] {sourceFilePath} -> {message}"
+                );
+            }
+            else
+            {
+                string inputText;
+                try
+                {
+                    inputText = await File.ReadAllTextAsync(sourceFilePath);
+                }
+                catch (Exception)
+                {
+                    LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ Conversion error.");
+                    continue;
+                }
+
+                var convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
+
+                await File.WriteAllTextAsync(outputFilename, convertedText);
+
+                LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
+            }
         }
 
         LblStatusBarContent = $"Batch conversion done ( {config} )";
@@ -415,10 +458,11 @@ public class MainWindowViewModel : ViewModelBase
         var storageProvider = mainWindow.StorageProvider;
         var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Open Text File",
+            Title = "Open Text/Office File(s)",
             FileTypeFilter = new List<FilePickerFileType>
             {
                 new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("Office Files") { Patterns = new[] { "*.docx", "*.xlsx", "*.pptx", "*.odt" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = true
@@ -618,7 +662,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private string GetCurrentConfig()
     {
-        if (IsRbCustom) return SelectedItem![..SelectedItem!.IndexOf(' ')];            
+        if (IsRbCustom) return SelectedItem![..SelectedItem!.IndexOf(' ')];
 
         var config = IsRbS2T
             ? IsRbStd

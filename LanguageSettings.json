@@ -36,6 +36,12 @@
     ".cs",
     ".py",
     ".java",
-    ".md"
-  ]
+    ".md",
+    ".js",
+	".docx",
+	".xlsx",
+    ".pptx",
+    ".odt"
+  ],
+  "dictionary": "zstd"
 }

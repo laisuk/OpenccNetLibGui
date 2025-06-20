@@ -59,8 +59,13 @@ public class LanguageSettingsService
                     "".py"",
                     "".java"",
                     "".md"",
-                    "".js""
-                ]
+                    "".js"",
+	                "".docx"",
+	                "".xlsx"",
+                    "".pptx"",
+                    "".odt""
+                ],
+                ""dictionary"": ""zstd""
             }";
 
         File.WriteAllText(filePath, languageSettingsText);
