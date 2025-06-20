@@ -8,9 +8,13 @@
         <ApplicationIcon>Assets/openccnetlib.ico</ApplicationIcon>
         <TargetFramework>net8.0</TargetFramework>
         <LangVersion>10</LangVersion>
-        <AssemblyVersion>1.0.0</AssemblyVersion>
-        <FileVersion>1.0.0</FileVersion>
-        <AssemblyInformationalVersion>1.0.0</AssemblyInformationalVersion>
+        <AssemblyVersion>1.0.1.0</AssemblyVersion>
+        <FileVersion>1.0.1.0</FileVersion>
+        <AssemblyInformationalVersion>1.0.1</AssemblyInformationalVersion>
+        <Version>1.0.1</Version>
+        <Title>OpenccNetLibGui</Title>
+        <Authors>laisuk</Authors>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
