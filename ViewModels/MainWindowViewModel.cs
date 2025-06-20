@@ -305,7 +305,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task BtnBatchStart()
     {
-        string outputRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
+        var outputRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
         Directory.CreateDirectory(outputRoot);
 
         if (LbxSourceItems?.Count == 0)
@@ -330,14 +330,14 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         // Configs
-        string config = GetCurrentConfig();
-        string? conversion = IsRbCustom ? $"{RbCustomContent} -> {config}" :
+        var config = GetCurrentConfig();
+        var conversion = IsRbCustom ? $"{RbCustomContent} -> {config}" :
             IsRbS2T ? RbS2TContent : RbT2SContent;
-        string? region = IsRbCustom ? RbCustomContent :
+        var region = IsRbCustom ? RbCustomContent :
             IsRbStd ? RbStdContent :
             IsRbHk ? RbHkContent : RbZhtwContent;
-        string? zhTwIdioms = IsRbCustom ? RbCustomContent : (IsCbZhtw ? "Yes" : "No");
-        string punctuation = IsCbPunctuation ? "Yes" : "No";
+        var zhTwIdioms = IsRbCustom ? RbCustomContent : (IsCbZhtw ? "Yes" : "No");
+        var punctuation = IsCbPunctuation ? "Yes" : "No";
 
         // UI output setup
         IsTabMessage = true;
@@ -348,12 +348,12 @@ public class MainWindowViewModel : ViewModelBase
         LbxDestinationItems.Add($"Punctuations (标点) => {punctuation}");
         LbxDestinationItems.Add($"Output folder: (输出文件夹) => {TbOutFolderText}");
 
-        int count = 0;
+        var count = 0;
         foreach (var sourceFilePath in LbxSourceItems!)
         {
             count++;
-            string fileExt = Path.GetExtension(sourceFilePath);
-            string filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
+            var fileExt = Path.GetExtension(sourceFilePath);
+            var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
             {
@@ -369,11 +369,11 @@ public class MainWindowViewModel : ViewModelBase
 
             _opencc!.Config = config;
 
-            string suffix = IsRbT2S ? "_Hans" :
+            var suffix = IsRbT2S ? "_Hans" :
                 IsRbS2T ? "_Hant" :
                 IsRbCustom ? $"_{config}" : "_Other";
 
-            string outputFilename = Path.Combine(TbOutFolderText, filenameWithoutExt + suffix + fileExt);
+            var outputFilename = Path.Combine(TbOutFolderText, filenameWithoutExt + suffix + fileExt);
 
             if (fileExt is ".docx" or ".xlsx" or ".pptx" or ".odt")
             {
@@ -394,8 +394,8 @@ public class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    string inputText = await File.ReadAllTextAsync(sourceFilePath);
-                    string convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
+                    var inputText = await File.ReadAllTextAsync(sourceFilePath);
+                    var convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
                     await File.WriteAllTextAsync(outputFilename, convertedText);
                     LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
                 }
@@ -408,137 +408,6 @@ public class MainWindowViewModel : ViewModelBase
 
         LblStatusBarContent = $"Batch conversion done ({config})";
     }
-
-
-    // private async Task BtnBatchStart()
-    // {
-    //     if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output")))
-    //         Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output"));
-    //
-    //     if (LbxSourceItems!.Count == 0)
-    //     {
-    //         LblStatusBarContent = "Nothing to convert.";
-    //         return;
-    //     }
-    //
-    //     if (!Directory.Exists(TbOutFolderText))
-    //     {
-    //         await MessageBox.Show("Invalid output folder:\n " + TbOutFolderText, "Error",
-    //             _topLevelService!.GetMainWindow());
-    //         IsTbOutFolderFocus = true;
-    //         return;
-    //     }
-    //
-    //     if (IsRbS2T == false && IsRbT2S == false && IsRbCustom == false)
-    //     {
-    //         await MessageBox.Show("Please select conversion type:\n zh-Hans / zh-Hant", "Error",
-    //             _topLevelService!.GetMainWindow());
-    //         return;
-    //     }
-    //
-    //     var config = GetCurrentConfig();
-    //     var conversion = IsRbCustom
-    //         ? $"{RbCustomContent} -> {config}"
-    //         : IsRbS2T
-    //             ? RbS2TContent
-    //             : RbT2SContent;
-    //     var region = IsRbCustom
-    //         ? RbCustomContent
-    //         : IsRbStd
-    //             ? RbStdContent
-    //             : IsRbHk
-    //                 ? RbHkContent
-    //                 : RbZhtwContent;
-    //     var iSZhTwIdioms = IsRbCustom
-    //         ? RbCustomContent
-    //         : IsCbZhtw
-    //             ? "Yes"
-    //             : "No";
-    //     var isPunctuations = IsCbPunctuation
-    //         ? "Yes"
-    //         : "No";
-    //
-    //     IsTabMessage = true;
-    //     LbxDestinationItems!.Clear();
-    //     LbxDestinationItems.Add($"Conversion Type (转换方式) => {conversion}");
-    //     LbxDestinationItems.Add($"Region (区域) => {region}");
-    //     LbxDestinationItems.Add($"ZH/TW Idioms (中台惯用语) => {iSZhTwIdioms}");
-    //     LbxDestinationItems.Add($"Punctuations (标点) => {isPunctuations}");
-    //     LbxDestinationItems.Add($"Output folder: (输出文件夹) => {TbOutFolderText}");
-    //
-    //     var count = 0;
-    //
-    //     foreach (var item in LbxSourceItems)
-    //     {
-    //         count++;
-    //         var sourceFilePath = item;
-    //         var fileExt = Path.GetExtension(sourceFilePath);
-    //         var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
-    //
-    //         if (!File.Exists(sourceFilePath))
-    //         {
-    //             LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ File not found.");
-    //             continue;
-    //         }
-    //
-    //         if (!_textFileTypes!.Contains(fileExt))
-    //         {
-    //             LbxDestinationItems.Add($"({count}) [❌ File skipped ({fileExt})] {sourceFilePath}");
-    //             continue;
-    //         }
-    //
-    //         _opencc!.Config = config;
-    //
-    //         var suffix =
-    //             // Set suffix based on the radio button state
-    //             IsRbT2S
-    //                 ? "_Hans"
-    //                 : IsRbS2T
-    //                     ? "_Hant"
-    //                     : IsRbCustom
-    //                         ? $"_{config}"
-    //                         : "_Other";
-    //
-    //         var outputFilename = Path.Combine(Path.GetFullPath(TbOutFolderText),
-    //             filenameWithoutExt + suffix + fileExt);
-    //
-    //         if (fileExt is ".docx" or ".xlsx" or ".pptx" or ".odt")
-    //         {
-    //             var (success, message) = await ConvertOfficeDocModel.ConvertOfficeDocAsync(
-    //                 sourceFilePath,
-    //                 outputFilename,
-    //                 fileExt[1..], // remove leading dot
-    //                 _opencc!);
-    //
-    //             LbxDestinationItems.Add(
-    //                 success
-    //                     ? $"({count}) {outputFilename} -> {message}"
-    //                     : $"({count}) [File skipped] {sourceFilePath} -> {message}"
-    //             );
-    //         }
-    //         else
-    //         {
-    //             string inputText;
-    //             try
-    //             {
-    //                 inputText = await File.ReadAllTextAsync(sourceFilePath);
-    //             }
-    //             catch (Exception)
-    //             {
-    //                 LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ Conversion error.");
-    //                 continue;
-    //             }
-    //
-    //             var convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
-    //
-    //             await File.WriteAllTextAsync(outputFilename, convertedText);
-    //
-    //             LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
-    //         }
-    //     }
-    //
-    //     LblStatusBarContent = $"Batch conversion done ( {config} )";
-    // }
 
     private void BtnClearTbSource()
     {
