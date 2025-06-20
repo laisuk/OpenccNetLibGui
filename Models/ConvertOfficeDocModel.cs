@@ -15,7 +15,8 @@ public static class ConvertOfficeDocModel
         string inputPath,
         string outputPath,
         string format,
-        Opencc converter)
+        Opencc converter,
+        bool punctuation)
     {
         var tempDir = Path.Combine(Path.GetTempPath(), $"{format}_temp_" + Guid.NewGuid());
 
@@ -53,7 +54,7 @@ public static class ConvertOfficeDocModel
                 if (!File.Exists(fullPath)) continue;
 
                 string xmlContent = await File.ReadAllTextAsync(fullPath, Encoding.UTF8);
-                string convertedXml = converter.Convert(xmlContent);
+                string convertedXml = converter.Convert(xmlContent, punctuation);
                 await File.WriteAllTextAsync(fullPath, convertedXml, Encoding.UTF8);
                 convertedCount++;
             }
