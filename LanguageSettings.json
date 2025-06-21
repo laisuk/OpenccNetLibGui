@@ -43,5 +43,5 @@
     ".pptx",
     ".odt"
   ],
-  "dictionary": "zstd"
+  "dictionary": "dicts"
 }
