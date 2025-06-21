@@ -55,7 +55,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _rbHkContent = "ZH-HK (中港简繁)";
     private string? _rbS2TContent = "zh-Hans (简体) to zh-Hant (繁体)";
     private string? _rbCustomContent = "Manual (自定义)";
-    private string? _rbStdContent = "Standard (标准简繁)";
+    private string? _rbStdContent = "Standard (通用简繁)";
     private string? _rbT2SContent = "zh-Hant (繁体) to zh-Hans (简体)";
     private string? _rbZhtwContent = "ZH-TW (中台简繁)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;

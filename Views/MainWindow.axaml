@@ -150,7 +150,7 @@
 
                         <Label Grid.Row="1" Grid.Column="0" Content="Source:" HorizontalAlignment="Left"
                                VerticalAlignment="Center" Margin="5,0,0,0" FontSize="16" BorderBrush="DarkGray"
-                               BorderThickness="3,0,0,0" />
+                               BorderThickness="3,0,0,2" />
                         <Label x:Name="LblSourceCode" Grid.Row="1" Grid.Column="0"
                                Content="{Binding LblSourceCodeContent}"
                                HorizontalAlignment="Left" VerticalAlignment="Center" Margin="80,0,0,0" FontSize="16" />
@@ -159,7 +159,7 @@
                                VerticalAlignment="Center" Margin="0,0,130,0" FontSize="14" />
                         <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
                                Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
-                               BorderThickness="3,0,0,0" />
+                               BorderThickness="3,0,0,2" />
                         <Label x:Name="LblDestinationCode" Grid.Column="1"
                                Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left"
                                Margin="110,0,0,0" Grid.Row="1" VerticalAlignment="Center" FontSize="16" />
@@ -203,7 +203,7 @@
                                  ScrollViewer.HorizontalScrollBarVisibility="Auto" />
                         <Label Grid.Row="1" Grid.Column="0" Content="Source:" HorizontalAlignment="Left"
                                VerticalAlignment="Center" Margin="5,0,0,0" FontSize="16" BorderBrush="DarkGray"
-                               BorderThickness="3,0,0,0" />
+                               BorderThickness="3,0,0,2" />
 
                         <TabControl Grid.Row="0" Grid.Column="1" TabStripPlacement="Bottom">
                             <TabItem x:Name="TabMessage" Header="Message" FontSize="14"
@@ -229,7 +229,7 @@
 
                         <Label Grid.Column="1" Content="Output:" HorizontalAlignment="Left" Margin="5,0,0,0"
                                Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
-                               BorderThickness="3,0,0,0" />
+                               BorderThickness="3,0,0,2" />
                         <Button x:Name="BtnAdd" Content="＋" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center"
                                 Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
@@ -255,7 +255,7 @@
                                  Text="{Binding TbOutFolderText}"
                                  HorizontalAlignment="Left" VerticalAlignment="Center"
                                  helpers:FocusAttachedProperty.IsFocused="{Binding IsTbOutFolderFocus}"
-                                 VerticalContentAlignment="Center" Margin="70,2,2,2" Padding="0 2" />
+                                 VerticalContentAlignment="Center" Margin="75,2,2,2" Padding="0 2" />
                         <Button x:Name="BtnOutFolder" Content="…" Padding="0 2" Width="50" HorizontalAlignment="Right"
                                 HorizontalContentAlignment="Center"
                                 Margin="0,2,60,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
