@@ -20,6 +20,7 @@ Download the latest version of **OpenccNetLibGui** for your platform:
 
 - **Chinese Conversion**: Convert between simplified and traditional Chinese text.
 - **Single/Batch Conversion**: Perform Chinese text conversion in single or batch mode.
+- Able to convert all **text based file types** and **Office file types** (`.docx`, `.xlsx`, `.ppts`, `.odt`)
 
 ## Dependencies
 
@@ -54,8 +55,9 @@ dotnet run
 
 ### Single Mode
 
-![image01](./Assets/image01.png)
+![image01](./Assets/image01.png)  
 
+Support all **text base** file types.
 1. Paste the text or open a file you wish to convert (file/text drag and drop are supported on Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).
 3. Click the **Process** button to see the results.
@@ -65,12 +67,29 @@ dotnet run
 ### Batch Mode
 
 ![image02](./Assets/image02.png)
-![image03](./Assets/image03.png)
+![image03](./Assets/image03.png)  
+
+Support all **text base** file types and **Office files** (`.docx`, `.xlsx`, `.ppts`, `.odt`)
 
 1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and macOS).
 2. Select the desired conversion configuration.
 3. Set the output folder.
 4. Click the **Batch Start** button to begin batch conversion.
+
+### Custom Dictionary
+
+Usage of custom dictionary can be set in `LanguageSettings.json`, options are:
+
+```json
+{
+  "dictionary": "dicts"
+}
+```
+
+1. `"dicts"` - _*.txt_ in directory `dicts`
+2. `"json"` - _dictionary_maxlength.json_ 
+3. `"cbor"` - _dictionary_maxlength.cbor_
+4. None of above, default to `"zstd"` - _dictionary_maxlength.zstd_
 
 ## Contributing
 
