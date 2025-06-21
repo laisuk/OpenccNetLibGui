@@ -78,7 +78,7 @@ Support all **text base** file types and **Office files** (`.docx`, `.xlsx`, `.p
 
 ### Custom Dictionary
 
-Usage of custom dictionary can be set in `LanguageSettings.json`, options are:
+Usage of custom dictionary can be set in `LanguageSettings.json`:
 
 ```json
 {
@@ -86,6 +86,7 @@ Usage of custom dictionary can be set in `LanguageSettings.json`, options are:
 }
 ```
 
+Options are:
 1. `"dicts"` - _*.txt_ in directory `dicts`
 2. `"json"` - _dictionary_maxlength.json_ 
 3. `"cbor"` - _dictionary_maxlength.cbor_
