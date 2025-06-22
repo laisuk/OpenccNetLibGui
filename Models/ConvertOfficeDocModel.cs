@@ -129,7 +129,7 @@ public static class ConvertOfficeDocModel
             if (File.Exists(outputPath)) File.Delete(outputPath);
             ZipFile.CreateFromDirectory(tempDir, outputPath, CompressionLevel.Optimal, false);
 
-            return (true, $"✅ Successfully converted {convertedCount} file(s) in {format} document.");
+            return (true, $"✅ Successfully converted {convertedCount} fragment(s) in {format} document.");
         }
         catch (Exception ex)
         {
