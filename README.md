@@ -20,7 +20,7 @@ Download the latest version of **OpenccNetLibGui** for your platform:
 
 - **Chinese Conversion**: Convert between simplified and traditional Chinese text.
 - **Single/Batch Conversion**: Perform Chinese text conversion in single or batch mode.
-- Able to convert all **text based file types** and **Office file types** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
+- Designed to convert most **text based file types** and **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
 
 ## Dependencies
 
@@ -57,7 +57,7 @@ dotnet run
 
 ![image01](./Assets/image01.png)  
 
-Support all **text base** file types.
+Support most **text base** file types.
 1. Paste the text or open a file you wish to convert (file/text drag and drop are supported on Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).
 3. Click the **Process** button to see the results.
@@ -69,7 +69,7 @@ Support all **text base** file types.
 ![image02](./Assets/image02.png)
 ![image03](./Assets/image03.png)  
 
-Support all **text base** file types and **Office files** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
+Support most **text base** file types and **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
 
 1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and macOS).
 2. Select the desired conversion configuration.
