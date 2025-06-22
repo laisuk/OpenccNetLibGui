@@ -127,7 +127,7 @@ public class MainWindowViewModel : ViewModelBase
         var languageSettings = languageSettingsService.LanguageSettings;
         _languagesInfo = languageSettings?.Languages;
         _textFileTypes = languageSettings?.TextFileTypes;
-        _officeFileTypes = new List<string> {".docx", ".xlsx", ".pptx", ".odt"};
+        _officeFileTypes = new List<string> { ".docx", ".xlsx", ".pptx", ".odt" };
 
         switch (languageSettings?.Dictionary)
         {
@@ -384,7 +384,8 @@ public class MainWindowViewModel : ViewModelBase
                     outputFilename,
                     fileExt[1..], // remove "."
                     _opencc,
-                    IsCbPunctuation);
+                    IsCbPunctuation,
+                    true);
 
                 LbxDestinationItems.Add(
                     success
@@ -484,7 +485,8 @@ public class MainWindowViewModel : ViewModelBase
 
         var filename = LbxSourceSelectedItem;
 
-        if (!_textFileTypes!.Contains(Path.GetExtension(filename)!) || _officeFileTypes!.Contains(Path.GetExtension(filename)!))
+        if (!_textFileTypes!.Contains(Path.GetExtension(filename)!) ||
+            _officeFileTypes!.Contains(Path.GetExtension(filename)!))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + Path.GetExtension(filename)! + "] Preview not supported ❌");
