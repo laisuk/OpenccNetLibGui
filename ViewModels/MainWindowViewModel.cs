@@ -21,7 +21,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly List<Language>? _languagesInfo;
     private readonly List<string>? _textFileTypes;
-    private readonly List<string>? _officeFileTypes;
+    // private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
     private string? _currentOpenFileName;
     private bool _isBtnBatchStartVisible;
@@ -65,6 +65,12 @@ public class MainWindowViewModel : ViewModelBase
     private string? _tbPreviewText;
     private TextDocument? _tbSourceTextDocument;
     private string? _selectedItem;
+    
+    // Supported Office file formats for Office documents conversion.
+    private static readonly HashSet<string> OfficeExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp", ".epub"
+    };
 
     private readonly Opencc? _opencc;
 
@@ -127,7 +133,7 @@ public class MainWindowViewModel : ViewModelBase
         var languageSettings = languageSettingsService.LanguageSettings;
         _languagesInfo = languageSettings?.Languages;
         _textFileTypes = languageSettings?.TextFileTypes;
-        _officeFileTypes = new List<string> { ".docx", ".xlsx", ".pptx", ".odt" };
+        // _officeFileTypes = new List<string> { ".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp", ".epub" };
 
         switch (languageSettings?.Dictionary)
         {
@@ -354,7 +360,7 @@ public class MainWindowViewModel : ViewModelBase
         foreach (var sourceFilePath in LbxSourceItems!)
         {
             count++;
-            var fileExt = Path.GetExtension(sourceFilePath);
+            var fileExt = Path.GetExtension(sourceFilePath).ToLowerInvariant();
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
@@ -377,9 +383,9 @@ public class MainWindowViewModel : ViewModelBase
 
             var outputFilename = Path.Combine(TbOutFolderText, filenameWithoutExt + suffix + fileExt);
 
-            if (fileExt is ".docx" or ".xlsx" or ".pptx" or ".odt")
+            if (OfficeExtensions.Contains(fileExt))
             {
-                var (success, message) = await ConvertOfficeDocModel.ConvertOfficeDocAsync(
+                var (success, message) = await OfficeDocModel.ConvertOfficeDocAsync(
                     sourceFilePath,
                     outputFilename,
                     fileExt[1..], // remove "."
@@ -441,7 +447,7 @@ public class MainWindowViewModel : ViewModelBase
             FileTypeFilter = new List<FilePickerFileType>
             {
                 new("Text Files") { Patterns = new[] { "*.txt" } },
-                new("Office Files") { Patterns = new[] { "*.docx", "*.xlsx", "*.pptx", "*.odt" } },
+                new("Office Files") { Patterns = new[] { "*.docx", "*.xlsx", "*.pptx", "*.odt", "*.ods", "*.odp", "*.epub" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = true
@@ -486,7 +492,7 @@ public class MainWindowViewModel : ViewModelBase
         var filename = LbxSourceSelectedItem;
 
         if (!_textFileTypes!.Contains(Path.GetExtension(filename)!) ||
-            _officeFileTypes!.Contains(Path.GetExtension(filename)!))
+            OfficeExtensions.Contains(Path.GetExtension(filename)!))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + Path.GetExtension(filename)! + "] Preview not supported ❌");

@@ -63,7 +63,10 @@ public class LanguageSettingsService
 	                "".docx"",
 	                "".xlsx"",
                     "".pptx"",
-                    "".odt""
+                    "".odt"",
+                    "".ods"",
+                    "".odp"",
+                    "".epub""
                 ],
                 ""dictionary"": ""zstd""
             }";

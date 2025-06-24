@@ -14,7 +14,7 @@ namespace OpenccNetLibGui.Models;
 /// Provides functionality to convert Office document formats (.docx, .xlsx, .pptx, .odt)
 /// using the Opencc converter with optional font name preservation.
 /// </summary>
-public static class ConvertOfficeDocModel
+public static class OfficeDocModel
 {
     /// <summary>
     /// Converts an Office document by applying OpenCC conversion on specific XML parts.
@@ -22,7 +22,7 @@ public static class ConvertOfficeDocModel
     /// </summary>
     /// <param name="inputPath">The full path to the input Office document (e.g., .docx).</param>
     /// <param name="outputPath">The desired full path to the converted output file.</param>
-    /// <param name="format">The document format ("docx", "xlsx", "pptx", or "odt").</param>
+    /// <param name="format">The document format ("docx", "xlsx", "pptx", "odt", "ods", "odp", or "epub").</param>
     /// <param name="converter">The OpenCC converter instance used for conversion.</param>
     /// <param name="punctuation">Whether to convert punctuation during OpenCC transformation.</param>
     /// <param name="keepFont">If true, font names are preserved using placeholder markers during conversion.</param>
@@ -58,7 +58,18 @@ public static class ConvertOfficeDocModel
                         .Select(path => Path.GetRelativePath(tempDir, path))
                         .ToList()
                     : new List<string>(),
-                "odt" => new List<string> { "content.xml" },
+                // 🆕 Add ODT family: all use "content.xml"
+                "odt" or "ods" or "odp" => new List<string> { "content.xml" },
+                "epub" => Directory.Exists(tempDir)
+                    ? Directory.GetFiles(tempDir, "*.*", SearchOption.AllDirectories)
+                        .Where(f =>
+                            f.EndsWith(".xhtml", StringComparison.OrdinalIgnoreCase) ||
+                            f.EndsWith(".opf", StringComparison.OrdinalIgnoreCase) ||
+                            f.EndsWith(".ncx", StringComparison.OrdinalIgnoreCase))
+                        .Select(f => Path.GetRelativePath(tempDir, f))
+                        .ToList()
+                    : new List<string>(),
+
                 _ => null
             };
 
@@ -89,7 +100,9 @@ public static class ConvertOfficeDocModel
                         "docx" => @"(w:eastAsia=""|w:ascii=""|w:hAnsi=""|w:cs="")(.*?)("")",
                         "xlsx" => @"(val="")(.*?)("")",
                         "pptx" => @"(typeface="")(.*?)("")",
-                        "odt" => @"((style:name|svg:font-family)=[""'])([^""']+)([""'])",
+                        // 🆕 Handle odt, ods, odp
+                        "odt" or "ods" or "odp" => @"((?:style:font-name(?:-asian|-complex)?|svg:font-family|style:name)=[""'])([^""']+)([""'])",
+                        "epub" => @"(font-family\s*:\s*)([^;""']+)",
                         _ => null
                     };
 
@@ -97,13 +110,16 @@ public static class ConvertOfficeDocModel
                     {
                         xmlContent = Regex.Replace(xmlContent, pattern, match =>
                         {
-                            var originalFont = format == "odt" ? match.Groups[3].Value : match.Groups[2].Value;
-                            var marker = $"FONT_{fontCounter++}";
+                            var originalFont = match.Groups[2].Value;
+                            var marker = $"__F_O_N_T_{fontCounter++}__";
                             fontMap[marker] = originalFont;
 
-                            return format == "odt"
-                                ? match.Groups[1].Value + marker + match.Groups[4].Value
-                                : match.Groups[1].Value + marker + match.Groups[3].Value;
+                            return format switch
+                            {
+                                // "odt" or "ods" or "odp" => match.Groups[1].Value + marker + match.Groups[3].Value,
+                                "epub" => match.Groups[1].Value + marker,
+                                _ => match.Groups[1].Value + marker + match.Groups[3].Value
+                            };
                         });
                     }
                 }
@@ -125,9 +141,22 @@ public static class ConvertOfficeDocModel
                 convertedCount++;
             }
 
+            // Return if no valid XML fragments found
+            if (convertedCount == 0)
+            {
+                return (false,
+                    $"⚠️ No valid XML fragments were found for conversion. Is the format '{format}' correct?");
+            }
+
             // Create the new ZIP archive with the converted files
             if (File.Exists(outputPath)) File.Delete(outputPath);
-            ZipFile.CreateFromDirectory(tempDir, outputPath, CompressionLevel.Optimal, false);
+            if (format == "epub")
+            {
+                var (zipSuccess, zipMessage) = CreateEpubZipWithSpec(tempDir, outputPath);
+                if (!zipSuccess) return (false, zipMessage);
+            }
+            else
+                ZipFile.CreateFromDirectory(tempDir, outputPath, CompressionLevel.Optimal, false);
 
             return (true, $"✅ Successfully converted {convertedCount} fragment(s) in {format} document.");
         }
@@ -142,4 +171,56 @@ public static class ConvertOfficeDocModel
                 Directory.Delete(tempDir, true);
         }
     }
+    
+    /// <summary>
+    /// Creates a valid EPUB-compliant ZIP archive from the specified source directory.
+    /// Ensures the <c>mimetype</c> file is the first entry and uncompressed,
+    /// as required by the EPUB specification.
+    /// </summary>
+    /// <param name="sourceDir">The temporary directory containing EPUB unpacked contents.</param>
+    /// <param name="outputPath">The full path of the output EPUB file to be created.</param>
+    /// <returns>Tuple indicating success and an informative message.</returns>
+    private static (bool Success, string Message) CreateEpubZipWithSpec(string sourceDir, string outputPath)
+    {
+        var mimePath = Path.Combine(sourceDir, "mimetype");
+
+        try
+        {
+            using var fs = new FileStream(outputPath, FileMode.Create);
+            using var archive = new ZipArchive(fs, ZipArchiveMode.Create);
+
+            // 1. Add mimetype first, uncompressed
+            if (File.Exists(mimePath))
+            {
+                var mimeEntry = archive.CreateEntry("mimetype", CompressionLevel.NoCompression);
+                using var entryStream = mimeEntry.Open();
+                using var fileStream = File.OpenRead(mimePath);
+                fileStream.CopyTo(entryStream);
+            }
+            else
+            {
+                return (false, "❌ 'mimetype' file is missing. EPUB requires this as the first entry.");
+            }
+
+            // 2. Add the rest (recursively)
+            foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
+            {
+                if (Path.GetFullPath(file) == Path.GetFullPath(mimePath))
+                    continue;
+
+                var entryPath = Path.GetRelativePath(sourceDir, file).Replace('\\', '/');
+                var entry = archive.CreateEntry(entryPath, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                using var fileStream = File.OpenRead(file);
+                fileStream.CopyTo(entryStream);
+            }
+
+            return (true, "✅ EPUB archive created successfully.");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"❌ Failed to create EPUB: {ex.Message}");
+        }
+    }
+
 }

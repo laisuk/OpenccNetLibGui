@@ -41,7 +41,10 @@
     ".docx",
     ".xlsx",
     ".pptx",
-    ".odt"
+    ".odt",
+    ".ods",
+    ".odp",
+    ".epub"
   ],
   "dictionary": "dicts"
 }
