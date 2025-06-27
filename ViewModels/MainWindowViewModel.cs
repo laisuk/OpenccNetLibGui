@@ -43,9 +43,9 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isTabMessage = true;
     private bool _isTabPreview;
     private bool _isTbOutFolderFocus;
-    private string? _lblDestinationCodeContent;
+    private string? _lblDestinationCodeContent = "<Empty>";
     private string? _lblFilenameContent;
-    private string? _lblSourceCodeContent;
+    private string? _lblSourceCodeContent = "<Empty>";
     private string? _lblStatusBarContent;
     private string? _lblTotalCharsContent;
     private ObservableCollection<string>? _lbxDestinationItems;
@@ -271,6 +271,11 @@ public class MainWindowViewModel : ViewModelBase
             LblStatusBarContent = "Source content is empty.";
             return;
         }
+        
+        if (string.IsNullOrEmpty(LblSourceCodeContent) || LblSourceCodeContent == "<Empty>")
+        {
+            UpdateEncodeInfo(Opencc.ZhoCheck(TbSourceTextDocument.Text));
+        }
 
         var config = GetCurrentConfig();
         Stopwatch stopwatch = new Stopwatch();
@@ -283,7 +288,7 @@ public class MainWindowViewModel : ViewModelBase
             // Replace document and clear undo history to free memory
             TbDestinationTextDocument!.Text = convertedText;
         }
-
+        
         if (IsRbT2S)
         {
             LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
