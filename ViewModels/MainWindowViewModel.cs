@@ -20,7 +20,9 @@ namespace OpenccNetLibGui.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly List<Language>? _languagesInfo;
+
     private readonly List<string>? _textFileTypes;
+
     // private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
     private string? _currentOpenFileName;
@@ -65,7 +67,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _tbPreviewText;
     private TextDocument? _tbSourceTextDocument;
     private string? _selectedItem;
-    
+
     // Supported Office file formats for Office documents conversion.
     private static readonly HashSet<string> OfficeExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -133,7 +135,6 @@ public class MainWindowViewModel : ViewModelBase
         var languageSettings = languageSettingsService.LanguageSettings;
         _languagesInfo = languageSettings?.Languages;
         _textFileTypes = languageSettings?.TextFileTypes;
-        // _officeFileTypes = new List<string> { ".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp", ".epub" };
 
         switch (languageSettings?.Dictionary)
         {
@@ -271,49 +272,38 @@ public class MainWindowViewModel : ViewModelBase
             LblStatusBarContent = "Source content is empty.";
             return;
         }
-        
+
         if (string.IsNullOrEmpty(LblSourceCodeContent) || LblSourceCodeContent == "<Empty>")
         {
             UpdateEncodeInfo(Opencc.ZhoCheck(TbSourceTextDocument.Text));
         }
 
         var config = GetCurrentConfig();
-        Stopwatch stopwatch = new Stopwatch();
-        if (IsRbS2T || IsRbT2S || IsRbCustom)
-        {
-            _opencc!.Config = config;
-            stopwatch.Start();
-            var convertedText = _opencc.Convert(TbSourceTextDocument.Text, IsCbPunctuation);
-            stopwatch.Stop();
-            // Replace document and clear undo history to free memory
-            TbDestinationTextDocument!.Text = convertedText;
-        }
-        
-        if (IsRbT2S)
-        {
-            LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
-                ? LblSourceCodeContent
-                : _languagesInfo![2].Name;
-        }
-        else if (IsRbS2T)
-        {
-            LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
-                ? LblSourceCodeContent
-                : _languagesInfo![1].Name;
-        }
-        else if (IsRbCustom)
-        {
-            LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
-                ? LblSourceCodeContent
-                : $"Manual ( {config} )";
-        }
-        else
-        {
-            return;
-        }
+
+        // Preload text before timing to exclude Avalonia's first-access cost
+        var inputText = TbSourceTextDocument.Text;
+
+        if (!IsRbS2T && !IsRbT2S && !IsRbCustom) return;
+        _opencc!.Config = config;
+
+        var stopwatch = Stopwatch.StartNew();
+        var convertedText = _opencc.Convert(inputText, IsCbPunctuation);
+        stopwatch.Stop();
+
+        // Set result and clear undo history to reduce memory usage
+        TbDestinationTextDocument!.Text = convertedText;
+        TbDestinationTextDocument.UndoStack.ClearAll();
+
+        // Set destination label
+        LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
+            ? LblSourceCodeContent
+            : IsRbT2S
+                ? _languagesInfo![2].Name
+                : IsRbS2T
+                    ? _languagesInfo![1].Name
+                    : $"Manual ( {config} )";
 
         LblStatusBarContent = $"Process completed: {config} —> {stopwatch.ElapsedMilliseconds} ms";
-        TbDestinationTextDocument!.UndoStack.ClearAll();
     }
 
     private async Task BtnBatchStart()
@@ -452,7 +442,8 @@ public class MainWindowViewModel : ViewModelBase
             FileTypeFilter = new List<FilePickerFileType>
             {
                 new("Text Files") { Patterns = new[] { "*.txt" } },
-                new("Office Files") { Patterns = new[] { "*.docx", "*.xlsx", "*.pptx", "*.odt", "*.ods", "*.odp", "*.epub" } },
+                new("Office Files")
+                    { Patterns = new[] { "*.docx", "*.xlsx", "*.pptx", "*.odt", "*.ods", "*.odp", "*.epub" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = true
