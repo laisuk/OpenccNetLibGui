@@ -23,7 +23,6 @@ public class MainWindowViewModel : ViewModelBase
 
     private readonly List<string>? _textFileTypes;
 
-    // private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
     private string? _currentOpenFileName;
     private bool _isBtnBatchStartVisible;
