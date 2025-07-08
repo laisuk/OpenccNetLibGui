@@ -20,9 +20,7 @@ namespace OpenccNetLibGui.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly List<Language>? _languagesInfo;
-
     private readonly List<string>? _textFileTypes;
-
     private readonly ITopLevelService? _topLevelService;
     private string? _currentOpenFileName;
     private bool _isBtnBatchStartVisible;
