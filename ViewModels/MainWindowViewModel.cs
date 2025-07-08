@@ -797,7 +797,7 @@ public class MainWindowViewModel : ViewModelBase
             // IsRbSegment = false;
             // IsRbTag = false;
             LblSourceCodeContent = _languagesInfo![2].Name;
-            LblDestinationCodeContent = _languagesInfo[1].Name;
+            // LblDestinationCodeContent = _languagesInfo[1].Name;
         }
     }
 
@@ -810,7 +810,7 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbS2T = false;
             LblSourceCodeContent = _languagesInfo![1].Name;
-            LblDestinationCodeContent = _languagesInfo[2].Name;
+            // LblDestinationCodeContent = _languagesInfo[2].Name;
         }
     }
 
