@@ -42,11 +42,11 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isTabMessage = true;
     private bool _isTabPreview;
     private bool _isTbOutFolderFocus;
-    private string? _lblDestinationCodeContent = "<Empty>";
-    private string? _lblFilenameContent;
-    private string? _lblSourceCodeContent = "<Empty>";
-    private string? _lblStatusBarContent;
-    private string? _lblTotalCharsContent;
+    private string? _lblDestinationCodeContent = string.Empty;
+    private string? _lblFilenameContent = string.Empty;
+    private string? _lblSourceCodeContent = string.Empty;
+    private string? _lblStatusBarContent = string.Empty;
+    private string? _lblTotalCharsContent  = string.Empty;
     private ObservableCollection<string>? _lbxDestinationItems;
     private ObservableCollection<string>? _lbxSourceItems;
     private int _lbxSourceSelectedIndex;
@@ -270,7 +270,7 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        if (string.IsNullOrEmpty(LblSourceCodeContent) || LblSourceCodeContent == "<Empty>")
+        if (string.IsNullOrEmpty(LblSourceCodeContent))
         {
             UpdateEncodeInfo(Opencc.ZhoCheck(TbSourceTextDocument.Text));
         }
@@ -797,6 +797,7 @@ public class MainWindowViewModel : ViewModelBase
             // IsRbSegment = false;
             // IsRbTag = false;
             LblSourceCodeContent = _languagesInfo![2].Name;
+            LblDestinationCodeContent = _languagesInfo[1].Name;
         }
     }
 
@@ -809,6 +810,7 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbS2T = false;
             LblSourceCodeContent = _languagesInfo![1].Name;
+            LblDestinationCodeContent = _languagesInfo[2].Name;
         }
     }
 
