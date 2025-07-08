@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 - Update to OpenccNetLib 1.0.2
+- Some code optimizations
 
 ### Fixed
 - Fixed program crash due to null value in input field text code. 
