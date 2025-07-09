@@ -46,7 +46,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _lblFilenameContent = string.Empty;
     private string? _lblSourceCodeContent = string.Empty;
     private string? _lblStatusBarContent = string.Empty;
-    private string? _lblTotalCharsContent  = string.Empty;
+    private string? _lblTotalCharsContent = string.Empty;
     private ObservableCollection<string>? _lbxDestinationItems;
     private ObservableCollection<string>? _lbxSourceItems;
     private int _lbxSourceSelectedIndex;
