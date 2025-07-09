@@ -38,7 +38,7 @@ jobs:
         run: dotnet build OpenccNetLibGui.sln --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish OpenccNetLibGui.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/ --no-self-contained
+        run: dotnet publish OpenccNetLibGui.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/ --no-self-contained -p:PublishSingleFile=true
 
       - name: Rename and Zip (Windows)
         if: runner.os == 'Windows'

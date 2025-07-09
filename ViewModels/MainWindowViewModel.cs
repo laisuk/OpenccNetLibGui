@@ -654,7 +654,7 @@ public class MainWindowViewModel : ViewModelBase
             : IsRbStd
                 ? "t2s"
                 : IsRbHk
-                    ? "t2hk"
+                    ? "hk2s"
                     : IsCbZhtw
                         ? "tw2sp"
                         : "tw2s";
