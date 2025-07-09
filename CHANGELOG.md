@@ -9,24 +9,24 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 ### Changed
-- Update to OpenccNetLib 1.0.2
+- Update OpenccNetLib to v1.0.2
 - Some code optimizations
 
 ### Fixed
-- Fixed program crash due to null value in input field text code. 
+- Fixed program crash due to null value in input field text code. [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2)
 
 ---
 
 ## [1.0.1] – 2025-06-25
 ### Added
-- Added support for Office Documents (.docx, .xlsx, .pptx, .odt)
+- Added support for Office Documents (.docx, .xlsx, .pptx, .odt, .ods, .odp, .epub) [#1](https://github.com/laisuk/OpenccNetLibGui/issues/1#issue-3147388190)
 - Added setting to use Custom Dictionary
 
 ### Changed
 - Update OpenccNetLib to v1.0.1
 
 ### Fixed
-- Fixed UI adaptation in Dark Theme
+- Fixed UI adaptation in Dark Theme. [#1](https://github.com/laisuk/OpenccNetLibGui/issues/1#issuecomment-2993268242)
 
 ---
 
