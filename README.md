@@ -69,7 +69,7 @@ Support most **text base** file types.
 ![image02](./Assets/image02.png)
 ![image03](./Assets/image03.png)  
 
-Support most **text base** file types and **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
+Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`) and EPUB (`.epub`).
 
 1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and macOS).
 2. Select the desired conversion configuration.
