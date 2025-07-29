@@ -17,7 +17,7 @@ namespace OpenccNetLibGui.Models;
 public static class OfficeDocModel
 {
     // Supported Office file formats for Office documents conversion.
-    public static readonly HashSet<string> OfficeFormats = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> OfficeFormats = new(StringComparer.OrdinalIgnoreCase)
     {
         "docx", "xlsx", "pptx", "odt", "ods", "odp", "epub"
     };
