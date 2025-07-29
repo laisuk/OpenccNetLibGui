@@ -65,12 +65,6 @@ public class MainWindowViewModel : ViewModelBase
     private TextDocument? _tbSourceTextDocument;
     private string? _selectedItem;
 
-    // Supported Office file formats for Office documents conversion.
-    private static readonly HashSet<string> OfficeExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp", ".epub"
-    };
-
     private readonly Opencc? _opencc;
 
     public ObservableCollection<string> CustomOptions { get; } = new()
@@ -353,6 +347,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             count++;
             var fileExt = Path.GetExtension(sourceFilePath).ToLowerInvariant();
+            var fileExtNoDot = fileExt[1..];
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
@@ -375,12 +370,12 @@ public class MainWindowViewModel : ViewModelBase
 
             var outputFilename = Path.Combine(TbOutFolderText, filenameWithoutExt + suffix + fileExt);
 
-            if (OfficeExtensions.Contains(fileExt))
+            if (OfficeDocModel.IsValidOfficeFormat(fileExtNoDot))
             {
                 var (success, message) = await OfficeDocModel.ConvertOfficeDocAsync(
                     sourceFilePath,
                     outputFilename,
-                    fileExt[1..], // remove "."
+                    fileExtNoDot,
                     _opencc,
                     IsCbPunctuation,
                     true);
@@ -483,12 +478,14 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var filename = LbxSourceSelectedItem;
+        var extension = Path.GetExtension(filename);
+        var extNoDot = Path.GetExtension(filename)![1..];
 
-        if (!_textFileTypes!.Contains(Path.GetExtension(filename)!) ||
-            OfficeExtensions.Contains(Path.GetExtension(filename)!))
+        if (!_textFileTypes!.Contains(extension!) ||
+            OfficeDocModel.IsValidOfficeFormat(extNoDot))
         {
             IsTabMessage = true;
-            LbxDestinationItems!.Add("File type [" + Path.GetExtension(filename)! + "] Preview not supported ❌");
+            LbxDestinationItems!.Add("File type [" + extension! + "] Preview not supported ❌");
             return;
         }
 
