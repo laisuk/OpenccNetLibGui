@@ -213,7 +213,6 @@
                                     <ListBox x:Name="LbxDestination" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0"
                                              BorderThickness="2,2,2,2" ItemsSource="{Binding LbxDestinationItems}"
                                              ScrollViewer.HorizontalScrollBarVisibility="Auto" />
-
                                 </Grid>
                             </TabItem>
                             <TabItem x:Name="TabPreview" Header="Preview" FontSize="14" FontWeight="Medium"

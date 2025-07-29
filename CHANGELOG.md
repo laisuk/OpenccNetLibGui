@@ -2,41 +2,68 @@
 
 All notable changes to this project will be documented in this file.
 
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and uses the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and uses
+the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
+
+---
+
+## [1.0.3] - 2025-07-29
+
+### Added
+
+- Add support for conversion of old Epub format (HTML)
+
+### Changed
+
+- Update to OpenccNetLib v1.0.3
 
 ---
 
 ## [1.0.2.1] - 2025-07-09
+
 ### Fixed
-- Fixed GUI radio button no conversion for hk2s [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2#issuecomment-3051032619)
+
+- Fixed GUI radio button no conversion for
+  hk2s [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2#issuecomment-3051032619)
 
 ---
 
 ## [1.0.2] - 2025-07-09
+
 ### Changed
+
 - Update OpenccNetLib to v1.0.2
 - Some code optimizations
 
 ### Fixed
-- Fixed program crash due to null value in input field text code. [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2)
+
+- Fixed program crash due to null value in input field text
+  code. [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2)
 
 ---
 
 ## [1.0.1] – 2025-06-25
+
 ### Added
-- Added support for Office Documents (.docx, .xlsx, .pptx, .odt, .ods, .odp, .epub) [#1](https://github.com/laisuk/OpenccNetLibGui/issues/1#issue-3147388190)
+
+- Added support for Office Documents (.docx, .xlsx, .pptx, .odt, .ods, .odp,
+  .epub) [#1](https://github.com/laisuk/OpenccNetLibGui/issues/1#issue-3147388190)
 - Added setting to use Custom Dictionary
 
 ### Changed
+
 - Update OpenccNetLib to v1.0.1
 
 ### Fixed
+
 - Fixed UI adaptation in Dark Theme. [#1](https://github.com/laisuk/OpenccNetLibGui/issues/1#issuecomment-2993268242)
 
 ---
 
 ## [1.0.0] – 2025-06-18
+
 ### Added
+
 - Initial public release of OpenccNetLibGui
 - Cross-platform Avalonia GUI
 - Supports Simplified <-> Traditional Chinese conversion
