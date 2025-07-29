@@ -9,9 +9,9 @@
 
 Download the latest version of **OpenccNetLibGui** for your platform:
 
-- 💻 **[Windows (win-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.2.1-win-x64.zip)**
-- 🐧 **[Linux (linux-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.2.1-linux-x64.zip)**
-- 🍎 **[macOS (osx-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.2.1-osx-x64.zip)**
+- 💻 **[Windows (win-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.3-win-x64.zip)**
+- 🐧 **[Linux (linux-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.3-linux-x64.zip)**
+- 🍎 **[macOS (osx-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.0.3-osx-x64.zip)**
 
 > 📦 These are **framework-dependent builds**, targeting `.NET 8`.  
 > You must have [.NET Runtime 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) installed to run them.
