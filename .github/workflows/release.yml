@@ -56,12 +56,14 @@ jobs:
           tag="${{ github.ref_name }}"
           folder="OpenccNetLibGui-$tag-${{ matrix.rid }}"
           mv publish "$folder"
-          zip -r "$folder.zip" "$folder"
+          tar -czf "$folder.tar.gz" "$folder"
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: OpenccNetLibGui-*-*.zip
+          files: |
+            OpenccNetLibGui-*-*.zip
+            OpenccNetLibGui-*-*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
