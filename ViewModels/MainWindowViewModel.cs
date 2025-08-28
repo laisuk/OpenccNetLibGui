@@ -30,6 +30,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbPunctuation = true;
     private bool _isCbZhtw;
     private bool _isCbZhtwEnabled;
+    private bool _isCbConvertFilename;
     private bool _isLblFileNameVisible = true;
     private bool _isRbHk;
     private bool _isRbS2T;
@@ -367,6 +368,10 @@ public class MainWindowViewModel : ViewModelBase
             var suffix = IsRbT2S ? "_Hans" :
                 IsRbS2T ? "_Hant" :
                 IsRbCustom ? $"_{config}" : "_Other";
+
+            filenameWithoutExt = IsCbConvertFilename
+                ? _opencc.Convert(filenameWithoutExt, IsCbPunctuation)
+                : filenameWithoutExt;
 
             var outputFilename = Path.Combine(TbOutFolderText, filenameWithoutExt + suffix + fileExt);
 
@@ -945,6 +950,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _isCbPunctuation;
         set => this.RaiseAndSetIfChanged(ref _isCbPunctuation, value);
+    }
+
+    public bool IsCbConvertFilename
+    {
+        get => _isCbConvertFilename;
+        set => this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
     }
 
     public bool IsTbOutFolderFocus

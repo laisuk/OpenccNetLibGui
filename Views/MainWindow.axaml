@@ -238,6 +238,9 @@
                                 Margin="125,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
                                 FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnRemoveCommand}" />
+                        <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
+                                  FontSize="13" FontWeight="Bold" Padding="3,0,0,0" Margin="180,2,0,2" VerticalAlignment="Center"
+                                  HorizontalAlignment="Left" IsChecked="{Binding IsCbConvertFilename}" />
                         <Button x:Name="BtnPreview" Content="Preview" Padding="0 2" Width="70"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,135,2"
                                 Grid.Row="1" Grid.Column="0"
