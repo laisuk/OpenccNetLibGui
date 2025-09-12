@@ -348,7 +348,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             count++;
             var fileExt = Path.GetExtension(sourceFilePath).ToLowerInvariant();
-            var fileExtNoDot = fileExt[1..];
+            var fileExtNoDot = fileExt.Length > 1 ? fileExt[1..] : "";
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
