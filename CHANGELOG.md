@@ -7,6 +7,24 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.1.1-beta1] 2025-09-14
+
+### Added
+
+- Add convert filename in batch conversion
+
+### Fixed
+
+- Fixed file-drop status display
+
+---
+
+## [1.1.0] - 2025-08-18
+
+### Changed
+
+- Update OpenccNetLib to v1.1.0
+
 ## [1.0.3] - 2025-07-29
 
 ### Added

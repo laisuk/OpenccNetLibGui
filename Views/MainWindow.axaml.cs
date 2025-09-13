@@ -75,19 +75,11 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm)
         {
             var files = e.Data.Contains(DataFormats.Files) ? e.Data.GetFiles()?.OfType<IStorageFile>().ToList() : null;
-            IStorageFile? filePath = null;
 
             if (files is { Count: > 0 })
             {
                 await HandleFileDropAsync(sender, vm, files);
-                filePath = files.FirstOrDefault()!;
             }
-            
-            vm.LblStatusBarContent = $"Contents dropped {filePath?.TryGetLocalPath()}";
-            var codeText = Opencc.ZhoCheck(vm.TbSourceTextDocument!.Text);
-            vm.UpdateEncodeInfo(codeText);
-            vm.LblFileNameContent = filePath?.Name;
-            // vm.CurrentOpenFileName = filePath?.TryGetLocalPath();
         }
     }
 
@@ -106,6 +98,10 @@ public partial class MainWindow : Window
                 if (filePath == null) return;
                 var content = await File.ReadAllTextAsync(filePath);
                 vm.TbSourceTextDocument!.Text = content;
+                vm.UpdateEncodeInfo(Opencc.ZhoCheck(content));
+                vm.LblFileNameContent = firstFile.Name;
+                vm.LblStatusBarContent = $"Contents dropped {firstFile.TryGetLocalPath()}";
+
                 break;
 
             case ListBox:
@@ -121,6 +117,7 @@ public partial class MainWindow : Window
                 vm.LbxSourceItems!.Clear();
                 foreach (var item in newItems.OrderBy(item => item))
                     vm.LbxSourceItems.Add(item);
+                vm.LblStatusBarContent = "File(s) dropped";
 
                 break;
         }
