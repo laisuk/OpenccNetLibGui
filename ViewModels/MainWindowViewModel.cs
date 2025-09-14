@@ -448,16 +448,19 @@ public class MainWindowViewModel : ViewModelBase
 
         if (result.Count <= 0) return;
         var listBoxItems = LbxSourceItems!.ToList();
+        var counter = 0;
         foreach (var file in result)
         {
             var path = file.Path.LocalPath;
-            if (!listBoxItems.Contains(path))
-                listBoxItems.Add(path);
+            if (listBoxItems.Contains(path)) continue;
+            listBoxItems.Add(path);
+            counter++;
         }
 
         var sortedList = listBoxItems.OrderBy(x => x);
         LbxSourceItems!.Clear();
         foreach (var item in sortedList) LbxSourceItems.Add(item);
+        LblStatusBarContent = $"File(s) added: {counter}";
     }
 
     private void BtnRemove()
@@ -471,7 +474,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         LbxSourceItems!.Remove(LbxSourceSelectedItem!);
-        LblStatusBarContent = $"Item ({index}) {name} removed";
+        LblStatusBarContent = $"Item ({index + 1}) {name} removed";
     }
 
     private async Task BtnPreview()
@@ -557,11 +560,15 @@ public class MainWindowViewModel : ViewModelBase
     private void BtnMessagePreviewClear()
     {
         if (IsTabMessage)
+        {
             LbxDestinationItems!.Clear();
+            LblStatusBarContent = "Messages cleared.";
+        }
 
         else if (IsTabPreview)
         {
             TbPreviewText = string.Empty;
+            LblStatusBarContent = "Preview cleared.";
         }
     }
 

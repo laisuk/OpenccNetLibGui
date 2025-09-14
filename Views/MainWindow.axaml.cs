@@ -106,18 +106,20 @@ public partial class MainWindow : Window
 
             case ListBox:
                 var newItems = new HashSet<string>(vm.LbxSourceItems!); // Ensure uniqueness
+                var currentCount = newItems.Count;
                 foreach (var file in fileList)
                 {
                     filePath = NormalizeFilePath(file);
                     if (!string.IsNullOrEmpty(filePath))
                         newItems.Add(filePath);
                 }
+                var newCount = newItems.Count;
 
                 // Clear & update ObservableCollection in bulk to minimize UI updates
                 vm.LbxSourceItems!.Clear();
                 foreach (var item in newItems.OrderBy(item => item))
                     vm.LbxSourceItems.Add(item);
-                vm.LblStatusBarContent = "File(s) dropped";
+                vm.LblStatusBarContent = $"File(s) dropped: {newCount - currentCount}";
 
                 break;
         }
