@@ -16,6 +16,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 ### Fixed
 
 - Fixed file-drop status display
+- Fixed OutFolder onFocus
 
 ---
 
