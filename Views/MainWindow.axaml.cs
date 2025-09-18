@@ -100,7 +100,7 @@ public partial class MainWindow : Window
                 vm.TbSourceTextDocument!.Text = content;
                 vm.UpdateEncodeInfo(Opencc.ZhoCheck(content));
                 vm.LblFileNameContent = firstFile.Name;
-                vm.LblStatusBarContent = $"Contents dropped {firstFile.TryGetLocalPath()}";
+                vm.LblStatusBarContent = $"Contents dropped: {firstFile.TryGetLocalPath()}";
 
                 break;
 

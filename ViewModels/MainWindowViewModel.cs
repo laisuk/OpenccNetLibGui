@@ -588,6 +588,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var folderPath = result[0].Path.LocalPath;
             TbOutFolderText = folderPath;
+            IsTbOutFolderFocus = false;
             IsTbOutFolderFocus = true;
             LblStatusBarContent = $"Output folder set: {folderPath}";
         }
