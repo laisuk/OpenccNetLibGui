@@ -7,16 +7,18 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.1.1-beta1] 2025-09-14
+## [1.1.1-beta1] 2025-09-22
 
 ### Added
 
 - Add convert filename in batch conversion
+- Add conversion for file with no extension (as plain text)
 
 ### Fixed
 
 - Fixed file-drop status display
 - Fixed OutFolder onFocus
+- Fixed file preview for file with no extension
 
 ---
 

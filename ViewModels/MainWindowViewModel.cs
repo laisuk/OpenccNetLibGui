@@ -357,7 +357,7 @@ public class MainWindowViewModel : ViewModelBase
                 continue;
             }
 
-            if (!_textFileTypes!.Contains(fileExt))
+            if (fileExt.Length != 0 && !_textFileTypes!.Contains(fileExt))
             {
                 LbxDestinationItems.Add($"({count}) [❌ File skipped ({fileExt})] {sourceFilePath}");
                 continue;
@@ -487,13 +487,13 @@ public class MainWindowViewModel : ViewModelBase
 
         var filename = LbxSourceSelectedItem;
         var extension = Path.GetExtension(filename);
-        var extNoDot = Path.GetExtension(filename)![1..];
+        var extNoDot = extension!.Length > 1 ? extension[1..] : "";
 
-        if (!_textFileTypes!.Contains(extension!) ||
-            OfficeDocModel.IsValidOfficeFormat(extNoDot))
+        if (extension.Length != 0 &&
+            (!_textFileTypes!.Contains(extension) || OfficeDocModel.IsValidOfficeFormat(extNoDot)))
         {
             IsTabMessage = true;
-            LbxDestinationItems!.Add("File type [" + extension! + "] Preview not supported ❌");
+            LbxDestinationItems!.Add("File type [" + extension + "] ❌ Preview not supported");
             return;
         }
 
