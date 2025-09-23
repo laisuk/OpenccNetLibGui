@@ -7,12 +7,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.1.1-beta1] 2025-09-22
+## [1.1.1-beta1] 2025-09-23
 
 ### Added
 
 - Add convert filename in batch conversion
 - Add conversion for file with no extension (as plain text)
+
+### Changed
+
+- Separate office filetypes  from text filetypes
 
 ### Fixed
 

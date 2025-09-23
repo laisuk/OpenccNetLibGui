@@ -21,6 +21,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly List<Language>? _languagesInfo;
     private readonly List<string>? _textFileTypes;
+    private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
     private string? _currentOpenFileName;
     private bool _isBtnBatchStartVisible;
@@ -127,6 +128,7 @@ public class MainWindowViewModel : ViewModelBase
         var languageSettings = languageSettingsService.LanguageSettings;
         _languagesInfo = languageSettings?.Languages;
         _textFileTypes = languageSettings?.TextFileTypes;
+        _officeFileTypes = languageSettings?.OfficeFileTypes;
 
         switch (languageSettings?.Dictionary)
         {
@@ -357,7 +359,7 @@ public class MainWindowViewModel : ViewModelBase
                 continue;
             }
 
-            if (fileExt.Length != 0 && !_textFileTypes!.Contains(fileExt))
+            if (fileExt.Length != 0 && !(_textFileTypes!.Contains(fileExt) || _officeFileTypes!.Contains(fileExt)))
             {
                 LbxDestinationItems.Add($"({count}) [❌ File skipped ({fileExt})] {sourceFilePath}");
                 continue;
@@ -487,10 +489,8 @@ public class MainWindowViewModel : ViewModelBase
 
         var filename = LbxSourceSelectedItem;
         var extension = Path.GetExtension(filename);
-        var extNoDot = extension!.Length > 1 ? extension[1..] : "";
 
-        if (extension.Length != 0 &&
-            (!_textFileTypes!.Contains(extension) || OfficeDocModel.IsValidOfficeFormat(extNoDot)))
+        if (extension!.Length > 1 && !_textFileTypes!.Contains(extension))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + extension + "] ❌ Preview not supported");
@@ -526,7 +526,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var fileExt = Path.GetExtension(item);
 
-            if (_textFileTypes!.Contains(fileExt))
+            if (fileExt.Length == 0 || _textFileTypes!.Contains(fileExt))
             {
                 string inputText;
                 try

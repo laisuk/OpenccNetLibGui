@@ -59,7 +59,9 @@ public class LanguageSettingsService
                     "".py"",
                     "".java"",
                     "".md"",
-                    "".js"",
+                    "".js""
+                ],
+                ""textFileTypes"": [
 	                "".docx"",
 	                "".xlsx"",
                     "".pptx"",

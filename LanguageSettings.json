@@ -16,7 +16,7 @@
       "name": "zh-Hans (简体)"
     }
   ],
-  "charCheck": 30,
+  "charCheck": 50,
   "punctuations": {
     "“": "「",
     "”": "」",
@@ -37,7 +37,9 @@
     ".py",
     ".java",
     ".md",
-    ".js",
+    ".js"
+  ],
+  "officeFileTypes": [
     ".docx",
     ".xlsx",
     ".pptx",
