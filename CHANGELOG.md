@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.1.1-beta1] 2025-09-23
+## [1.2.0] 2025-10.01
 
 ### Added
 
@@ -17,6 +17,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 ### Changed
 
 - Separate office filetypes  from text filetypes
+- - Update `OpenccNetLib` to v1.2.0
 
 ### Fixed
 
@@ -49,7 +50,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 ### Fixed
 
 - Fixed GUI radio button no conversion for
-  hk2s [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2#issuecomment-3051032619)
+  Hk2S [#2](https://github.com/laisuk/OpenccNetLibGui/issues/2#issuecomment-3051032619)
 
 ---
 
