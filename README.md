@@ -20,7 +20,7 @@ Download the latest version of **OpenccNetLibGui** for your platform:
 
 - **Chinese Conversion**: Convert between simplified and traditional Chinese text.
 - **Single/Batch Conversion**: Perform Chinese text conversion in single or batch mode.
-- Designed to convert most **text based file types** and **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
+- Designed to convert most **text based file types**,  **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`) and **EPUB** (`.epub`).
 
 ## Dependencies
 
