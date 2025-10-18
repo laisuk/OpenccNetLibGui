@@ -37,33 +37,33 @@ public partial class MainWindow : Window
 
     private static void OnDragEnter(object sender, DragEventArgs e)
     {
-        e.DragEffects = GetDragEffects(sender, e.Data);
+        e.DragEffects = GetDragEffects(sender, e.DataTransfer);
     }
 
     private static void OnDragOver(object sender, DragEventArgs e)
     {
-        e.DragEffects = GetDragEffects(sender, e.Data);
+        e.DragEffects = GetDragEffects(sender, e.DataTransfer);
     }
 
-    private static DragDropEffects GetDragEffects(object sender, IDataObject data)
+    private static DragDropEffects GetDragEffects(object sender, IDataTransfer data)
     {
         if (OperatingSystem.IsLinux())
         {
             // Linux file drops often use "text/uri-list"
-            if (data.Contains(DataFormats.Files) || data.Contains("text/uri-list"))
+            if (data.Contains(DataFormat.File))
                 return DragDropEffects.Copy;
         }
         else
         {
             // Windows and macOS standard behavior
-            if (data.Contains(DataFormats.Files))
+            if (data.Contains(DataFormat.File))
                 return DragDropEffects.Copy;
         }
 
         return sender switch
         {
-            ListBox => data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None,
-            TextEditor => data.Contains(DataFormats.Files) || data.Contains(DataFormats.Text)
+            ListBox => data.Contains(DataFormat.File) ? DragDropEffects.Copy : DragDropEffects.None,
+            TextEditor => data.Contains(DataFormat.File) || data.Contains(DataFormat.Text)
                 ? DragDropEffects.Copy
                 : DragDropEffects.None,
             _ => DragDropEffects.None
@@ -74,7 +74,9 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm)
         {
-            var files = e.Data.Contains(DataFormats.Files) ? e.Data.GetFiles()?.OfType<IStorageFile>().ToList() : null;
+            var files = e.DataTransfer.Contains(DataFormat.File)
+                ? e.DataTransfer.TryGetFiles()?.OfType<IStorageFile>().ToList()
+                : null;
 
             if (files is { Count: > 0 })
             {
@@ -113,6 +115,7 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrEmpty(filePath))
                         newItems.Add(filePath);
                 }
+
                 var newCount = newItems.Count;
 
                 // Clear & update ObservableCollection in bulk to minimize UI updates

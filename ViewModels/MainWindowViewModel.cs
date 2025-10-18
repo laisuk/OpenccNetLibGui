@@ -346,6 +346,12 @@ public class MainWindowViewModel : ViewModelBase
         LbxDestinationItems.Add($"Output folder: (输出文件夹) => {TbOutFolderText}");
 
         var count = 0;
+        if (_opencc!.Config != config) _opencc.Config = config; // avoid touching when same
+
+        var suffix = IsRbT2S ? "_Hans" :
+            IsRbS2T ? "_Hant" :
+            IsRbCustom ? $"_{config}" : "_Other";
+
         foreach (var sourceFilePath in LbxSourceItems!)
         {
             count++;
@@ -364,12 +370,6 @@ public class MainWindowViewModel : ViewModelBase
                 LbxDestinationItems.Add($"({count}) [❌ File skipped ({fileExt})] {sourceFilePath}");
                 continue;
             }
-
-            _opencc!.Config = config;
-
-            var suffix = IsRbT2S ? "_Hans" :
-                IsRbS2T ? "_Hant" :
-                IsRbCustom ? $"_{config}" : "_Other";
 
             filenameWithoutExt = IsCbConvertFilename
                 ? _opencc.Convert(filenameWithoutExt, IsCbPunctuation)
@@ -397,9 +397,9 @@ public class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    var inputText = await File.ReadAllTextAsync(sourceFilePath);
+                    var inputText = await File.ReadAllTextAsync(sourceFilePath).ConfigureAwait(false);
                     var convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
-                    await File.WriteAllTextAsync(outputFilename, convertedText);
+                    await File.WriteAllTextAsync(outputFilename, convertedText).ConfigureAwait(false);
                     LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
                 }
                 catch (Exception ex)

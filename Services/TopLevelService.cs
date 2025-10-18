@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 
 namespace OpenccNetLibGui.Services;
 
@@ -18,7 +19,7 @@ public class TopLevelService : ITopLevelService
     public async Task<string> GetClipboardTextAsync()
     {
         var clipboard = GetMainWindow().Clipboard;
-        if (clipboard != null) return (await clipboard.GetTextAsync())!;
+        if (clipboard != null) return (await clipboard.TryGetTextAsync())!;
 
         return string.Empty;
     }
