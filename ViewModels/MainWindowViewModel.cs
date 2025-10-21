@@ -63,7 +63,9 @@ public class MainWindowViewModel : ViewModelBase
     private string? _cbPunctuationContent = "Punctuation (标点)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
+
     private string? _tbOutFolderText = "./output/";
+
     // private string? _tbPreviewText = string.Empty;
     private TextDocument? _tbPreviewTextDocument;
     private TextDocument? _tbSourceTextDocument;
