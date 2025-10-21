@@ -92,6 +92,27 @@ Options are:
 3. `"cbor"` - _dictionary_maxlength.cbor_
 4. None of above, default to `"zstd"` - _dictionary_maxlength.zstd_
 
+---
+
+### Custom Chinese Language in UI Settings (繁體界面 / 简体界面)
+
+![image04](./Assets/image04.png)
+
+Custom Chinese Language in UI can be set in `LanguageSettings.json`:
+
+```json
+{
+  "Locale": 1
+}
+```
+
+Options are:
+1. `1` - Traditional Chinese (繁體字)
+2. `2` - Simplified Chinese (简体字)
+3. Other values - Reset to Simplified Chinese (简体字)
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.

@@ -7,6 +7,18 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.3.0] - 2025-10-21
+
+### Added
+
+- Added Custom Chinese Language in UI Settings (繁體界面 / 简体界面)
+
+### Changed
+
+- Update OpenccNetLib to v1.3.0
+
+---
+
 ## [1.2.0] 2025-10.01
 
 ### Added

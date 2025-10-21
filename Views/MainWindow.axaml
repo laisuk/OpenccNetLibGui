@@ -78,10 +78,10 @@
                              Padding="5,0,0,0" Margin="20,0,0,0" VerticalAlignment="Center"
                              HorizontalAlignment="Center" IsChecked="{Binding IsRbHk}"
                              GroupName="SecondRb" />
-                <CheckBox x:Name="CbZhtw" Grid.Row="0" Grid.Column="3" Content="ZH-TW Idioms(中台惯用语)" FontSize="14"
+                <CheckBox x:Name="CbZhtw" Grid.Row="0" Grid.Column="3" Content="{Binding CbZhtwContent}" FontSize="14"
                           Padding="5,0,0,0" Margin="0,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
                           IsChecked="{Binding IsCbZhtw}" IsEnabled="{Binding IsCbZhtwEnabled}" />
-                <CheckBox x:Name="CbPunctuation" Grid.Row="0" Grid.Column="4" Content="Punctuation (标点)"
+                <CheckBox x:Name="CbPunctuation" Grid.Row="0" Grid.Column="4" Content="{Binding CbPunctuationContent}"
                           FontSize="14" Padding="5,0,0,0" Margin="5,0,0,0" VerticalAlignment="Center"
                           HorizontalAlignment="Left" IsChecked="{Binding IsCbPunctuation}" />
             </Grid>

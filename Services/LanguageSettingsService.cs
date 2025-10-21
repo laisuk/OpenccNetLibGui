@@ -20,58 +20,124 @@ public class LanguageSettingsService
         }
 
         const string languageSettingsText = @"
-            {
-                ""languages"": [
-                    {
-                        ""id"": 0,
-                        ""code"": ""non-zho"",
-                        ""name"": ""Non-zho (其它)""
-                    },
-                    {
-                        ""id"": 1,
-                        ""code"": ""zh-Hant"",
-                        ""name"": ""zh-Hant (繁体)""
-                    },
-                    {
-                        ""id"": 2,
-                        ""code"": ""zh-Hans"",
-                        ""name"": ""zh-Hans (简体)""
-                    }
-                ],
-                ""charCheck"": 50,
-                ""punctuations"": {
-                    ""\u201C"": ""\u300C"",
-                    ""\u201D"": ""\u300D"",
-                    ""\u2018"": ""\u300E"",
-                    ""\u2019"": ""\u300F""
-                },
-                ""textFileTypes"": [
-                    "".txt"",
-                    "".srt"",
-                    "".vtt"",
-                    "".ass"",
-                    "".xml"",
-                    "".ttml2"",
-                    "".csv"",
-                    "".json"",
-                    "".html"",
-                    "".cs"",
-                    "".py"",
-                    "".java"",
-                    "".md"",
-                    "".js""
-                ],
-                ""textFileTypes"": [
-	                "".docx"",
-	                "".xlsx"",
-                    "".pptx"",
-                    "".odt"",
-                    "".ods"",
-                    "".odp"",
-                    "".epub""
-                ],
-                ""dictionary"": ""zstd""
-            }";
+{
+  ""languages"": [
+    {
+      ""id"": 0,
+      ""code"": ""non-zho"",
+      ""name"": [
+        ""Non-zho (Others)"",
+        ""zh-Hant (Traditional)"",
+        ""zh-Hans (Simplified)""
+      ]
+    },
+    {
+      ""id"": 1,
+      ""code"": ""zh-Hant"",
+      ""name"": [
+        ""Non-zho (其它)"",
+        ""zh-Hant (繁體)"",
+        ""zh-Hans (簡體)""
+      ],
+      ""T2SContent"": ""zh-Hant (繁體) to zh-Hans (簡體)"",
+      ""S2TContent"": ""zh-Hans (簡體) to zh-Hant (繁體)"",
+      ""CustomContent"": ""Manual (自定義)"",
+      ""StdContent"": ""General (通用簡繁)"",
+      ""ZhtwContent"": ""ZH-TW (中臺簡繁)"",
+      ""HkContent"": ""ZH-HK (中港簡繁)"",
+      ""CbZhtwContent"": ""ZH-TW Idioms (中臺慣用語)"",
+      ""CbPunctuationContent"": ""Punctuation (標點)"",
+      ""CustomOptions"": [
+        ""s2t （簡→繁）"",
+        ""s2tw （簡→繁臺）"",
+        ""s2twp （簡→繁臺／慣）"",
+        ""s2hk （簡→繁港）"",
+        ""t2s （繁→簡）"",
+        ""t2tw （繁→繁臺）"",
+        ""t2twp （繁→繁臺／慣）"",
+        ""t2hk （繁→繁港）"",
+        ""tw2s （繁臺→簡）"",
+        ""tw2sp （繁臺→簡／慣）"",
+        ""tw2t （繁臺→繁）"",
+        ""tw2tp （繁臺→繁／慣）"",
+        ""hk2s （繁港→簡）"",
+        ""hk2t （繁港→繁）"",
+        ""t2jp （日舊→日新）"",
+        ""jp2t （日新→日舊）""
+      ]
+    },
+    {
+      ""id"": 2,
+      ""code"": ""zh-Hans"",
+      ""name"": [
+        ""Non-zho (其它)"",
+        ""zh-Hant (繁体)"",
+        ""zh-Hans (简体)""
+      ],
+      ""T2SContent"": ""zh-Hant (繁体) to zh-Hans (简体)"",
+      ""S2tContent"": ""zh-Hans (简体) to zh-Hant (繁体)"",
+      ""CustomContent"": ""Manual (自定义)"",
+      ""StdContent"": ""General (通用简繁)"",
+      ""ZhtwContent"": ""ZH-TW (中台简繁)"",
+      ""HkContent"": ""ZH-HK (中港简繁)"",
+      ""CbZhtwContent"": ""ZH-TW Idioms (中台惯用语)"",
+      ""CbPunctuationContent"": ""Punctuation (标点)"",
+      ""CustomOptions"": [
+        ""s2t (简→繁)"",
+        ""s2tw (简→繁台)"",
+        ""s2twp (简→繁台/惯)"",
+        ""s2hk (简→繁港)"",
+        ""t2s (繁→简)"",
+        ""t2tw (繁→繁台)"",
+        ""t2twp (繁→繁台/惯)"",
+        ""t2hk (繁→繁港)"",
+        ""tw2s (繁台→简)"",
+        ""tw2sp (繁台→简/惯)"",
+        ""tw2t (繁台→繁)"",
+        ""tw2tp (繁台→繁/惯)"",
+        ""hk2s (繁港→简)"",
+        ""hk2t (繁港→繁)"",
+        ""t2jp (日旧→日新)"",
+        ""jp2t (日新→日旧)""
+      ]
+    }
+  ],
+  ""charCheck"": 50,
+  ""punctuations"": {
+    ""“"": ""「"",
+    ""”"": ""」"",
+    ""‘"": ""『"",
+    ""’"": ""』""
+  },
+  ""textFileTypes"": [
+    "".txt"",
+    "".srt"",
+    "".vtt"",
+    "".ass"",
+    "".xml"",
+    "".ttml2"",
+    "".csv"",
+    "".json"",
+    "".html"",
+    "".cs"",
+    "".py"",
+    "".java"",
+    "".md"",
+    "".js""
+  ],
+  ""officeFileTypes"": [
+    "".docx"",
+    "".xlsx"",
+    "".pptx"",
+    "".odt"",
+    "".ods"",
+    "".odp"",
+    "".epub""
+  ],
+  ""dictionary"": ""zstd"",
+  ""locale"": 2
+}
+";
 
         File.WriteAllText(filePath, languageSettingsText);
         return JsonConvert.DeserializeObject<LanguageSettings>(languageSettingsText)!;

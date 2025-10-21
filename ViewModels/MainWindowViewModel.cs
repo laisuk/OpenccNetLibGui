@@ -19,7 +19,8 @@ namespace OpenccNetLibGui.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    private readonly List<Language>? _languagesInfo;
+    // private readonly List<Language>? _languagesInfo;
+    private readonly Language? _selectedLanguage;
     private readonly List<string>? _textFileTypes;
     private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
@@ -53,12 +54,14 @@ public class MainWindowViewModel : ViewModelBase
     private ObservableCollection<string>? _lbxSourceItems;
     private int _lbxSourceSelectedIndex;
     private string? _lbxSourceSelectedItem;
-    private string? _rbHkContent = "ZH-HK (中港简繁)";
-    private string? _rbS2TContent = "zh-Hans (简体) to zh-Hant (繁体)";
+    private string? _rbT2SContent = "zh-Hant (繁) to zh-Hans (简)";
+    private string? _rbS2TContent = "zh-Hans (简) to zh-Hant (繁)";
     private string? _rbCustomContent = "Manual (自定义)";
-    private string? _rbStdContent = "Standard (通用简繁)";
-    private string? _rbT2SContent = "zh-Hant (繁体) to zh-Hans (简体)";
+    private string? _rbStdContent = "General (通用简繁)";
     private string? _rbZhtwContent = "ZH-TW (中台简繁)";
+    private string? _rbHkContent = "ZH-HK (中港简繁)";
+    private string? _cbZhtwContent = "ZH-TW Idioms (中台惯用语)";
+    private string? _cbPunctuationContent = "Punctuation (标点)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
     private TextDocument? _tbDestinationTextDocument;
@@ -68,26 +71,9 @@ public class MainWindowViewModel : ViewModelBase
     private string? _selectedItem;
 
     private readonly Opencc? _opencc;
+    private readonly int _locale;
 
-    public ObservableCollection<string> CustomOptions { get; } = new()
-    {
-        "s2t (简->繁)",
-        "s2tw (简->繁台",
-        "s2twp (简->繁台/惯)",
-        "s2hk (简->繁港)",
-        "t2s (繁->简)",
-        "t2tw (繁->繁台)",
-        "t2twp (繁->繁台/惯)",
-        "t2hk (繁->繁港)",
-        "tw2s (繁台->简)",
-        "tw2sp (繁台->简/惯)",
-        "tw2t (繁台->繁)",
-        "tw2tp (繁台->繁/惯)",
-        "hk2s (繁港->简)",
-        "hk2t (繁港->繁)",
-        "t2jp (日舊->日新)",
-        "jp2t (日新->日舊)"
-    };
+    public ObservableCollection<string> CustomOptions { get; } = new();
 
     public string? SelectedItem
     {
@@ -117,7 +103,6 @@ public class MainWindowViewModel : ViewModelBase
         BtnMessagePreviewClearCommand = ReactiveCommand.Create(BtnMessagePreviewClear);
         BtnBatchStartCommand = ReactiveCommand.CreateFromTask(BtnBatchStart);
         CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
-        SelectedItem = CustomOptions[0]; // Set "Option 1" as default
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
@@ -125,12 +110,30 @@ public class MainWindowViewModel : ViewModelBase
         this()
     {
         _topLevelService = topLevelService;
-        var languageSettings = languageSettingsService.LanguageSettings;
-        _languagesInfo = languageSettings?.Languages;
-        _textFileTypes = languageSettings?.TextFileTypes;
-        _officeFileTypes = languageSettings?.OfficeFileTypes;
+        var languageSettings = languageSettingsService.LanguageSettings!;
+        // _languagesInfo = languageSettings?.Languages;
+        _locale = languageSettings.Locale == 1 ? languageSettings.Locale : 2;
+        _selectedLanguage = languageSettings.Languages![_locale];
+        _rbT2SContent = _selectedLanguage.T2SContent ?? "zh-Hant to zh-Hans";
+        _rbS2TContent = _selectedLanguage.S2TContent ?? "zh-Hans to zh-Hant";
+        _rbCustomContent = _selectedLanguage.CustomContent ?? "Manual";
+        _rbStdContent = _selectedLanguage.StdContent ?? "General";
+        _rbZhtwContent = _selectedLanguage.ZhtwContent ?? "ZH-TW";
+        _rbHkContent = _selectedLanguage.HkContent ?? "ZH-HK";
+        _cbZhtwContent = _selectedLanguage.CbZhtwContent ?? "ZH-TW Idioms";
+        _cbPunctuationContent = _selectedLanguage.CbPunctuationContent ?? "Punctuation";
+        CustomOptions.Clear();
+        if (_selectedLanguage.CustomOptions != null)
+        {
+            foreach (var opt in _selectedLanguage.CustomOptions!)
+                CustomOptions.Add(opt);
+        }
 
-        switch (languageSettings?.Dictionary)
+        SelectedItem = CustomOptions[0]; // Set "Option 1" as default
+        _textFileTypes = languageSettings.TextFileTypes;
+        _officeFileTypes = languageSettings.OfficeFileTypes;
+
+        switch (languageSettings.Dictionary)
         {
             case "dicts":
                 Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
@@ -292,9 +295,9 @@ public class MainWindowViewModel : ViewModelBase
         LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
             ? LblSourceCodeContent
             : IsRbT2S
-                ? _languagesInfo![2].Name
+                ? _selectedLanguage!.Name![2]
                 : IsRbS2T
-                    ? _languagesInfo![1].Name
+                    ? _selectedLanguage!.Name![1]
                     : $"Manual ( {config} )";
 
         LblStatusBarContent = $"Process completed: {config} —> {stopwatch.ElapsedMilliseconds} ms";
@@ -333,17 +336,33 @@ public class MainWindowViewModel : ViewModelBase
         var region = IsRbCustom ? RbCustomContent :
             IsRbStd ? RbStdContent :
             IsRbHk ? RbHkContent : RbZhtwContent;
-        var zhTwIdioms = IsRbCustom ? RbCustomContent : (IsCbZhtw ? "Yes" : "No");
-        var punctuation = IsCbPunctuation ? "Yes" : "No";
+        var isZhTwIdioms = IsRbCustom ? RbCustomContent : (IsCbZhtw ? "Yes" : "No");
+        var isPunctuations = IsCbPunctuation ? "Yes" : "No";
+        var isConvertFilename = IsCbConvertFilename ? "Yes" : "No";
 
         // UI output setup
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
-        LbxDestinationItems.Add($"Conversion Type (转换方式) => {conversion}");
-        LbxDestinationItems.Add($"Region (区域) => {region}");
-        LbxDestinationItems.Add($"ZH/TW Idioms (中台惯用语) => {zhTwIdioms}");
-        LbxDestinationItems.Add($"Punctuations (标点) => {punctuation}");
-        LbxDestinationItems.Add($"Output folder: (输出文件夹) => {TbOutFolderText}");
+        LbxDestinationItems.Add(_locale == 1
+            ? $"Conversion Type (轉換方式) => {conversion}"
+            : $"Conversion Type (转换方式) => {conversion}");
+        if (!IsRbCustom)
+        {
+            LbxDestinationItems.Add(_locale == 1 ? $"Region (區域) => {region}" : $"Region (区域) => {region}");
+            LbxDestinationItems.Add(_locale == 1
+                ? $"ZH/TW Idioms (中臺慣用語) => {isZhTwIdioms}"
+                : $"ZH/TW Idioms (中台惯用语) => {isZhTwIdioms}");
+        }
+
+        LbxDestinationItems.Add(_locale == 1
+            ? $"Punctuations (標點) => {isPunctuations}"
+            : $"Punctuations (标点) => {isPunctuations}");
+        LbxDestinationItems.Add(_locale == 1
+            ? $"Convert filename (轉換文件名) => {isConvertFilename}"
+            : $"Convert filename (转换文件名) => {isConvertFilename}");
+        LbxDestinationItems.Add(_locale == 1
+            ? $"Output folder: (輸出文件夾) => {TbOutFolderText}"
+            : $"Output folder: (输出文件夹) => {TbOutFolderText}");
 
         var count = 0;
         if (_opencc!.Config != config) _opencc.Config = config; // avoid touching when same
@@ -539,7 +558,7 @@ public class MainWindowViewModel : ViewModelBase
                     continue;
                 }
 
-                var textCode = _languagesInfo![Opencc.ZhoCheck(inputText)].Name!;
+                var textCode = _selectedLanguage!.Name![Opencc.ZhoCheck(inputText)];
                 LbxDestinationItems.Add($"[{textCode}] {item}");
             }
             else
@@ -599,17 +618,17 @@ public class MainWindowViewModel : ViewModelBase
         switch (codeText)
         {
             case 1:
-                LblSourceCodeContent = _languagesInfo![codeText].Name;
+                LblSourceCodeContent = _selectedLanguage!.Name![codeText];
                 if (!IsRbT2S) IsRbT2S = true;
                 break;
 
             case 2:
-                LblSourceCodeContent = _languagesInfo![codeText].Name;
+                LblSourceCodeContent = _selectedLanguage!.Name![codeText];
                 if (!IsRbS2T) IsRbS2T = true;
                 break;
 
             default:
-                LblSourceCodeContent = _languagesInfo![0].Name;
+                LblSourceCodeContent = _selectedLanguage!.Name![0];
                 break;
         }
     }
@@ -792,6 +811,18 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _rbHkContent, value);
     }
 
+    public string? CbZhtwContent
+    {
+        get => _cbZhtwContent;
+        set => this.RaiseAndSetIfChanged(ref _cbZhtwContent, value);
+    }
+
+    public string? CbPunctuationContent
+    {
+        get => _cbPunctuationContent;
+        set => this.RaiseAndSetIfChanged(ref _cbPunctuationContent, value);
+    }
+
     #endregion
 
     #region RbCb Boolean Binding Region
@@ -806,7 +837,7 @@ public class MainWindowViewModel : ViewModelBase
             IsRbT2S = false;
             // IsRbSegment = false;
             // IsRbTag = false;
-            LblSourceCodeContent = _languagesInfo![2].Name;
+            LblSourceCodeContent = _selectedLanguage!.Name![2];
             // LblDestinationCodeContent = _languagesInfo[1].Name;
         }
     }
@@ -819,7 +850,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isRbT2S, value);
             if (!value) return;
             IsRbS2T = false;
-            LblSourceCodeContent = _languagesInfo![1].Name;
+            LblSourceCodeContent = _selectedLanguage!.Name![1];
             // LblDestinationCodeContent = _languagesInfo[2].Name;
         }
     }

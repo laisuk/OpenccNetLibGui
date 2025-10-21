@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace OpenccNetLibGui.Services;
 
+[Serializable]
 public class LanguageSettings
 {
     public List<Language>? Languages { get; set; }
@@ -9,12 +11,23 @@ public class LanguageSettings
     public Dictionary<char, char>? Punctuations { get; set; }
     public List<string>? TextFileTypes { get; set; }
     public List<string>? OfficeFileTypes { get; set; }
-    public string? Dictionary {get; set;}
+    public string? Dictionary { get; set; }
+    public int Locale { get; set; }
 }
 
+[Serializable]
 public class Language
 {
     public int Id { get; set; }
     public string? Code { get; set; }
-    public string? Name { get; set; }
+    public List<string>? Name { get; set; }
+    public string? T2SContent { get; set; }
+    public string? S2TContent { get; set; }
+    public string? CustomContent { get; set; }
+    public string? StdContent { get; set; }
+    public string? ZhtwContent { get; set; }
+    public string? HkContent { get; set; }
+    public string? CbZhtwContent { get; set; }
+    public string? CbPunctuationContent { get; set; }
+    public List<string>? CustomOptions { get; set; }
 }
