@@ -338,9 +338,9 @@ public class MainWindowViewModel : ViewModelBase
         var region = IsRbCustom ? RbCustomContent :
             IsRbStd ? RbStdContent :
             IsRbHk ? RbHkContent : RbZhtwContent;
-        var isZhTwIdioms = IsRbCustom ? RbCustomContent : (IsCbZhtw ? "Yes" : "No");
-        var isPunctuations = IsCbPunctuation ? "Yes" : "No";
-        var isConvertFilename = IsCbConvertFilename ? "Yes" : "No";
+        var isZhTwIdioms = IsRbCustom ? RbCustomContent : IsCbZhtw ? "✔️ Yes" : "✖️ No";
+        var isPunctuations = IsCbPunctuation ? "✔️ Yes" : "✖️ No";
+        var isConvertFilename = IsCbConvertFilename ? "✔️ Yes" : "✖️ No";
 
         // UI output setup
         IsTabMessage = true;
@@ -430,6 +430,7 @@ public class MainWindowViewModel : ViewModelBase
             }
         }
 
+        LbxDestinationItems.Add($"✅ Batch conversion ({count}) Done");
         LblStatusBarContent = $"Batch conversion done ({config})";
     }
 
@@ -592,6 +593,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             // TbPreviewText = string.Empty;
             TbPreviewTextDocument!.Text = string.Empty;
+            TbPreviewTextDocument._undoStack.ClearAll();
             LblStatusBarContent = "Preview cleared.";
         }
     }

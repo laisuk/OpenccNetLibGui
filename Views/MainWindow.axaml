@@ -120,7 +120,7 @@
                                 BorderThickness="0"
                                 Background="{DynamicResource ThemeBackgroundBrush}"
                                 Foreground="{DynamicResource ThemeForegroundBrush}"
-                                Document="{Binding TbSourceTextDocument}"
+                                Document="{Binding TbSourceTextDocument, Mode=TwoWay}"
                                 FontFamily="Noto Sans SC"
                                 FontSize="16"
                                 ShowLineNumbers="True"
@@ -224,7 +224,7 @@
                                     <!--          TextWrapping="Wrap" Text="{Binding TbPreviewText}" /> -->
                                     <avaloniaEdit:TextEditor x:Name="TbPreview"
                                                              Grid.Row="0" Grid.Column="0"
-                                                             Margin="0,0,0,0"
+                                                             Margin="0,5,0,0"
                                                              BorderThickness="3"
                                                              BorderBrush="DarkGray"
                                                              Document="{Binding TbPreviewTextDocument}"
