@@ -16,6 +16,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 ### Changed
 
 - Update OpenccNetLib to v1.3.0
+- Refactor preview box from TextBox to AvaloniaEdit 
 
 ### Fixed
 

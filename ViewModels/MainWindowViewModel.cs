@@ -24,7 +24,6 @@ public class MainWindowViewModel : ViewModelBase
     private readonly List<string>? _textFileTypes;
     private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
-    private string? _currentOpenFileName;
     private bool _isBtnBatchStartVisible;
     private bool _isBtnOpenFileVisible = true;
     private bool _isBtnProcessVisible = true;
@@ -53,7 +52,7 @@ public class MainWindowViewModel : ViewModelBase
     private ObservableCollection<string>? _lbxDestinationItems;
     private ObservableCollection<string>? _lbxSourceItems;
     private int _lbxSourceSelectedIndex;
-    private string? _lbxSourceSelectedItem;
+    private string? _lbxSourceSelectedItem = string.Empty;
     private string? _rbT2SContent = "zh-Hant (繁) to zh-Hans (简)";
     private string? _rbS2TContent = "zh-Hans (简) to zh-Hant (繁)";
     private string? _rbCustomContent = "Manual (自定义)";
@@ -64,10 +63,12 @@ public class MainWindowViewModel : ViewModelBase
     private string? _cbPunctuationContent = "Punctuation (标点)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
-    private TextDocument? _tbDestinationTextDocument;
     private string? _tbOutFolderText = "./output/";
-    private string? _tbPreviewText;
+    // private string? _tbPreviewText = string.Empty;
+    private TextDocument? _tbPreviewTextDocument;
     private TextDocument? _tbSourceTextDocument;
+    private TextDocument? _tbDestinationTextDocument;
+    private string? _currentOpenFileName = string.Empty;
     private string? _selectedItem;
 
     private readonly Opencc? _opencc;
@@ -85,6 +86,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         TbSourceTextDocument = new TextDocument();
         TbDestinationTextDocument = new TextDocument();
+        TbPreviewTextDocument = new TextDocument();
         LbxSourceItems = new ObservableCollection<string>();
         LbxDestinationItems = new ObservableCollection<string>();
         BtnPasteCommand = ReactiveCommand.CreateFromTask(BtnPaste);
@@ -520,13 +522,15 @@ public class MainWindowViewModel : ViewModelBase
         {
             var displayText = await File.ReadAllTextAsync(filename!);
             IsTabPreview = true;
-            TbPreviewText = displayText;
+            // TbPreviewText = displayText;
+            TbPreviewTextDocument!.Text = displayText;
+            LblStatusBarContent = $"File preview: {filename}";
         }
         catch (Exception)
         {
-            IsTabPreview = true;
-            LbxDestinationItems!.Add($"File read error: {filename}");
-            LblStatusBarContent = "File read error.";
+            IsTabMessage = true;
+            LbxDestinationItems!.Add($"❌ File read error: {filename}");
+            LblStatusBarContent = $"File read error ({filename})";
         }
     }
 
@@ -554,7 +558,7 @@ public class MainWindowViewModel : ViewModelBase
                 }
                 catch (Exception)
                 {
-                    LbxDestinationItems.Add(item + " -> File read error.");
+                    LbxDestinationItems.Add(item + " -> ❌ File read error.");
                     continue;
                 }
 
@@ -563,7 +567,7 @@ public class MainWindowViewModel : ViewModelBase
             }
             else
             {
-                LbxDestinationItems.Add($"[File skipped ({fileExt})] {item}");
+                LbxDestinationItems.Add($"[❌ File skipped ({fileExt})] {item}");
             }
         }
 
@@ -586,7 +590,8 @@ public class MainWindowViewModel : ViewModelBase
 
         else if (IsTabPreview)
         {
-            TbPreviewText = string.Empty;
+            // TbPreviewText = string.Empty;
+            TbPreviewTextDocument!.Text = string.Empty;
             LblStatusBarContent = "Preview cleared.";
         }
     }
@@ -733,6 +738,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tbDestinationTextDocument, value);
     }
 
+    public TextDocument? TbPreviewTextDocument
+    {
+        get => _tbPreviewTextDocument;
+        set => this.RaiseAndSetIfChanged(ref _tbPreviewTextDocument, value);
+    }
+
     public string? LblTotalCharsContent
     {
         get => _lblTotalCharsContent;
@@ -769,11 +780,11 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tbOutFolderText, value);
     }
 
-    public string? TbPreviewText
-    {
-        get => _tbPreviewText;
-        set => this.RaiseAndSetIfChanged(ref _tbPreviewText, value);
-    }
+    // public string? TbPreviewText
+    // {
+    //     get => _tbPreviewText;
+    //     set => this.RaiseAndSetIfChanged(ref _tbPreviewText, value);
+    // }
 
     public string? RbS2TContent
     {

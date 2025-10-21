@@ -218,10 +218,20 @@
                             <TabItem x:Name="TabPreview" Header="Preview" FontSize="14" FontWeight="Medium"
                                      IsSelected="{Binding IsTabPreview}">
                                 <Grid>
-                                    <TextBox x:Name="TbPreview" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0"
-                                             BorderThickness="2,2,2,2" FontSize="16" IsReadOnly="True"
-                                             FontFamily="Noto Sans SC"
-                                             TextWrapping="Wrap" Text="{Binding TbPreviewText}" />
+                                    <!-- <TextBox x:Name="TbPreview" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0" -->
+                                    <!--          BorderThickness="2,2,2,2" FontSize="16" IsReadOnly="True" -->
+                                    <!--          FontFamily="Noto Sans SC" -->
+                                    <!--          TextWrapping="Wrap" Text="{Binding TbPreviewText}" /> -->
+                                    <avaloniaEdit:TextEditor x:Name="TbPreview"
+                                                             Grid.Row="0" Grid.Column="0"
+                                                             Margin="0,0,0,0"
+                                                             BorderThickness="3"
+                                                             BorderBrush="DarkGray"
+                                                             Document="{Binding TbPreviewTextDocument}"
+                                                             WordWrap="True"
+                                                             VerticalScrollBarVisibility="Visible"
+                                                             ShowLineNumbers="False" FontFamily="Noto Sans SC"
+                                                             FontSize="16" IsReadOnly="True" />
                                 </Grid>
                             </TabItem>
                         </TabControl>
@@ -239,7 +249,8 @@
                                 FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnRemoveCommand}" />
                         <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
-                                  FontSize="13" FontWeight="Bold" Padding="3,0,0,0" Margin="180,2,0,2" VerticalAlignment="Center"
+                                  FontSize="13" FontWeight="Bold" Padding="3,0,0,0" Margin="180,2,0,2"
+                                  VerticalAlignment="Center"
                                   HorizontalAlignment="Left" IsChecked="{Binding IsCbConvertFilename}" />
                         <Button x:Name="BtnPreview" Content="Preview" Padding="0 2" Width="70"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,135,2"
