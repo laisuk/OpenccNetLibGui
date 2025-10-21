@@ -488,7 +488,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         var index = LbxSourceSelectedIndex;
         var name = LbxSourceSelectedItem;
-        if (LbxSourceSelectedIndex == -1 || LbxSourceItems!.Count == 0)
+        if (LbxSourceSelectedIndex == -1 || LbxSourceItems!.Count == 0 || string.IsNullOrEmpty(name))
         {
             LblStatusBarContent = "Nothing to remove.";
             return;
@@ -500,7 +500,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task BtnPreview()
     {
-        if (LbxSourceSelectedIndex == -1)
+        if (LbxSourceSelectedIndex == -1 || string.IsNullOrWhiteSpace(LbxSourceSelectedItem))
         {
             LblStatusBarContent = "Nothing to preview.";
             return;
@@ -509,7 +509,7 @@ public class MainWindowViewModel : ViewModelBase
         var filename = LbxSourceSelectedItem;
         var extension = Path.GetExtension(filename);
 
-        if (extension!.Length > 1 && !_textFileTypes!.Contains(extension))
+        if (extension.Length > 1 && !_textFileTypes!.Contains(extension))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + extension + "] ❌ Preview not supported");

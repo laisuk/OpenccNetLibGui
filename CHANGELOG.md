@@ -17,6 +17,10 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - Update OpenccNetLib to v1.3.0
 
+### Fixed
+
+- Fixed file preview and file remove for no item selected
+
 ---
 
 ## [1.2.0] 2025-10.01
