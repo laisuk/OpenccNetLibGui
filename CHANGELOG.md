@@ -20,7 +20,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Fixed
 
-- Fixed file preview and file remove for no item selected
+- Fixed ignore file preview and file remove if no item selected
 
 ---
 
