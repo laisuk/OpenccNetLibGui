@@ -63,7 +63,9 @@ public class MainWindowViewModel : ViewModelBase
     private string? _cbPunctuationContent = "Punctuation (标点)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
+
     private string? _tbOutFolderText = "./output/";
+
     // private string? _tbPreviewText = string.Empty;
     private TextDocument? _tbPreviewTextDocument;
     private TextDocument? _tbSourceTextDocument;
@@ -131,9 +133,10 @@ public class MainWindowViewModel : ViewModelBase
                 CustomOptions.Add(opt);
         }
 
-        SelectedItem = CustomOptions[0]; // Set "Option 1" as default
-        _textFileTypes = languageSettings.TextFileTypes;
-        _officeFileTypes = languageSettings.OfficeFileTypes;
+        SelectedItem =
+            CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
+        _textFileTypes = languageSettings.TextFileTypes ?? new List<string>();
+        _officeFileTypes = languageSettings.OfficeFileTypes ?? new List<string>();
 
         switch (languageSettings.Dictionary)
         {
@@ -308,7 +311,7 @@ public class MainWindowViewModel : ViewModelBase
     private async Task BtnBatchStart()
     {
         var outputRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
-        Directory.CreateDirectory(outputRoot);
+        if (!Directory.Exists(outputRoot)) Directory.CreateDirectory(outputRoot);
 
         if (LbxSourceItems?.Count == 0)
         {
@@ -593,7 +596,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             // TbPreviewText = string.Empty;
             TbPreviewTextDocument!.Text = string.Empty;
-            TbPreviewTextDocument._undoStack.ClearAll();
+            TbPreviewTextDocument.UndoStack.ClearAll();
             LblStatusBarContent = "Preview cleared.";
         }
     }
@@ -677,7 +680,11 @@ public class MainWindowViewModel : ViewModelBase
 
     private string GetCurrentConfig()
     {
-        if (IsRbCustom) return SelectedItem![..SelectedItem!.IndexOf(' ')];
+        if (IsRbCustom)
+        {
+            if (string.IsNullOrWhiteSpace(SelectedItem) || SelectedItem!.IndexOf(' ') <= 0) return "s2t";
+            return SelectedItem![..SelectedItem!.IndexOf(' ')];
+        }
 
         var config = IsRbS2T
             ? IsRbStd
