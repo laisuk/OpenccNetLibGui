@@ -13,6 +13,7 @@ using ReactiveUI;
 using OpenccNetLibGui.Services;
 using OpenccNetLibGui.Views;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using OpenccNetLibGui.Models;
 
 namespace OpenccNetLibGui.ViewModels;
@@ -138,22 +139,25 @@ public class MainWindowViewModel : ViewModelBase
         _textFileTypes = languageSettings.TextFileTypes ?? new List<string>();
         _officeFileTypes = languageSettings.OfficeFileTypes ?? new List<string>();
 
+        // Show the .NET runtime version and current dictionary in the status bar
+        var runtimeVersion = RuntimeInformation.FrameworkDescription;
+
         switch (languageSettings.Dictionary)
         {
             case "dicts":
                 Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
-                LblStatusBarContent = "Using folder [dicts] dictionary";
+                LblStatusBarContent = $"Runtime: {runtimeVersion} Using folder [dicts] dictionary";
                 break;
             case "json":
                 Opencc.UseCustomDictionary(DictionaryLib.FromJson());
-                LblStatusBarContent = "Using JSON dictionary";
+                LblStatusBarContent = $"Runtime: {runtimeVersion} Using JSON dictionary";
                 break;
             case "cbor":
                 Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
-                LblStatusBarContent = "Using CBOR dictionary";
+                LblStatusBarContent = $"Runtime: {runtimeVersion} Using CBOR dictionary";
                 break;
             default:
-                LblStatusBarContent = "Using default ZSTD dictionary";
+                LblStatusBarContent = $"Runtime: {runtimeVersion} Using default ZSTD dictionary";
                 break;
         }
 
