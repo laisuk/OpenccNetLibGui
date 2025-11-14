@@ -52,6 +52,27 @@ public class TopLevelService : ITopLevelService
             "Application is not running with a classic desktop style application lifetime.");
     }
 
+    /// <summary>
+    /// Ensures the Windows system clipboard commits its current contents immediately.
+    ///
+    /// <para>
+    /// On Windows, some clipboard operations use delayed rendering, meaning the actual
+    /// clipboard data is not fully materialized until another application requests it.
+    /// If the application providing the data exits too quickly, the clipboard may lose
+    /// its contents.  
+    /// </para>
+    ///
+    /// <para>
+    /// Calling <c>OleFlushClipboard()</c> forces Windows to "take ownership" of the data
+    /// immediately, making the clipboard behave similarly to Qt’s <c>QClipboard</c>,
+    /// where the clipboard is automatically flushed and survives application exit.
+    /// </para>
+    ///
+    /// <para>
+    /// On Linux and macOS this method is a no-op, because their clipboard/pasteboard
+    /// systems commit data eagerly and do not require flushing.
+    /// </para>
+    /// </summary>
     private static void FlushSystemClipboardIfNeeded()
     {
         // Only meaningful on Windows; no-op on other OSes
@@ -60,15 +81,28 @@ public class TopLevelService : ITopLevelService
 
         try
         {
-            // HRESULT < 0 indicates failure, but usually we can ignore errors here
+            // HRESULT < 0 indicates failure, but clipboard data is already set so ignore.
             _ = OleFlushClipboard();
         }
         catch
         {
-            // Swallow any P/Invoke / platform errors; clipboard content is already set
+            // Swallow any platform or P/Invoke errors to avoid impacting application flow.
         }
     }
 
+    /// <summary>
+    /// Calls the native Win32 API <c>OleFlushClipboard()</c> from <c>ole32.dll</c>.
+    ///
+    /// <para>
+    /// This function instructs OLE to fully render and commit the clipboard's contents,
+    /// ensuring they persist even after the current process exits.  
+    /// </para>
+    /// </summary>
+    /// <returns>
+    /// An HRESULT value (0 for success). Negative values indicate failure, but callers
+    /// typically ignore the result because clipboard contents are already placed.
+    /// </returns>
     [DllImport("ole32.dll")]
     private static extern int OleFlushClipboard();
+
 }
