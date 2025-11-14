@@ -7,6 +7,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.3.1] - 2025-11-14
+
+### Changed
+
+- Update **OpenccNetLib** to `v1.3.1`
+- Attached `LICENSE` in published app output
+- Added Windows-only clipboard flush (`OleFlushClipboard`) for more reliable clipboard persistence
+
+---
+
 ## [1.3.0] - 2025-10-21
 
 ### Added
