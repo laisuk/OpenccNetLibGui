@@ -11,9 +11,17 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Update **OpenccNetLib** to `v1.3.1`
+- Updated **OpenccNetLib** to `v1.3.1`
 - Attached `LICENSE` in published app output
-- Added Windows-only clipboard flush (`OleFlushClipboard`) for more reliable clipboard persistence
+- Switched to Avalonia’s newer `FlushAsync()` API to ensure reliable clipboard persistence on Windows  
+  (added in recent Avalonia releases; resolves user-reported cases where clipboard content was lost if the app closed immediately)
+
+### Notes
+
+- Microsoft Windows’ OLE clipboard behavior changes slightly across versions and updates.  
+  Earlier documentation claiming that clipboard operations are "always flushed automatically" is not consistently accurate.  
+  Real-world testing showed that `SetTextAsync()` alone may not persist clipboard data if the application exits immediately.  
+  Using Avalonia’s `FlushAsync()` provides the same guarantee as `OleFlushClipboard()` while remaining fully managed and cross-platform safe.
 
 ---
 
@@ -26,7 +34,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 ### Changed
 
 - Update OpenccNetLib to v1.3.0
-- Refactor preview box from TextBox to AvaloniaEdit 
+- Refactor preview box from TextBox to AvaloniaEdit
 
 ### Fixed
 
@@ -43,8 +51,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Separate office filetypes  from text filetypes
-- - Update `OpenccNetLib` to v1.2.0
+- Separate office filetypes from text filetypes
+-
+    - Update `OpenccNetLib` to v1.2.0
 
 ### Fixed
 
@@ -119,7 +128,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - Initial public release of OpenccNetLibGui
 - Cross-platform Avalonia GUI
-- Supports Simplified <-> Traditional Chinese conversion
+- Supports Simplified ↔ Traditional Chinese conversion
 - Built using OpenccNetLib 1.0.0
 
 ---
