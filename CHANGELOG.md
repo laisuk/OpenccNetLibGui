@@ -15,6 +15,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Attached `LICENSE` in published app output
 - Switched to Avalonia’s newer `FlushAsync()` API to ensure reliable clipboard persistence on Windows  
   (added in recent Avalonia releases; resolves user-reported cases where clipboard content was lost if the app closed immediately)
+- Update Avalonia to v11.3.9
 
 ### Notes
 
