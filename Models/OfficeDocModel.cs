@@ -61,8 +61,8 @@ public static class OfficeDocModel
         bool punctuation,
         bool keepFont = false)
     {
-        if (inputBytes is null) throw new ArgumentNullException(nameof(inputBytes));
-        if (converter is null) throw new ArgumentNullException(nameof(converter));
+        ArgumentNullException.ThrowIfNull(inputBytes);
+        ArgumentNullException.ThrowIfNull(converter);
 
         if (!IsValidOfficeFormat(format))
         {
@@ -101,9 +101,9 @@ public static class OfficeDocModel
                         continue;
                     }
 
-                    using var entryStream = entry.Open();
-                    using var fileStream = File.Create(destPath);
-                    entryStream.CopyTo(fileStream);
+                    await using var entryStream = entry.Open();
+                    await using var fileStream = File.Create(destPath);
+                    await entryStream.CopyToAsync(fileStream);
                 }
             }
 
@@ -283,8 +283,8 @@ public static class OfficeDocModel
         bool punctuation,
         bool keepFont = false)
     {
-        if (inputPath is null) throw new ArgumentNullException(nameof(inputPath));
-        if (outputPath is null) throw new ArgumentNullException(nameof(outputPath));
+        ArgumentNullException.ThrowIfNull(inputPath);
+        ArgumentNullException.ThrowIfNull(outputPath);
 
         if (!File.Exists(inputPath))
         {
