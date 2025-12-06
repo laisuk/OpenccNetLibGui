@@ -103,7 +103,7 @@ public class LanguageSettingsService
     }
   ],
   ""charCheck"": 50,
-  ""punctuations"": {
+  ""punctuationChars"": {
     ""“"": ""「"",
     ""”"": ""」"",
     ""‘"": ""『"",
@@ -134,6 +134,12 @@ public class LanguageSettingsService
     "".odp"",
     "".epub""
   ],
+  ""punctuation"": 1,
+  ""convertFilename"": 0,
+  ""addPdfPageHeader"": 0,
+  ""compactPdfText"": 0,
+  ""autoReflowPdfText"": 1,
+  ""pdfEngine"": 2,
   ""dictionary"": ""zstd"",
   ""locale"": 2
 }

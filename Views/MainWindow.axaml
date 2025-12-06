@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:helpers="clr-namespace:OpenccNetLibGui.Helpers"
+        xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="OpenccNetLibGui.Views.MainWindow"
+        x:Name="MainWindowRoot"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/openccnetlib.ico"
         Title="OpenccNetLibGui"
@@ -110,11 +112,15 @@
                             <ColumnDefinition />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
+                        <!-- <Border Grid.Row="0" Grid.Column="0" -->
+                        <!--         Margin="5" -->
+                        <!--         BorderThickness="3" -->
+                        <!--         CornerRadius="6" -->
+                        <!--         BorderBrush="DarkGray"> -->
+                        <!-- 左邊 Source -->
                         <Border Grid.Row="0" Grid.Column="0"
-                                Margin="5"
-                                BorderThickness="3"
-                                CornerRadius="6"
-                                BorderBrush="DarkGray">
+                                Margin="8,8,4,4"
+                                Classes="editor-container">
                             <avaloniaEdit:TextEditor
                                 x:Name="TbSource"
                                 BorderThickness="0"
@@ -126,14 +132,131 @@
                                 ShowLineNumbers="True"
                                 WordWrap="True"
                                 VerticalScrollBarVisibility="Visible"
-                                TextChanged="TbSource_TextChanged" />
+                                TextChanged="TbSource_TextChanged">
+                                <Interaction.Behaviors>
+                                    <helpers:TextEditorSelectionBehavior
+                                        SelectionStart="{Binding TbSourceSelectionStart, Mode=TwoWay}"
+                                        SelectionLength="{Binding TbSourceSelectionLength, Mode=TwoWay}" />
+                                </Interaction.Behaviors>
+                                <avaloniaEdit:TextEditor.ContextMenu>
+                                    <ContextMenu>
+                                        <ContextMenu.Styles>
+                                            <!-- 所有 class="section-header" 嘅 MenuItem 用呢個樣式 -->
+                                            <Style Selector="MenuItem.section-header">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                                <Setter Property="Foreground" Value="Gray" />
+                                                <Setter Property="Padding" Value="8,4" />
+                                                <Setter Property="Background" Value="#F7F7F7" />
+                                            </Style>
+                                        </ContextMenu.Styles>
+                                        <!-- 🔹 Section: PDF Options -->
+                                        <MenuItem IsEnabled="False" Classes="section-header">
+                                            <MenuItem.Header>
+                                                <TextBlock Text="PDF Options"
+                                                           Foreground="Gray"
+                                                           FontWeight="Bold"
+                                                           LetterSpacing="0.5"
+                                                           Padding="8,4" />
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- 📝 Convert filename -->
+                                        <MenuItem ToggleType="CheckBox"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="📝" />
+                                                    <TextBlock Text="Convert filename" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- 📄 Add page header -->
+                                        <MenuItem ToggleType="CheckBox"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAddPdfPageHeader, Mode=TwoWay}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="📄" />
+                                                    <TextBlock Text="Add page header" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- 🔧 Compact PDF text -->
+                                        <MenuItem ToggleType="CheckBox"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCompactPdfText, Mode=TwoWay}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="🔧" />
+                                                    <TextBlock Text="Compact PDF text" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- 🔃 Auto-Reflow PDF text -->
+                                        <MenuItem ToggleType="CheckBox"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="🔃" />
+                                                    <TextBlock Text="Auto-Reflow PDF text" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- Separator -->
+                                        <Separator />
+
+                                        <!-- 🔹 Section: PDF Engine -->
+                                        <MenuItem IsEnabled="False" Classes="section-header">
+                                            <MenuItem.Header>
+                                                <TextBlock Text="PDF Engine"
+                                                           Foreground="Gray"
+                                                           FontWeight="Bold"
+                                                           LetterSpacing="0.5"
+                                                           Padding="8,4" />
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- ⚙️ Use PdfPig engine -->
+                                        <MenuItem ToggleType="Radio"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay}"
+                                                  ToolTip.Tip="Managed PdfPig engine – fast and great for simple text-based PDFs.">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="⚙️" />
+                                                    <TextBlock Text="Use PdfPig engine" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- ⚙️ Use Pdfium engine -->
+                                        <MenuItem ToggleType="Radio"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay}"
+                                                  ToolTip.Tip="Native Pdfium engine – better for complex layout, rotated text, and tricky PDFs.">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="⚙️" />
+                                                    <TextBlock Text="Use Pdfium (native) engine" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                    </ContextMenu>
+                                </avaloniaEdit:TextEditor.ContextMenu>
+                            </avaloniaEdit:TextEditor>
                         </Border>
 
+                        <!-- <Border Grid.Row="0" Grid.Column="1" -->
+                        <!--         Margin="5" -->
+                        <!--         BorderThickness="3" -->
+                        <!--         CornerRadius="6" -->
+                        <!--         BorderBrush="DarkGray"> -->
+                        <!-- 右邊 Destination -->
                         <Border Grid.Row="0" Grid.Column="1"
-                                Margin="5"
-                                BorderThickness="3"
-                                CornerRadius="6"
-                                BorderBrush="DarkGray">
+                                Margin="4,8,8,4"
+                                Classes="editor-container">
                             <avaloniaEdit:TextEditor
                                 x:Name="TbDestination"
                                 BorderThickness="0"
@@ -153,10 +276,16 @@
                                BorderThickness="3,0,0,2" />
                         <Label x:Name="LblSourceCode" Grid.Row="1" Grid.Column="0"
                                Content="{Binding LblSourceCodeContent}"
-                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="80,0,0,0" FontSize="16" />
+                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="70,0,0,0" FontSize="16" />
                         <Label x:Name="LblTotalChars" Grid.Row="1" Grid.Column="0"
                                Content="{Binding LblTotalCharsContent}" HorizontalAlignment="Right"
-                               VerticalAlignment="Center" Margin="0,0,130,0" FontSize="14" />
+                               VerticalAlignment="Center" Margin="0,0,175,0" FontSize="14" />
+                        <Button x:Name="BthReflow" Grid.Row="1" Grid.Column="0" Padding="0 2" Width="40"
+                                Content="RF" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Margin="0,2,135,0" FontSize="14" FontWeight="Bold"
+                                ToolTip.Tip="Reflow CJK paragraphs extracted from PDF text."
+                                Command="{Binding BtnReflowCommand}" />
                         <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
                                Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
                                BorderThickness="3,0,0,2" />
@@ -200,7 +329,115 @@
                                  BorderThickness="2,2,2,2" ItemsSource="{Binding LbxSourceItems}"
                                  SelectedIndex="{Binding LbxSourceSelectedIndex, Mode=TwoWay}"
                                  SelectedItem="{Binding LbxSourceSelectedItem, Mode=TwoWay}"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                            <ListBox.ContextMenu>
+                                <ContextMenu>
+                                    <ContextMenu.Styles>
+                                        <!-- 所有 class="section-header" 嘅 MenuItem 用呢個樣式 -->
+                                        <Style Selector="MenuItem.section-header">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="Foreground" Value="Gray" />
+                                            <Setter Property="Padding" Value="8,4" />
+                                            <Setter Property="Background" Value="#F7F7F7" />
+                                        </Style>
+                                    </ContextMenu.Styles>
+                                    <!-- 🔹 Section: PDF Options -->
+                                    <MenuItem IsEnabled="False" Classes="section-header">
+                                        <MenuItem.Header>
+                                            <TextBlock Text="PDF Options"
+                                                       Foreground="Gray"
+                                                       FontWeight="Bold"
+                                                       LetterSpacing="0.5"
+                                                       Padding="8,4" />
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- 📝 Convert filename -->
+                                    <MenuItem ToggleType="CheckBox"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay}">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="📝" />
+                                                <TextBlock Text="Convert filename" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- 📄 Add page header -->
+                                    <MenuItem ToggleType="CheckBox"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAddPdfPageHeader, Mode=TwoWay}">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="📄" />
+                                                <TextBlock Text="Add page header" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- 🔧 Compact PDF text -->
+                                    <MenuItem ToggleType="CheckBox"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCompactPdfText, Mode=TwoWay}">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="🔧" />
+                                                <TextBlock Text="Compact PDF text" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- 🔃 Auto-Reflow PDF text -->
+                                    <MenuItem ToggleType="CheckBox"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay}">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="🔃" />
+                                                <TextBlock Text="Auto-Reflow PDF text" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- Separator -->
+                                    <Separator />
+
+                                    <!-- 🔹 Section: PDF Engine -->
+                                    <MenuItem IsEnabled="False" Classes="section-header">
+                                        <MenuItem.Header>
+                                            <TextBlock Text="PDF Engine"
+                                                       Foreground="Gray"
+                                                       FontWeight="Bold"
+                                                       LetterSpacing="0.5"
+                                                       Padding="8,4" />
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- ⚙️ Use PdfPig engine -->
+                                    <MenuItem ToggleType="Radio"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay}"
+                                              ToolTip.Tip="Managed PdfPig engine – fast and great for simple text-based PDFs.">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="⚙️" />
+                                                <TextBlock Text="Use PdfPig engine" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- ⚙️ Use Pdfium engine -->
+                                    <MenuItem ToggleType="Radio"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay}"
+                                              ToolTip.Tip="Native Pdfium engine – better for complex layout, rotated text, and tricky PDFs.">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="⚙️" />
+                                                <TextBlock Text="Use Pdfium (native) engine" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                </ContextMenu>
+                            </ListBox.ContextMenu>
+                        </ListBox>
                         <Label Grid.Row="1" Grid.Column="0" Content="Source:" HorizontalAlignment="Left"
                                VerticalAlignment="Center" Margin="5,0,0,0" FontSize="16" BorderBrush="DarkGray"
                                BorderThickness="3,0,0,2" />
@@ -212,7 +449,12 @@
                                 <Grid>
                                     <ListBox x:Name="LbxDestination" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0"
                                              BorderThickness="2,2,2,2" ItemsSource="{Binding LbxDestinationItems}"
-                                             ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                                             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                        <!-- LOG ListBox auto-scroll view to last item -->
+                                        <Interaction.Behaviors>
+                                            <helpers:AutoScrollBehavior />
+                                        </Interaction.Behaviors>
+                                    </ListBox>
                                 </Grid>
                             </TabItem>
                             <TabItem x:Name="TabPreview" Header="Preview" FontSize="14" FontWeight="Medium"
@@ -239,15 +481,23 @@
                         <Label Grid.Column="1" Content="Output:" HorizontalAlignment="Left" Margin="5,0,0,0"
                                Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
                                BorderThickness="3,0,0,2" />
-                        <Button x:Name="BtnAdd" Content="＋" Padding="0 2" Width="50" HorizontalAlignment="Left"
+                        <Button x:Name="BtnAdd" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center"
                                 Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
-                                FontWeight="Bold" Command="{Binding BtnAddCommand}" />
-                        <Button x:Name="BtnRemove" Content="－" Padding="0 2" Width="50" HorizontalAlignment="Left"
+                                FontWeight="Bold" Command="{Binding BtnAddCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:SymbolIcon Symbol="Add" FontSize="20" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnRemove" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center"
                                 Margin="125,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
                                 FontSize="14"
-                                FontWeight="Bold" Command="{Binding BtnRemoveCommand}" />
+                                FontWeight="Bold" Command="{Binding BtnRemoveCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:SymbolIcon Symbol="Remove" FontSize="20" />
+                            </StackPanel>
+                        </Button>
                         <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
                                   FontSize="13" FontWeight="Bold" Padding="3,0,0,0" Margin="180,2,0,2"
                                   VerticalAlignment="Center"
@@ -269,12 +519,16 @@
                                  HorizontalAlignment="Left" VerticalAlignment="Center"
                                  helpers:FocusAttachedProperty.IsFocused="{Binding IsTbOutFolderFocus}"
                                  VerticalContentAlignment="Center" Margin="75,2,2,2" Padding="0 2" />
-                        <Button x:Name="BtnOutFolder" Content="…" Padding="0 2" Width="50" HorizontalAlignment="Right"
+                        <Button x:Name="BtnOutFolder" Padding="0 2" Width="50" HorizontalAlignment="Right"
                                 HorizontalContentAlignment="Center"
                                 Margin="0,2,60,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
-                                FontWeight="Bold" Command="{Binding BtnSelectOutFolderCommand}" />
+                                FontWeight="Bold" Command="{Binding BtnSelectOutFolderCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:SymbolIcon Symbol="OpenFolder" FontSize="20" />
+                            </StackPanel>
+                        </Button>
                         <Button x:Name="BtnOutClear" Content="AC" Padding="0 2" Width="50" HorizontalAlignment="Right"
-                                HorizontalContentAlignment="Center"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"
                                 Margin="0,2,5,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnMessagePreviewClearCommand}" />
 
@@ -282,27 +536,72 @@
                 </TabItem>
             </TabControl>
         </Grid>
-        <Button x:Name="BtnProcess" Content="Process" Padding="0 2" Width="100" HorizontalAlignment="Center"
-                HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnProcessVisible}"
-                Margin="0,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
-                Command="{Binding BtnProcessCommand}" Foreground="RoyalBlue" />
-        <Button x:Name="BtnBatchStart" Content="Batch Start" Padding="0 2" Width="120" HorizontalAlignment="Center"
-                HorizontalContentAlignment="Center" Foreground="RoyalBlue"
-                Margin="0,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
-                IsVisible="{Binding IsBtnBatchStartVisible}" Command="{Binding BtnBatchStartCommand}" />
-        <Button x:Name="BtnOpenFile" Content="Open File" Padding="0 2" Width="80" HorizontalAlignment="Left"
+        <!-- <Button x:Name="BtnProcess" Content="Process" Padding="0 2" Width="100" HorizontalAlignment="Center" -->
+        <!--         HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnProcessVisible}" -->
+        <!--         Margin="0,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" -->
+        <!--         Command="{Binding BtnProcessCommand}" Foreground="RoyalBlue" /> -->
+        <Button x:Name="BtnProcess"
+                Padding="6,6,12, 6"
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding IsBtnProcessVisible}"
+                Command="{Binding BtnProcessCommand}"
+                Classes="accent-button">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <controls:SymbolIcon Symbol="Play" FontSize="22" />
+                <TextBlock Text="Process" />
+            </StackPanel>
+        </Button>
+
+        <!-- <Button x:Name="BtnBatchStart" Content="Batch Start" Padding="0 2" Width="120" HorizontalAlignment="Center" -->
+        <!--         HorizontalContentAlignment="Center" Foreground="RoyalBlue" -->
+        <!--         Margin="0,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" -->
+        <!--         IsVisible="{Binding IsBtnBatchStartVisible}" Command="{Binding BtnBatchStartCommand}" /> -->
+        <Button x:Name="BtnBatchStart"
+                Padding="6,6,12, 6"
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding IsBtnBatchStartVisible}"
+                Command="{Binding BtnBatchStartCommand}"
+                Classes="accent-button">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <controls:SymbolIcon Symbol="Play" FontSize="22" />
+                <TextBlock Text="Batch Start" />
+            </StackPanel>
+        </Button>
+
+        <Button x:Name="BtnOpenFile" Content="📂Open File" Padding="5 2" HorizontalAlignment="Left"
                 HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnOpenFileVisible}"
                 Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
-                Command="{Binding BtnOpenFileCommand}" />
+                Command="{Binding BtnOpenFileCommand}" Classes="outline-button" />
         <Label x:Name="LblFileName" Content="{Binding LblFileNameContent}" Padding="0 2" HorizontalAlignment="Left"
-               Margin="110,0,0,0" Grid.Row="2" IsVisible="{Binding IsLblFileNameVisible}"
+               Margin="120,0,0,0" Grid.Row="2" IsVisible="{Binding IsLblFileNameVisible}"
                VerticalAlignment="Center" FontSize="14" />
-        <Button x:Name="BtnSaveFile" Content="Save As" Padding="0 2" Width="80" HorizontalAlignment="Right"
+        <ComboBox x:Name="CmbSaveTarget" Width="120" Margin="0,0,175,0" Grid.Row="2"
+                  VerticalAlignment="Center" HorizontalAlignment="Right"
+                  ToolTip.Tip="Select target textbox contents to save as text file."
+                  ItemsSource="{Binding SaveTargets}" IsVisible="{Binding IsCmbSaveTargetVisible}"
+                  SelectedItem="{Binding SelectedSaveTarget}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}">
+                                <Binding />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button x:Name="BtnSaveFile" Content="💾Save As" Padding="5 2" HorizontalAlignment="Right"
                 HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
-                Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
+                Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Classes="outline-button"
                 Command="{Binding BtnSaveFileCommand}" />
         <Button x:Name="BtnExit" Content=" Exit " Padding="0 2" Width="50" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center"
+                HorizontalContentAlignment="Center" Classes="outline-button"
                 Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
                 FontWeight="Bold" Click="BtnExit_Click" />
         <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">

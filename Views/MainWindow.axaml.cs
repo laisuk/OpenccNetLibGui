@@ -8,7 +8,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using AvaloniaEdit;
-using OpenccNetLib;
 using OpenccNetLibGui.ViewModels;
 
 namespace OpenccNetLibGui.Views;
@@ -98,13 +97,26 @@ public partial class MainWindow : Window
                 var firstFile = fileList[0]; // Safe access as fileList is checked
                 filePath = NormalizeFilePath(firstFile);
                 if (filePath == null) return;
-                var content = await File.ReadAllTextAsync(filePath);
-                vm.TbSourceTextDocument!.Text = content;
-                vm.UpdateEncodeInfo(Opencc.ZhoCheck(content));
-                vm.LblFileNameContent = firstFile.Name;
-                vm.LblStatusBarContent = $"Contents dropped: {firstFile.TryGetLocalPath()}";
+                var fileExt = Path.GetExtension(filePath).ToLowerInvariant();
+                if (fileExt == ".pdf")
+                {
+                    try
+                    {
+                        await vm.UpdateTbSourcePdfAsync(filePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        vm.LblStatusBarContent = $"Error opening PDF: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    // reuse existing text-load logic in VM
+                    await vm.UpdateTbSourceFileContentsAsync(filePath);
+                }
 
                 break;
+
 
             case ListBox:
                 var newItems = new HashSet<string>(vm.LbxSourceItems!); // Ensure uniqueness

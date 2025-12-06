@@ -1,7 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="OpenccNetLibGui.App"
-             xmlns:local="using:OpenccNetLibGui"
              xmlns:helpers="clr-namespace:OpenccNetLibGui.Helpers"
              RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -13,5 +12,66 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+ 
+        <!-- Primary / Ancient Button -->
+        <Style Selector="Button.accent-button">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+            <!-- <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" /> -->
+            <!-- Force white text in both Light & Dark -->
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundChromeWhiteBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="12 6" />
+        </Style>
+
+        <Style Selector="Button.accent-button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentMediumBrush}" />
+        </Style>
+
+        <Style Selector="Button.accent-button:pressed">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentDarkBrush}" />
+        </Style>
+        
+        <!-- Secondary / Outline Button -->
+        <Style Selector="Button.outline-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12 6" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.outline-button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button:pressed">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseMediumBrush}" />
+        </Style>
+        
+        <!-- 包住 TextEditor 的外層容器 -->
+        <Style Selector="Border.editor-container">
+            <!-- 背景：略淺一層，令 TextEditor 區域同窗體分層 -->
+            <Setter Property="Background"
+                    Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+
+            <!-- 邊框：Fluent 2 式微對比灰線 -->
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+            <Setter Property="BorderThickness" Value="3" />
+
+            <!-- 圓角 + 內邊距 -->
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="4" />
+
+            <!-- 令內容（TextEditor）唔貼邊，呼吸空間好啲 -->
+        </Style>
+
     </Application.Styles>
 </Application>

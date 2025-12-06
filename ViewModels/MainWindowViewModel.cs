@@ -14,6 +14,8 @@ using OpenccNetLibGui.Services;
 using OpenccNetLibGui.Views;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
 using OpenccNetLibGui.Models;
 
 namespace OpenccNetLibGui.ViewModels;
@@ -29,6 +31,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isBtnOpenFileVisible = true;
     private bool _isBtnProcessVisible = true;
     private bool _isBtnSaveFileVisible = true;
+    private bool _isCmbSaveTargetVisible = true;
     private bool _isCbPunctuation = true;
     private bool _isCbZhtw;
     private bool _isCbZhtwEnabled;
@@ -76,6 +79,10 @@ public class MainWindowViewModel : ViewModelBase
 
     private readonly Opencc? _opencc;
     private readonly int _locale;
+    private bool _addPdfPageHeader;
+    private bool _compactPdfText;
+    private bool _autoReflow;
+    private PdfEngine _pdfEngine;
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -108,6 +115,7 @@ public class MainWindowViewModel : ViewModelBase
         BtnMessagePreviewClearCommand = ReactiveCommand.Create(BtnMessagePreviewClear);
         BtnBatchStartCommand = ReactiveCommand.CreateFromTask(BtnBatchStart);
         CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
+        BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
@@ -138,6 +146,16 @@ public class MainWindowViewModel : ViewModelBase
             CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
         _textFileTypes = languageSettings.TextFileTypes ?? new List<string>();
         _officeFileTypes = languageSettings.OfficeFileTypes ?? new List<string>();
+        _isCbConvertFilename = languageSettings.ConvertFilename > 0;
+        _addPdfPageHeader = languageSettings.AddPdfPageHeader > 0;
+        _compactPdfText = languageSettings.CompactPdfText > 0;
+        _autoReflow = languageSettings.AutoReflowPdfText > 0;
+        _pdfEngine = languageSettings.PdfEngine switch
+        {
+            1 => PdfEngine.PdfPig,
+            2 => PdfEngine.Pdfium,
+            _ => PdfEngine.PdfPig, // fallback
+        };
 
         // Show the .NET runtime version and current dictionary in the status bar
         var runtimeVersion = RuntimeInformation.FrameworkDescription;
@@ -182,6 +200,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnMessagePreviewClearCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnBatchStartCommand { get; }
     public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
 
     #endregion
 
@@ -223,6 +242,29 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+    // private async Task BtnOpenFile()
+    // {
+    //     var mainWindow = _topLevelService!.GetMainWindow();
+    //
+    //     var storageProvider = mainWindow.StorageProvider;
+    //     var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+    //     {
+    //         Title = "Open Text File",
+    //         FileTypeFilter = new List<FilePickerFileType>
+    //         {
+    //             new("Text Files") { Patterns = new[] { "*.txt" } },
+    //             new("All Files") { Patterns = new[] { "*.*" } }
+    //         },
+    //         AllowMultiple = false
+    //     });
+    //
+    //     if (result.Count <= 0) return;
+    //     var file = result[0];
+    //     {
+    //         var path = file.Path.LocalPath;
+    //         await UpdateTbSourceFileContents(path);
+    //     }
+    // }
     private async Task BtnOpenFile()
     {
         var mainWindow = _topLevelService!.GetMainWindow();
@@ -233,7 +275,9 @@ public class MainWindowViewModel : ViewModelBase
             Title = "Open Text File",
             FileTypeFilter = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("Text Files") { Patterns = new[] { "*.txt", "*.md", "*.csv", "*.html", "*.xml" } },
+                new("Subtitle Files") { Patterns = new[] { "*.srt", "*.vtt", "*.ass", "*.ttml2" } },
+                new("Pdf Files") { Patterns = new[] { "*.pdf" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = false
@@ -243,9 +287,260 @@ public class MainWindowViewModel : ViewModelBase
         var file = result[0];
         {
             var path = file.Path.LocalPath;
-            await UpdateTbSourceFileContents(path);
+            var fileExt = Path.GetExtension(path);
+
+            if (fileExt == ".pdf")
+            {
+                try
+                {
+                    await UpdateTbSourcePdfAsync(
+                        path,
+                        _pdfEngine,
+                        _addPdfPageHeader);
+                }
+                catch (Exception ex)
+                {
+                    LblStatusBarContent = $"Error opening PDF: {ex.Message}";
+                }
+
+                return;
+            }
+
+
+            if (_textFileTypes == null || !_textFileTypes!.Contains(fileExt))
+            {
+                LblStatusBarContent = $"Error: File type ({fileExt}) not support";
+                return;
+            }
+
+            try
+            {
+                await UpdateTbSourceFileContentsAsync(path);
+            }
+            catch (Exception ex)
+            {
+                // Handle unexpected exceptions here
+                // Console.WriteLine($"Unhandled exception: {ex}");
+                LblStatusBarContent = $"Error open file: {ex.Message}";
+            }
         }
     }
+    
+    #region PDF Handling Region
+
+    private CancellationTokenSource? _pdfCts;
+    private int _pdfRequestId;
+
+    // Public/simple entry point used by UI / DnD / menu etc.
+    internal Task UpdateTbSourcePdfAsync(string path)
+    {
+        // Delegate to the core method, using VM-level settings
+        return UpdateTbSourcePdfAsync(path, _pdfEngine, _addPdfPageHeader);
+    }
+
+    private async Task UpdateTbSourcePdfAsync(
+        string path,
+        PdfEngine engine,
+        bool addPdfPageHeader)
+    {
+        // Cancel + dispose previous CTS (if any)
+        _pdfCts?.Cancel();
+        _pdfCts?.Dispose();
+
+        var cts = new CancellationTokenSource();
+        _pdfCts = cts;
+        var token = cts.Token;
+
+        var requestId = Interlocked.Increment(ref _pdfRequestId);
+        var fileName = Path.GetFileName(path);
+
+        LblStatusBarContent = $"Loading PDF ({engine}): {fileName}";
+
+        // Progress pipe for status bar (UI)
+        var progress = new Progress<string>(msg =>
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (requestId != _pdfRequestId || token.IsCancellationRequested)
+                    return;
+
+                LblStatusBarContent = msg;
+            });
+        });
+
+        try
+        {
+            // 🔹 Use the shared core helper here
+            var text = await LoadPdfTextCoreAsync(
+                path,
+                engine,
+                addPdfPageHeader,
+                _autoReflow,
+                _compactPdfText,
+                progress,
+                token);
+
+            if (!token.IsCancellationRequested && requestId == _pdfRequestId)
+            {
+                TbSourceTextDocument!.Text = text;
+                _currentOpenFileName = Path.GetFullPath(path);
+                LblFileNameContent = fileName;
+
+                UpdateEncodeInfo(Opencc.ZhoCheck(text));
+
+                LblStatusBarContent =
+                    $"Loaded PDF ({engine}{(_autoReflow ? ", Auto-Reflowed" : "")}): {fileName}";
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            if (requestId == _pdfRequestId)
+                LblStatusBarContent = "PDF loading cancelled.";
+        }
+        catch (Exception ex)
+        {
+            if (requestId == _pdfRequestId)
+                LblStatusBarContent = $"Error loading PDF ({engine}): {ex.Message}";
+        }
+        finally
+        {
+            if (ReferenceEquals(_pdfCts, cts))
+                _pdfCts = null;
+
+            cts.Dispose();
+        }
+    }
+
+    private async Task<string> LoadPdfTextCoreAsync(
+        string path,
+        PdfEngine engine,
+        bool addPdfPageHeader,
+        bool autoReflow,
+        bool compactText,
+        IProgress<string>? progress,
+        CancellationToken token)
+    {
+        // Provide a guaranteed non-null delegate
+        Action<string> report = progress != null
+            ? progress.Report
+            : static _ => { };
+
+        string text;
+
+        switch (engine)
+        {
+            case PdfEngine.PdfPig:
+                text = await PdfHelper.LoadPdfTextAsync(
+                    path,
+                    addPdfPageHeader,
+                    report,
+                    token);
+                break;
+
+            case PdfEngine.Pdfium:
+                text = await PdfiumModel.ExtractTextAsync(
+                    path,
+                    addPdfPageHeader,
+                    report,
+                    token);
+                break;
+
+            default:
+                throw new NotSupportedException($"Unsupported PDF engine: {engine}");
+        }
+
+        if (autoReflow)
+        {
+            text = PdfHelper.ReflowCjkParagraphs(text, addPdfPageHeader, compactText);
+        }
+
+        return text;
+    }
+
+    // private void ReflowCjkParagraphs()
+    // {
+    //     var text = TbSourceTextDocument?.Text;
+    //     if (string.IsNullOrWhiteSpace(text))
+    //     {
+    //         LblStatusBarContent = "Nothing to reflow";
+    //         return;
+    //     }
+    //
+    //     var result = PdfHelper.ReflowCjkParagraphs(text, _AddPdfPageHeader);
+    //     TbSourceTextDocument!.Text = result;
+    //     LblStatusBarContent = "Reflow complete (CJK-aware)";
+    // }
+    private void ReflowCjkParagraphs()
+    {
+        var document = TbSourceTextDocument;
+        var fullText = document!.Text ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(fullText))
+        {
+            LblStatusBarContent = "Nothing to reflow";
+            return;
+        }
+
+        bool hasSelection = TbSourceSelectionLength > 0;
+
+        string sourceText;
+        int start = TbSourceSelectionStart;
+        int length = TbSourceSelectionLength;
+
+        if (hasSelection)
+        {
+            // Boundaries guard
+            if (start < 0 || length <= 0 || start + length > fullText.Length)
+            {
+                // Fallback to whole document if selection is invalid
+                sourceText = fullText;
+                hasSelection = false;
+            }
+            else
+            {
+                sourceText = fullText.Substring(start, length);
+            }
+        }
+        else
+        {
+            sourceText = fullText;
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceText))
+        {
+            LblStatusBarContent = "Nothing to reflow";
+            return;
+        }
+
+        var result = PdfHelper.ReflowCjkParagraphs(sourceText, _addPdfPageHeader);
+
+        if (hasSelection)
+        {
+            // Replace only the selected region
+            var before = fullText.Substring(0, start);
+            var after = fullText.Substring(start + length);
+
+            var newFull = before + result + after;
+            document.Text = newFull;
+
+            // Update selection to cover the new reflowed range
+            TbSourceSelectionStart = start;
+            TbSourceSelectionLength = result.Length;
+        }
+        else
+        {
+            // Reflow entire document
+            document.Text = result;
+
+            // Clear selection
+            TbSourceSelectionStart = 0;
+            TbSourceSelectionLength = 0;
+        }
+
+        LblStatusBarContent = "Reflow complete (CJK-aware)";
+    }
+
+    #endregion
 
     private async Task BtnSaveFile()
     {
@@ -255,19 +550,38 @@ public class MainWindowViewModel : ViewModelBase
         var result = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Save Text File",
-            SuggestedFileName = "document.txt",
+            SuggestedFileName = SelectedSaveTarget == SaveTarget.Destination ? "destination.txt" : "source.txt",
             FileTypeChoices = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } },
-                new("All Files") { Patterns = new[] { "*.*" } }
+                new("Text Files") { Patterns = new[] { "*.txt" } }
             }
         });
+
+        string target;
+        string content;
+
+        switch (SelectedSaveTarget)
+        {
+            case SaveTarget.Destination:
+                target = "Destination";
+                content = TbDestinationTextDocument!.Text;
+                break;
+
+            case SaveTarget.Source:
+                target = "Source";
+                content = TbSourceTextDocument!.Text;
+                break;
+            default:
+                target = "Destination";
+                content = string.Empty;
+                break;
+        }
 
         if (result != null)
         {
             var path = result.Path.LocalPath;
-            await File.WriteAllTextAsync(path, TbDestinationTextDocument!.Text);
-            LblStatusBarContent = $"Destination contents saved to file: {path}";
+            await File.WriteAllTextAsync(path, content, Encoding.UTF8);
+            LblStatusBarContent = $"{target} contents saved to file: {path}";
         }
     }
 
@@ -627,7 +941,7 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    internal void UpdateEncodeInfo(int codeText)
+    private void UpdateEncodeInfo(int codeText)
     {
         switch (codeText)
         {
@@ -647,7 +961,42 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task UpdateTbSourceFileContents(string filename)
+    // private async Task UpdateTbSourceFileContents(string filename)
+    // {
+    //     var fileInfo = new FileInfo(filename);
+    //     if (fileInfo.Length > int.MaxValue)
+    //     {
+    //         LblStatusBarContent = "Error: File too large";
+    //         return;
+    //     }
+    //
+    //     _currentOpenFileName = filename;
+    //
+    //     // Read file contents
+    //     try
+    //     {
+    //         using var reader = new StreamReader(_currentOpenFileName);
+    //         var contents = await reader.ReadToEndAsync();
+    //         // Display file contents to text box field
+    //         TbSourceTextDocument!.Text = contents;
+    //         LblStatusBarContent = $"File: {_currentOpenFileName}";
+    //         var displayName = fileInfo.Name;
+    //         LblFileNameContent =
+    //             displayName.Length > 50 ? $"{displayName[..25]}...{displayName[^15..]}" : displayName;
+    //         var codeText = Opencc.ZhoCheck(contents);
+    //         UpdateEncodeInfo(codeText);
+    //     }
+    //     catch (Exception)
+    //     {
+    //         TbSourceTextDocument!.Text = string.Empty;
+    //         TbSourceTextDocument!.UndoStack.ClearAll();
+    //         LblSourceCodeContent = string.Empty;
+    //         LblStatusBarContent = "Error: Invalid file";
+    //         //throw;
+    //     }
+    // }
+    //
+    internal async Task UpdateTbSourceFileContentsAsync(string filename)
     {
         var fileInfo = new FileInfo(filename);
         if (fileInfo.Length > int.MaxValue)
@@ -661,26 +1010,33 @@ public class MainWindowViewModel : ViewModelBase
         // Read file contents
         try
         {
-            using var reader = new StreamReader(_currentOpenFileName);
+            using var reader = new StreamReader(_currentOpenFileName, Encoding.UTF8, true);
             var contents = await reader.ReadToEndAsync();
+
             // Display file contents to text box field
             TbSourceTextDocument!.Text = contents;
             LblStatusBarContent = $"File: {_currentOpenFileName}";
+
             var displayName = fileInfo.Name;
-            LblFileNameContent =
-                displayName.Length > 50 ? $"{displayName[..25]}...{displayName[^15..]}" : displayName;
+            LblFileNameContent = displayName.Length > 50
+                ? $"{displayName[..25]}...{displayName[^15..]}"
+                : displayName;
+
             var codeText = Opencc.ZhoCheck(contents);
             UpdateEncodeInfo(codeText);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             TbSourceTextDocument!.Text = string.Empty;
-            TbSourceTextDocument!.UndoStack.ClearAll();
             LblSourceCodeContent = string.Empty;
             LblStatusBarContent = "Error: Invalid file";
-            //throw;
+            _currentOpenFileName = string.Empty;
+
+            // Optionally log the exception
+            Console.WriteLine($"Exception in UpdateTbSourceFileContentsAsync: {ex}");
         }
     }
+
 
     private string GetCurrentConfig()
     {
@@ -710,7 +1066,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public void TbSourceTextChanged()
     {
-        LblTotalCharsContent = $"[ Chars: {TbSourceTextDocument!.Text!.Length:N0} ]";
+        LblTotalCharsContent = $"[ Ch: {TbSourceTextDocument!.Text!.Length:N0} ]";
     }
 
     #region Control Binding fields
@@ -743,6 +1099,22 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _tbSourceTextDocument;
         set => this.RaiseAndSetIfChanged(ref _tbSourceTextDocument, value);
+    }
+
+    private int _tbSourceSelectionStart;
+
+    public int TbSourceSelectionStart
+    {
+        get => _tbSourceSelectionStart;
+        set => this.RaiseAndSetIfChanged(ref _tbSourceSelectionStart, value);
+    }
+
+    private int _tbSourceSelectionLength;
+
+    public int TbSourceSelectionLength
+    {
+        get => _tbSourceSelectionLength;
+        set => this.RaiseAndSetIfChanged(ref _tbSourceSelectionLength, value);
     }
 
     public TextDocument? TbDestinationTextDocument
@@ -792,6 +1164,27 @@ public class MainWindowViewModel : ViewModelBase
         get => _tbOutFolderText;
         set => this.RaiseAndSetIfChanged(ref _tbOutFolderText, value);
     }
+    
+    #region Save Target Region
+
+    public enum SaveTarget
+    {
+        Destination,
+        Source
+    }
+
+    public IReadOnlyList<SaveTarget> SaveTargets { get; } =
+        Enum.GetValues<SaveTarget>().ToList();
+
+    private SaveTarget _selectedSaveTarget = SaveTarget.Destination;
+
+    public SaveTarget SelectedSaveTarget
+    {
+        get => _selectedSaveTarget;
+        set => this.RaiseAndSetIfChanged(ref _selectedSaveTarget, value);
+    }
+
+    #endregion
 
     // public string? TbPreviewText
     // {
@@ -943,6 +1336,7 @@ public class MainWindowViewModel : ViewModelBase
             IsTabBatch = false;
             IsBtnOpenFileVisible = true;
             IsLblFileNameVisible = true;
+            IsCmbSaveTargetVisible = true;
             IsBtnSaveFileVisible = true;
             IsBtnProcessVisible = true;
             IsBtnBatchStartVisible = false;
@@ -961,6 +1355,7 @@ public class MainWindowViewModel : ViewModelBase
             IsTabMain = false;
             IsBtnOpenFileVisible = false;
             IsLblFileNameVisible = false;
+            IsCmbSaveTargetVisible = false;
             IsBtnSaveFileVisible = false;
             IsBtnProcessVisible = false;
             IsBtnBatchStartVisible = true;
@@ -1020,6 +1415,25 @@ public class MainWindowViewModel : ViewModelBase
         get => _isCbConvertFilename;
         set => this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
     }
+    
+    public bool IsAddPdfPageHeader
+    {
+        get => _addPdfPageHeader;
+        set => this.RaiseAndSetIfChanged(ref _addPdfPageHeader, value);
+    }
+
+    public bool IsCompactPdfText
+    {
+        get => _compactPdfText;
+        set => this.RaiseAndSetIfChanged(ref _compactPdfText, value);
+    }
+
+    public bool IsAutoReflow
+    {
+        get => _autoReflow;
+        set => this.RaiseAndSetIfChanged(ref _autoReflow, value);
+    }
+
 
     public bool IsTbOutFolderFocus
     {
@@ -1031,6 +1445,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _isBtnOpenFileVisible;
         set => this.RaiseAndSetIfChanged(ref _isBtnOpenFileVisible, value);
+    }
+    
+    public bool IsCmbSaveTargetVisible
+    {
+        get => _isCmbSaveTargetVisible;
+        set => this.RaiseAndSetIfChanged(ref _isCmbSaveTargetVisible, value);
     }
 
     public bool IsBtnSaveFileVisible
@@ -1069,5 +1489,32 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tabBatchFontWeight, value);
     }
 
+    public PdfEngine PdfEngine
+    {
+        get => _pdfEngine;
+        set => this.RaiseAndSetIfChanged(ref _pdfEngine, value);
+    }
+
+    // Bind for "Use PdfPig"
+    public bool IsPdfPigEngine
+    {
+        get => PdfEngine == PdfEngine.PdfPig;
+        set
+        {
+            if (value)
+                PdfEngine = PdfEngine.PdfPig;
+        }
+    }
+
+    // Bind for "Use Pdfium"
+    public bool IsPdfiumEngine
+    {
+        get => PdfEngine == PdfEngine.Pdfium;
+        set
+        {
+            if (value)
+                PdfEngine = PdfEngine.Pdfium;
+        }
+    }
     #endregion
 }
