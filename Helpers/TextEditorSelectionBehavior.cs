@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
 using AvaloniaEdit;
-using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 
 namespace OpenccNetLibGui.Helpers;

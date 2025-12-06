@@ -7,6 +7,58 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.4.0] - 2025-12-06
+
+### Added
+
+- **PDF import support** for the Source panel using both **Pdfium** (native) and **UglyToad.PdfPig** (managed) engines.
+- **CJK-aware PDF text reflow pipeline**:
+  - Merges wrapped lines intelligently.
+  - Preserves chapter titles and headings.
+  - Repairs cross-page word breaks (e.g., `面` + `容` → `面容`).
+  - Handles CJK punctuation and spacing normalization.
+- **Configurable PDF extraction options** (`LanguageSettings.json`):
+  - `addPdfPageHeader` — insert or remove page markers (`=== [Page X/Y] ===`).
+  - `compactPdfText` — enable compact reflow mode.
+  - `autoReflowPdfText` — automatically reflow extracted PDF text.
+  - `pdfEngine` — choose PdfPig or Pdfium.
+  - `convertFilename` — convert filenames during batch operations.
+- **Status-bar progressive feedback**:
+  - Added fake progress bar with percentage indicator when loading multipage PDFs.
+- **Drag-and-drop PDF loading**:
+  - PDFs dragged into the Source editor now use the same extraction + reflow pipeline as the Open File dialog.
+- **Selected-text reflow** for PDF text in AvaloniaEdit:
+  - Supports forward & backward selections.
+  - Reflows only the affected paragraph range.
+- **PDF Options context menu**:
+  - Toggle reflow, compact mode, page headers, and PDF engine directly from the UI.
+- **PDF text extraction + OpenCC conversion** in both **Main Conversion** and **Batch Conversion** modes.
+- **Runtime PDF engine bindings included**:
+  - `win-x64`, `win-x86`, `linux-x64`, `osx-x64`, `osx-arm64` native Pdfium binaries.
+
+### Changed
+
+- **Refined Fluent 2 UI theme**:
+  - Improved Dark/Light mode contrast.
+  - Enhanced editor pane borders and spacing.
+  - Redesigned primary/secondary buttons using Fluent styling.
+- **Batch mode no longer blocks the UI thread**:
+  - All conversions (text + PDF) now run on background tasks (`Task.Run`).
+  - Log entries update progressively instead of appearing in a single batch.
+- **Improved AvaloniaEdit selection syncing**:
+  - Fixed backward-selection offset issues.
+  - Added precise selection restore after reflow.
+- **Unified file dialogs and drag-and-drop behaviors** to match Fluent interaction patterns.
+
+### Fixed
+
+- Corrected missing newline behavior after selected-region reflow.
+- Fixed incorrect selection shifting after reflow when user selected text backwards.
+- Fixed Linux/macOS runtime loading failures by placing Pdfium binaries in correct RID folders.
+- Eliminated duplicate PDF header lines in PdfPig extraction under certain layouts.
+
+---
+
 ## [1.3.1] - 2025-11-20
 
 ### Added
