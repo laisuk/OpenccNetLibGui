@@ -303,7 +303,7 @@
                                 Command="{Binding BtnClearTbSourceCommand}"
                                 FontWeight="Bold" />
                         <Button x:Name="BtnPaste" Content="Paste" Padding="0 2" Width="80" HorizontalAlignment="Right"
-                                HorizontalContentAlignment="Center"
+                                HorizontalContentAlignment="Center" FontWeight="SemiBold"
                                 Margin="0,2,5,0" Grid.Row="1"
                                 Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 Command="{Binding BtnPasteCommand}" />
@@ -313,7 +313,7 @@
                                 FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold" />
                         <Button x:Name="BtnCopy" Grid.Column="1" Content="Copy" Padding="0 2" Width="80"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,5,0"
-                                Grid.Row="1" VerticalAlignment="Center"
+                                Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold"
                                 FontSize="14" Command="{Binding BtnCopyCommand}" />
                     </Grid>
                 </TabItem>
