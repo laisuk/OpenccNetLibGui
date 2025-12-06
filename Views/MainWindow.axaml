@@ -50,7 +50,7 @@
                          FontSize="14"
                          Padding="5,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" GroupName="MainRb"
                          IsChecked="{Binding IsRbCustom}" />
-            <ComboBox Name="CbCustom" Grid.Column="2" Grid.Row="0" Margin="140,0,0,0"
+            <ComboBox Name="CbCustom" Grid.Column="2" Grid.Row="0" Margin="140,0,0,0" CornerRadius="6"
                       ItemsSource="{Binding CustomOptions}"
                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
                 <Interaction.Behaviors>
@@ -83,11 +83,11 @@
                 <CheckBox x:Name="CbZhtw" Grid.Row="0" Grid.Column="3" Content="{Binding CbZhtwContent}" FontSize="13"
                           Padding="5,0,0,0" Margin="0,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
                           IsChecked="{Binding IsCbZhtw}" IsEnabled="{Binding IsCbZhtwEnabled}"
-                          ToolTip.Tip="Using zh-CN and zh-TW idioms in conversion."/>
+                          ToolTip.Tip="Using zh-CN and zh-TW idioms in conversion." />
                 <CheckBox x:Name="CbPunctuation" Grid.Row="0" Grid.Column="4" Content="{Binding CbPunctuationContent}"
                           FontSize="13" Padding="5,0,0,0" Margin="5,0,0,0" VerticalAlignment="Center"
-                          HorizontalAlignment="Left" IsChecked="{Binding IsCbPunctuation}" 
-                          ToolTip.Tip="Convert CJK punctuations between Simplified/Tradition Chinese."/>
+                          HorizontalAlignment="Left" IsChecked="{Binding IsCbPunctuation}"
+                          ToolTip.Tip="Convert CJK punctuations between Simplified/Tradition Chinese." />
             </Grid>
         </Grid>
         <Grid Grid.Row="1">
@@ -304,7 +304,7 @@
                                 Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 Command="{Binding BtnClearTbSourceCommand}"
                                 FontWeight="Bold">
-                            <controls:SymbolIcon Symbol="Delete" FontSize="20"/>
+                            <controls:SymbolIcon Symbol="Delete" FontSize="20" />
                         </Button>
                         <Button x:Name="BtnPaste" Padding="5 2" Width="80" HorizontalAlignment="Right"
                                 HorizontalContentAlignment="Center" FontWeight="SemiBold"
@@ -320,11 +320,11 @@
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,90,0"
                                 Grid.Row="1" VerticalAlignment="Center" ToolTip.Tip="Clear destination text box."
                                 FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold">
-                            <controls:SymbolIcon Symbol="Delete" FontSize="20"/>
+                            <controls:SymbolIcon Symbol="Delete" FontSize="20" />
                         </Button>
-                        <Button x:Name="BtnCopy" Grid.Column="1"  Padding="5 2" Width="80"
+                        <Button x:Name="BtnCopy" Grid.Column="1" Padding="5 2" Width="80"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,5,0"
-                                Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" 
+                                Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold"
                                 FontSize="14" Command="{Binding BtnCopyCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="3">
                                 <controls:SymbolIcon Symbol="Copy" FontSize="20" />
@@ -511,13 +511,10 @@
                             <ContentControl Content="{DynamicResource Icon.Add}" />
                         </Button>
                         <Button x:Name="BtnRemove" Padding="0 2" Width="50" HorizontalAlignment="Left"
-                                HorizontalContentAlignment="Center"
-                                Margin="125,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center" Margin="125,2,0,2"
+                                Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
                                 FontSize="14" ToolTip.Tip="Remove selected item in Source List Box."
                                 FontWeight="Bold" Command="{Binding BtnRemoveCommand}">
-                            <!-- <StackPanel Orientation="Horizontal"> -->
-                            <!--     <controls:SymbolIcon Symbol="Remove" FontSize="20" /> -->
-                            <!-- </StackPanel> -->
                             <ContentControl Content="{DynamicResource Icon.Remove}" />
                         </Button>
                         <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
@@ -620,19 +617,13 @@
                Margin="120,0,0,0" Grid.Row="2" IsVisible="{Binding IsLblFileNameVisible}"
                VerticalAlignment="Center" FontSize="14" />
         <ComboBox x:Name="CmbSaveTarget" Width="120" Margin="0,0,175,0" Grid.Row="2"
-                  VerticalAlignment="Center" HorizontalAlignment="Right"
+                  VerticalAlignment="Center" HorizontalAlignment="Right" CornerRadius="6"
                   ToolTip.Tip="Select target textbox contents to save as text file."
                   ItemsSource="{Binding SaveTargets}" IsVisible="{Binding IsCmbSaveTargetVisible}"
                   SelectedItem="{Binding SelectedSaveTarget}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock>
-                        <TextBlock.Text>
-                            <MultiBinding StringFormat="{}{0}">
-                                <Binding />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
+                    <TextBlock Text="{Binding}" />
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
@@ -647,7 +638,8 @@
             </StackPanel>
         </Button>
         <Button x:Name="BtnExit" Content=" Exit " Padding="5 2" Width="50" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Classes="outline-button" Height="30"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Classes="outline-button"
+                Height="30"
                 Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
                 FontWeight="SemiBold" Click="BtnExit_Click" />
         <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">
