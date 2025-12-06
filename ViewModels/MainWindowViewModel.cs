@@ -921,8 +921,12 @@ public class MainWindowViewModel : ViewModelBase
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
 
+        var counter = 0;
+        
         foreach (var item in LbxSourceItems)
         {
+            ++counter;
+            
             var fileExt = Path.GetExtension(item);
 
             if (fileExt.Length == 0 || _textFileTypes!.Contains(fileExt))
@@ -934,16 +938,16 @@ public class MainWindowViewModel : ViewModelBase
                 }
                 catch (Exception)
                 {
-                    LbxDestinationItems.Add(item + " -> ❌ File read error.");
+                    LbxDestinationItems.Add($"({counter}) " + item + " -> ❌ File read error.");
                     continue;
                 }
 
                 var textCode = _selectedLanguage!.Name![Opencc.ZhoCheck(inputText)];
-                LbxDestinationItems.Add($"[{textCode}] {item}");
+                LbxDestinationItems.Add($"({counter}) [{textCode}] {item}");
             }
             else
             {
-                LbxDestinationItems.Add($"[❌ File skipped ({fileExt})] {item}");
+                LbxDestinationItems.Add($"({counter}) [❌ File skipped ({fileExt})] {item}");
             }
         }
 

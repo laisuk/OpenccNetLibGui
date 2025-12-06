@@ -12,7 +12,7 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
- 
+
         <!-- Primary / Ancient Button -->
         <Style Selector="Button.accent-button">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
@@ -34,7 +34,7 @@
         <Style Selector="Button.accent-button:pressed">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentDarkBrush}" />
         </Style>
-        
+
         <!-- Secondary / Outline Button -->
         <Style Selector="Button.outline-button">
             <Setter Property="Background" Value="Transparent" />
@@ -54,7 +54,7 @@
         <Style Selector="Button.outline-button:pressed">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseMediumBrush}" />
         </Style>
-        
+
         <!-- 包住 TextEditor 的外層容器 -->
         <Style Selector="Border.editor-container">
             <!-- 背景：略淺一層，令 TextEditor 區域同窗體分層 -->
@@ -72,6 +72,45 @@
 
             <!-- 令內容（TextEditor）唔貼邊，呼吸空間好啲 -->
         </Style>
-
     </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Theme-specific resources live here -->
+            <ResourceDictionary.ThemeDictionaries>
+
+                <!-- 🌞 Light theme: use regular outline icons -->
+                <ResourceDictionary x:Key="Light">
+                    <Svg x:Key="Icon.Add"
+                         Path="avares://OpenccNetLibGui/Assets/Icons/Fluent/ic_fluent_add_circle_24_regular.svg"
+                         Width="20"
+                         Height="20"
+                         Stretch="Uniform" />
+
+                    <Svg x:Key="Icon.Remove"
+                         Path="avares://OpenccNetLibGui/Assets/Icons/Fluent/ic_fluent_subtract_circle_24_regular.svg"
+                         Width="20"
+                         Height="20"
+                         Stretch="Uniform" />
+                </ResourceDictionary>
+
+                <!-- 🌚 Dark theme: swap to filled versions -->
+                <ResourceDictionary x:Key="Dark">
+                    <Svg x:Key="Icon.Add"
+                         Path="avares://OpenccNetLibGui/Assets/Icons/Fluent/ic_fluent_add_circle_24_dark.svg"
+                         Width="20"
+                         Height="20"
+                         Stretch="Uniform" />
+
+                    <Svg x:Key="Icon.Remove"
+                         Path="avares://OpenccNetLibGui/Assets/Icons/Fluent/ic_fluent_subtract_circle_24_dark.svg"
+                         Width="20"
+                         Height="20"
+                         Stretch="Uniform" />
+                </ResourceDictionary>
+
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
 </Application>

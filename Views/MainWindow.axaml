@@ -80,12 +80,14 @@
                              Padding="5,0,0,0" Margin="20,0,0,0" VerticalAlignment="Center"
                              HorizontalAlignment="Center" IsChecked="{Binding IsRbHk}"
                              GroupName="SecondRb" />
-                <CheckBox x:Name="CbZhtw" Grid.Row="0" Grid.Column="3" Content="{Binding CbZhtwContent}" FontSize="14"
+                <CheckBox x:Name="CbZhtw" Grid.Row="0" Grid.Column="3" Content="{Binding CbZhtwContent}" FontSize="13"
                           Padding="5,0,0,0" Margin="0,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                          IsChecked="{Binding IsCbZhtw}" IsEnabled="{Binding IsCbZhtwEnabled}" />
+                          IsChecked="{Binding IsCbZhtw}" IsEnabled="{Binding IsCbZhtwEnabled}"
+                          ToolTip.Tip="Using zh-CN and zh-TW idioms in conversion."/>
                 <CheckBox x:Name="CbPunctuation" Grid.Row="0" Grid.Column="4" Content="{Binding CbPunctuationContent}"
-                          FontSize="14" Padding="5,0,0,0" Margin="5,0,0,0" VerticalAlignment="Center"
-                          HorizontalAlignment="Left" IsChecked="{Binding IsCbPunctuation}" />
+                          FontSize="13" Padding="5,0,0,0" Margin="5,0,0,0" VerticalAlignment="Center"
+                          HorizontalAlignment="Left" IsChecked="{Binding IsCbPunctuation}" 
+                          ToolTip.Tip="Convert CJK punctuations between Simplified/Tradition Chinese."/>
             </Grid>
         </Grid>
         <Grid Grid.Row="1">
@@ -287,7 +289,7 @@
                                 ToolTip.Tip="Reflow CJK paragraphs extracted from PDF text."
                                 Command="{Binding BtnReflowCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="Refresh" FontSize="17" />
+                                <controls:SymbolIcon Symbol="Refresh" FontSize="20" />
                             </StackPanel>
                         </Button>
                         <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
@@ -296,25 +298,39 @@
                         <Label x:Name="LblDestinationCode" Grid.Column="1"
                                Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left"
                                Margin="110,0,0,0" Grid.Row="1" VerticalAlignment="Center" FontSize="16" />
-                        <Button x:Name="BtnClearSource" Content="AC" Padding="0 2" Width="40"
+                        <Button x:Name="BtnClearSource" Padding="0 2" Width="40"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center"
-                                Margin="0,2,90,0" Grid.Row="1"
+                                Margin="0,2,90,0" Grid.Row="1" ToolTip.Tip="Clear source text box."
                                 Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 Command="{Binding BtnClearTbSourceCommand}"
-                                FontWeight="Bold" />
-                        <Button x:Name="BtnPaste" Content="Paste" Padding="0 2" Width="80" HorizontalAlignment="Right"
+                                FontWeight="Bold">
+                            <controls:SymbolIcon Symbol="Delete" FontSize="20"/>
+                        </Button>
+                        <Button x:Name="BtnPaste" Padding="5 2" Width="80" HorizontalAlignment="Right"
                                 HorizontalContentAlignment="Center" FontWeight="SemiBold"
-                                Margin="0,2,5,0" Grid.Row="1"
+                                Margin="0,2,5,0" Grid.Row="1" Height="26"
                                 Grid.Column="0" VerticalAlignment="Center" FontSize="14"
-                                Command="{Binding BtnPasteCommand}" />
-                        <Button x:Name="BtnClearDestination" Grid.Column="1" Content="AC" Padding="0 2" Width="40"
+                                Command="{Binding BtnPasteCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="3">
+                                <controls:SymbolIcon Symbol="Paste" FontSize="20" />
+                                <TextBlock Text="Paste" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnClearDestination" Grid.Column="1" Padding="0 2" Width="40"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,90,0"
-                                Grid.Row="1" VerticalAlignment="Center"
-                                FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold" />
-                        <Button x:Name="BtnCopy" Grid.Column="1" Content="Copy" Padding="0 2" Width="80"
+                                Grid.Row="1" VerticalAlignment="Center" ToolTip.Tip="Clear destination text box."
+                                FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold">
+                            <controls:SymbolIcon Symbol="Delete" FontSize="20"/>
+                        </Button>
+                        <Button x:Name="BtnCopy" Grid.Column="1"  Padding="5 2" Width="80"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,5,0"
-                                Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold"
-                                FontSize="14" Command="{Binding BtnCopyCommand}" />
+                                Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold" 
+                                FontSize="14" Command="{Binding BtnCopyCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="3">
+                                <controls:SymbolIcon Symbol="Copy" FontSize="20" />
+                                <TextBlock Text="Copy" />
+                            </StackPanel>
+                        </Button>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabBatch" Header="Batch Conversion" IsSelected="{Binding IsTabBatch}" FontSize="14"
@@ -486,55 +502,69 @@
                                Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
                                BorderThickness="3,0,0,2" />
                         <Button x:Name="BtnAdd" Padding="0 2" Width="50" HorizontalAlignment="Left"
-                                HorizontalContentAlignment="Center"
+                                HorizontalContentAlignment="Center" ToolTip.Tip="Add file to Source List Box."
                                 Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnAddCommand}">
-                            <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="Add" FontSize="20" />
-                            </StackPanel>
+                            <!-- <StackPanel Orientation="Horizontal"> -->
+                            <!--     <controls:SymbolIcon Symbol="Add" FontSize="20" /> -->
+                            <!-- </StackPanel> -->
+                            <ContentControl Content="{DynamicResource Icon.Add}" />
                         </Button>
                         <Button x:Name="BtnRemove" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center"
                                 Margin="125,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
-                                FontSize="14"
+                                FontSize="14" ToolTip.Tip="Remove selected item in Source List Box."
                                 FontWeight="Bold" Command="{Binding BtnRemoveCommand}">
-                            <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="Remove" FontSize="20" />
-                            </StackPanel>
+                            <!-- <StackPanel Orientation="Horizontal"> -->
+                            <!--     <controls:SymbolIcon Symbol="Remove" FontSize="20" /> -->
+                            <!-- </StackPanel> -->
+                            <ContentControl Content="{DynamicResource Icon.Remove}" />
                         </Button>
                         <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
-                                  FontSize="13" FontWeight="Bold" Padding="3,0,0,0" Margin="180,2,0,2"
+                                  FontSize="13" FontWeight="SemiBold" Padding="5,0" Margin="180,2,0,2"
                                   VerticalAlignment="Center"
+                                  ToolTip.Tip="Convert output filename using current configuration."
                                   HorizontalAlignment="Left" IsChecked="{Binding IsCbConvertFilename}" />
                         <Button x:Name="BtnPreview" Content="Preview" Padding="0 2" Width="70"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,135,2"
-                                Grid.Row="1" Grid.Column="0"
+                                Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26"
+                                ToolTip.Tip="Preview selected file in Preview Box."
                                 VerticalAlignment="Center" FontSize="14" Command="{Binding BtnPreviewCommand}" />
                         <Button x:Name="BtnDetect" Content="Detect" Padding="0 2" Width="70"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,60,2"
-                                Grid.Row="1" Grid.Column="0"
+                                Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26"
+                                ToolTip.Tip="Detect Chinese variants (zho code) for files in List Box."
                                 VerticalAlignment="Center" FontSize="14" Command="{Binding BtnDetectCommand}" />
-                        <Button x:Name="BtnClear" Content="AC" Padding="0 2" Width="50" HorizontalAlignment="Right"
-                                HorizontalContentAlignment="Center"
+                        <Button x:Name="BtnClear" Padding="0 2" Width="50" HorizontalAlignment="Right"
+                                HorizontalContentAlignment="Center" ToolTip.Tip="Clear all items in Source List Box."
                                 Margin="0,2,5,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
-                                FontWeight="Bold" Command="{Binding BtnClearLbxSourceCommand}" />
+                                FontWeight="Bold" Command="{Binding BtnClearLbxSourceCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:SymbolIcon Symbol="Delete" FontSize="20" />
+                            </StackPanel>
+                        </Button>
                         <TextBox x:Name="TbOutFolder" Grid.Row="1" Grid.Column="1" Width="290"
                                  Text="{Binding TbOutFolderText}"
                                  HorizontalAlignment="Left" VerticalAlignment="Center"
                                  helpers:FocusAttachedProperty.IsFocused="{Binding IsTbOutFolderFocus}"
                                  VerticalContentAlignment="Center" Margin="75,2,2,2" Padding="0 2" />
                         <Button x:Name="BtnOutFolder" Padding="0 2" Width="50" HorizontalAlignment="Right"
-                                HorizontalContentAlignment="Center"
+                                HorizontalContentAlignment="Center" ToolTip.Tip="Select output folder."
                                 Margin="0,2,60,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnSelectOutFolderCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <controls:SymbolIcon Symbol="OpenFolder" FontSize="20" />
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnOutClear" Content="AC" Padding="0 2" Width="50" HorizontalAlignment="Right"
+                        <Button x:Name="BtnOutClear" Padding="0 2" Width="50" HorizontalAlignment="Right"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"
                                 Margin="0,2,5,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
-                                FontWeight="Bold" Command="{Binding BtnMessagePreviewClearCommand}" />
+                                ToolTip.Tip="Clear current display box."
+                                FontWeight="Bold" Command="{Binding BtnMessagePreviewClearCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:SymbolIcon Symbol="Delete" FontSize="20" />
+                            </StackPanel>
+                        </Button>
 
                     </Grid>
                 </TabItem>
@@ -576,10 +606,16 @@
             </StackPanel>
         </Button>
 
-        <Button x:Name="BtnOpenFile" Content="📂Open File" Padding="5 2" HorizontalAlignment="Left"
+        <Button x:Name="BtnOpenFile" Padding="5 2" HorizontalAlignment="Left"
                 HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnOpenFileVisible}"
                 Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
-                Command="{Binding BtnOpenFileCommand}" Classes="outline-button" />
+                ToolTip.Tip="Open file for source text box contents."
+                Command="{Binding BtnOpenFileCommand}" Classes="outline-button">
+            <StackPanel Orientation="Horizontal" Spacing="0">
+                <controls:SymbolIcon Symbol="OpenFile" FontSize="20" />
+                <TextBlock Text="Open File" />
+            </StackPanel>
+        </Button>
         <Label x:Name="LblFileName" Content="{Binding LblFileNameContent}" Padding="0 2" HorizontalAlignment="Left"
                Margin="120,0,0,0" Grid.Row="2" IsVisible="{Binding IsLblFileNameVisible}"
                VerticalAlignment="Center" FontSize="14" />
@@ -600,14 +636,20 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button x:Name="BtnSaveFile" Content="💾Save As" Padding="5 2" HorizontalAlignment="Right"
+        <Button x:Name="BtnSaveFile" Padding="5 2" HorizontalAlignment="Right"
                 HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
                 Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Classes="outline-button"
-                Command="{Binding BtnSaveFileCommand}" />
+                ToolTip.Tip="Save selected target as text file."
+                Command="{Binding BtnSaveFileCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="0">
+                <controls:SymbolIcon Symbol="SaveAs" FontSize="20" />
+                <TextBlock Text="Save As" />
+            </StackPanel>
+        </Button>
         <Button x:Name="BtnExit" Content=" Exit " Padding="5 2" Width="50" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center" Classes="outline-button" Height="28"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Classes="outline-button" Height="30"
                 Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
-                FontWeight="Bold" Click="BtnExit_Click" />
+                FontWeight="SemiBold" Click="BtnExit_Click" />
         <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">
             <Label x:Name="LblStatusBar" Content="{Binding LblStatusBarContent}" Padding="0 2" Margin="10,0,0,0"
                    HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" />
