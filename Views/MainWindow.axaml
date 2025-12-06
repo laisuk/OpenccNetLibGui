@@ -281,11 +281,15 @@
                                Content="{Binding LblTotalCharsContent}" HorizontalAlignment="Right"
                                VerticalAlignment="Center" Margin="0,0,175,0" FontSize="14" />
                         <Button x:Name="BthReflow" Grid.Row="1" Grid.Column="0" Padding="0 2" Width="40"
-                                Content="RF" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center"
                                 Margin="0,2,135,0" FontSize="14" FontWeight="Bold"
                                 ToolTip.Tip="Reflow CJK paragraphs extracted from PDF text."
-                                Command="{Binding BtnReflowCommand}" />
+                                Command="{Binding BtnReflowCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:SymbolIcon Symbol="Refresh" FontSize="17" />
+                            </StackPanel>
+                        </Button>
                         <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
                                Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
                                BorderThickness="3,0,0,2" />
@@ -600,8 +604,8 @@
                 HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
                 Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Classes="outline-button"
                 Command="{Binding BtnSaveFileCommand}" />
-        <Button x:Name="BtnExit" Content=" Exit " Padding="0 2" Width="50" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center" Classes="outline-button"
+        <Button x:Name="BtnExit" Content=" Exit " Padding="5 2" Width="50" HorizontalAlignment="Right"
+                HorizontalContentAlignment="Center" Classes="outline-button" Height="28"
                 Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
                 FontWeight="Bold" Click="BtnExit_Click" />
         <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">

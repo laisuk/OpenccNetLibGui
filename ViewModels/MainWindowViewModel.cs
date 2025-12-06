@@ -242,29 +242,6 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    // private async Task BtnOpenFile()
-    // {
-    //     var mainWindow = _topLevelService!.GetMainWindow();
-    //
-    //     var storageProvider = mainWindow.StorageProvider;
-    //     var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-    //     {
-    //         Title = "Open Text File",
-    //         FileTypeFilter = new List<FilePickerFileType>
-    //         {
-    //             new("Text Files") { Patterns = new[] { "*.txt" } },
-    //             new("All Files") { Patterns = new[] { "*.*" } }
-    //         },
-    //         AllowMultiple = false
-    //     });
-    //
-    //     if (result.Count <= 0) return;
-    //     var file = result[0];
-    //     {
-    //         var path = file.Path.LocalPath;
-    //         await UpdateTbSourceFileContents(path);
-    //     }
-    // }
     private async Task BtnOpenFile()
     {
         var mainWindow = _topLevelService!.GetMainWindow();
@@ -325,7 +302,7 @@ public class MainWindowViewModel : ViewModelBase
             }
         }
     }
-    
+
     #region PDF Handling Region
 
     private CancellationTokenSource? _pdfCts;
@@ -457,19 +434,6 @@ public class MainWindowViewModel : ViewModelBase
         return text;
     }
 
-    // private void ReflowCjkParagraphs()
-    // {
-    //     var text = TbSourceTextDocument?.Text;
-    //     if (string.IsNullOrWhiteSpace(text))
-    //     {
-    //         LblStatusBarContent = "Nothing to reflow";
-    //         return;
-    //     }
-    //
-    //     var result = PdfHelper.ReflowCjkParagraphs(text, _AddPdfPageHeader);
-    //     TbSourceTextDocument!.Text = result;
-    //     LblStatusBarContent = "Reflow complete (CJK-aware)";
-    // }
     private void ReflowCjkParagraphs()
     {
         var document = TbSourceTextDocument;
@@ -513,6 +477,14 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var result = PdfHelper.ReflowCjkParagraphs(sourceText, _addPdfPageHeader);
+
+        // ⭐ If only reflowing a selection → ensure trailing newline
+        if (hasSelection)
+        {
+            // Avoid double newline if already present
+            if (!result.EndsWith("\n"))
+                result += "\n";
+        }
 
         if (hasSelection)
         {
@@ -628,10 +600,10 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task BtnBatchStart()
     {
-        var outputRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
-        if (!Directory.Exists(outputRoot)) Directory.CreateDirectory(outputRoot);
+        if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output")))
+            Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output"));
 
-        if (LbxSourceItems?.Count == 0)
+        if (LbxSourceItems!.Count == 0)
         {
             LblStatusBarContent = "Nothing to convert.";
             return;
@@ -639,31 +611,34 @@ public class MainWindowViewModel : ViewModelBase
 
         if (!Directory.Exists(TbOutFolderText))
         {
-            await MessageBox.Show($"Invalid output folder:\n {TbOutFolderText}", "Error",
+            await MessageBox.Show("Invalid output folder:\n " + TbOutFolderText, "Error",
                 _topLevelService!.GetMainWindow());
             IsTbOutFolderFocus = true;
             return;
         }
 
-        if (!(IsRbS2T || IsRbT2S || IsRbCustom))
+        if (!IsRbS2T && !IsRbT2S && !IsRbCustom)
         {
             await MessageBox.Show("Please select conversion type:\n zh-Hans / zh-Hant", "Error",
                 _topLevelService!.GetMainWindow());
             return;
         }
 
-        // Configs
         var config = GetCurrentConfig();
-        var conversion = IsRbCustom ? $"{RbCustomContent} -> {config}" :
-            IsRbS2T ? RbS2TContent : RbT2SContent;
-        var region = IsRbCustom ? RbCustomContent :
-            IsRbStd ? RbStdContent :
-            IsRbHk ? RbHkContent : RbZhtwContent;
-        var isZhTwIdioms = IsRbCustom ? RbCustomContent : IsCbZhtw ? "✔️ Yes" : "✖️ No";
-        var isPunctuations = IsCbPunctuation ? "✔️ Yes" : "✖️ No";
+        var conversion = IsRbCustom
+            ? config
+            : IsRbS2T
+                ? RbS2TContent
+                : RbT2SContent;
+        var region = IsRbStd
+            ? RbStdContent
+            : IsRbHk
+                ? RbHkContent
+                : RbZhtwContent;
+        var isZhTwIdioms = IsCbZhtw ? "✔️ Yes" : "✖️ No";
+        var isPunctuations = IsCbPunctuation ? "✔️ Yes" : "️✖️  ️No";
         var isConvertFilename = IsCbConvertFilename ? "✔️ Yes" : "✖️ No";
 
-        // UI output setup
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
         LbxDestinationItems.Add(_locale == 1
@@ -690,15 +665,10 @@ public class MainWindowViewModel : ViewModelBase
         var count = 0;
         if (_opencc!.Config != config) _opencc.Config = config; // avoid touching when same
 
-        var suffix = IsRbT2S ? "_Hans" :
-            IsRbS2T ? "_Hant" :
-            IsRbCustom ? $"_{config}" : "_Other";
-
-        foreach (var sourceFilePath in LbxSourceItems!)
+        foreach (var sourceFilePath in LbxSourceItems)
         {
             count++;
-            var fileExt = Path.GetExtension(sourceFilePath).ToLowerInvariant();
-            var fileExtNoDot = fileExt.Length > 1 ? fileExt[1..] : "";
+            var fileExt = Path.GetExtension(sourceFilePath);
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
@@ -707,17 +677,33 @@ public class MainWindowViewModel : ViewModelBase
                 continue;
             }
 
-            if (fileExt.Length != 0 && !(_textFileTypes!.Contains(fileExt) || _officeFileTypes!.Contains(fileExt)))
+            bool isText = _textFileTypes!.Contains(fileExt);
+            bool isOffice = _officeFileTypes!.Contains(fileExt);
+            bool isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
+
+            if (!isText && !isOffice && !isPdf)
             {
                 LbxDestinationItems.Add($"({count}) [❌ File skipped ({fileExt})] {sourceFilePath}");
                 continue;
             }
 
-            filenameWithoutExt = IsCbConvertFilename
-                ? _opencc.Convert(filenameWithoutExt, IsCbPunctuation)
-                : filenameWithoutExt;
+            var suffix =
+                // Set suffix based on the radio button state
+                IsRbT2S
+                    ? "_Hans"
+                    : IsRbS2T
+                        ? "_Hant"
+                        : IsRbCustom
+                            ? $"_{config}"
+                            : "_Other";
 
-            var outputFilename = Path.Combine(TbOutFolderText, filenameWithoutExt + suffix + fileExt);
+            if (IsCbConvertFilename)
+                filenameWithoutExt = _opencc!.Convert(filenameWithoutExt, IsCbPunctuation);
+
+            var outputFilename = Path.Combine(Path.GetFullPath(TbOutFolderText),
+                filenameWithoutExt + suffix + fileExt);
+            var fileExtNoDot = fileExt.Length > 1 ? fileExt[1..] : "";
+
 
             if (OfficeDocModel.IsValidOfficeFormat(fileExtNoDot))
             {
@@ -735,24 +721,70 @@ public class MainWindowViewModel : ViewModelBase
                         : $"({count}) [File skipped] {sourceFilePath} -> {message}"
                 );
             }
-            else
+            else if (isPdf)
             {
+                // 🔹 New PDF batch branch
+                LbxDestinationItems.Add($"({count}) ⏳ Processing PDF... please wait...");
+
+                string pdfText;
                 try
                 {
-                    var inputText = await File.ReadAllTextAsync(sourceFilePath).ConfigureAwait(false);
-                    var convertedText = suffix != "_Other" ? _opencc.Convert(inputText, IsCbPunctuation) : inputText;
-                    await File.WriteAllTextAsync(outputFilename, convertedText).ConfigureAwait(false);
-                    LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
+                    // No progress / CTS here, simple batch usage
+                    pdfText = await LoadPdfTextCoreAsync(
+                        sourceFilePath,
+                        _pdfEngine,
+                        _addPdfPageHeader,
+                        _autoReflow,
+                        _compactPdfText,
+                        progress: null,
+                        token: CancellationToken.None);
                 }
                 catch (Exception ex)
                 {
-                    LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ Error: {ex.Message}");
+                    LbxDestinationItems.Add(
+                        $"({count}) [❌ PDF error] {sourceFilePath} -> {ex.Message}");
+                    continue;
                 }
+
+                // Convert with OpenCC on a background thread (if not "_Other")
+                var convertedText =
+                    suffix != "_Other"
+                        ? await Task.Run(() => _opencc.Convert(pdfText, IsCbPunctuation))
+                        : pdfText;
+
+                // Force .txt output extension, but keep converted filename + suffix
+                var pdfOutputPath = Path.Combine(
+                    Path.GetFullPath(TbOutFolderText),
+                    filenameWithoutExt + suffix + ".txt");
+
+                await File.WriteAllTextAsync(pdfOutputPath, convertedText);
+
+                LbxDestinationItems.Add($"({count}) {pdfOutputPath} -> ✅ Done");
+            }
+            else
+            {
+                string inputText;
+                try
+                {
+                    inputText = await File.ReadAllTextAsync(sourceFilePath);
+                }
+                catch (Exception)
+                {
+                    LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ Conversion error.");
+                    continue;
+                }
+
+                // Run the heavy conversion on a background thread
+                var convertedText = await Task.Run(() => _opencc!.Convert(inputText, IsCbPunctuation));
+
+                await File.WriteAllTextAsync(outputFilename, convertedText);
+
+                LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
             }
         }
 
         LbxDestinationItems.Add($"✅ Batch conversion ({count}) Done");
-        LblStatusBarContent = $"Batch conversion done ({config})";
+        LblStatusBarContent = $"Batch conversion done. ( {config} )";
     }
 
     private void BtnClearTbSource()
@@ -780,33 +812,55 @@ public class MainWindowViewModel : ViewModelBase
         var storageProvider = mainWindow.StorageProvider;
         var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Open Text/Office File(s)",
+            Title = "Open Text File",
             FileTypeFilter = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("Text Files") { Patterns = new[] { "*.txt", "*.md", "*.csv", "*.html", "*.xml" } },
                 new("Office Files")
                     { Patterns = new[] { "*.docx", "*.xlsx", "*.pptx", "*.odt", "*.ods", "*.odp", "*.epub" } },
+                new("PDF Files") { Patterns = new[] { "*.pdf" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
             AllowMultiple = true
         });
 
-        if (result.Count <= 0) return;
-        var listBoxItems = LbxSourceItems!.ToList();
-        var counter = 0;
+        if (result.Count == 0)
+            return;
+
+        // Collect current items
+        var items = LbxSourceItems!.ToList();
+
+        // Add new items (avoid duplicates)
         foreach (var file in result)
         {
             var path = file.Path.LocalPath;
-            if (listBoxItems.Contains(path)) continue;
-            listBoxItems.Add(path);
-            counter++;
+            if (!items.Contains(path))
+                items.Add(path);
         }
 
-        var sortedList = listBoxItems.OrderBy(x => x);
+        // Separate into PDF and non-PDF lists
+        var pdfList = new List<string>();
+        var nonPdfList = new List<string>();
+
+        foreach (var path in items)
+        {
+            if (path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                pdfList.Add(path);
+            else
+                nonPdfList.Add(path);
+        }
+
+        // Sort only non-PDF files alphabetically
+        nonPdfList.Sort(StringComparer.OrdinalIgnoreCase);
+
+        // Merge: non-PDF first, PDFs last
         LbxSourceItems!.Clear();
-        foreach (var item in sortedList) LbxSourceItems.Add(item);
-        LblStatusBarContent = $"File(s) added: {counter}";
+        foreach (var item in nonPdfList)
+            LbxSourceItems.Add(item);
+        foreach (var item in pdfList)
+            LbxSourceItems.Add(item);
     }
+
 
     private void BtnRemove()
     {
@@ -961,41 +1015,6 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    // private async Task UpdateTbSourceFileContents(string filename)
-    // {
-    //     var fileInfo = new FileInfo(filename);
-    //     if (fileInfo.Length > int.MaxValue)
-    //     {
-    //         LblStatusBarContent = "Error: File too large";
-    //         return;
-    //     }
-    //
-    //     _currentOpenFileName = filename;
-    //
-    //     // Read file contents
-    //     try
-    //     {
-    //         using var reader = new StreamReader(_currentOpenFileName);
-    //         var contents = await reader.ReadToEndAsync();
-    //         // Display file contents to text box field
-    //         TbSourceTextDocument!.Text = contents;
-    //         LblStatusBarContent = $"File: {_currentOpenFileName}";
-    //         var displayName = fileInfo.Name;
-    //         LblFileNameContent =
-    //             displayName.Length > 50 ? $"{displayName[..25]}...{displayName[^15..]}" : displayName;
-    //         var codeText = Opencc.ZhoCheck(contents);
-    //         UpdateEncodeInfo(codeText);
-    //     }
-    //     catch (Exception)
-    //     {
-    //         TbSourceTextDocument!.Text = string.Empty;
-    //         TbSourceTextDocument!.UndoStack.ClearAll();
-    //         LblSourceCodeContent = string.Empty;
-    //         LblStatusBarContent = "Error: Invalid file";
-    //         //throw;
-    //     }
-    // }
-    //
     internal async Task UpdateTbSourceFileContentsAsync(string filename)
     {
         var fileInfo = new FileInfo(filename);
@@ -1164,7 +1183,7 @@ public class MainWindowViewModel : ViewModelBase
         get => _tbOutFolderText;
         set => this.RaiseAndSetIfChanged(ref _tbOutFolderText, value);
     }
-    
+
     #region Save Target Region
 
     public enum SaveTarget
@@ -1415,7 +1434,7 @@ public class MainWindowViewModel : ViewModelBase
         get => _isCbConvertFilename;
         set => this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
     }
-    
+
     public bool IsAddPdfPageHeader
     {
         get => _addPdfPageHeader;
@@ -1446,7 +1465,7 @@ public class MainWindowViewModel : ViewModelBase
         get => _isBtnOpenFileVisible;
         set => this.RaiseAndSetIfChanged(ref _isBtnOpenFileVisible, value);
     }
-    
+
     public bool IsCmbSaveTargetVisible
     {
         get => _isCmbSaveTargetVisible;
@@ -1516,5 +1535,6 @@ public class MainWindowViewModel : ViewModelBase
                 PdfEngine = PdfEngine.Pdfium;
         }
     }
+
     #endregion
 }

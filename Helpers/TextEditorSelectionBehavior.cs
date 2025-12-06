@@ -70,7 +70,6 @@ public class TextEditorSelectionBehavior : Behavior<TextEditor>
         if (editor?.Document is null)
             return;
 
-        // 如果而家係 VM 正在更新 editor，就唔好再寫返去 VM，避免 loop
         if (_isUpdatingFromViewModel)
             return;
 
@@ -84,12 +83,14 @@ public class TextEditorSelectionBehavior : Behavior<TextEditor>
             return;
         }
 
-        TextLocation startLoc = sel.StartPosition.Location;
-        int startOffset = editor.Document.GetOffset(startLoc);
+        // ✅ 用 SurroundingSegment，方向無關
+        var segment = sel.SurroundingSegment;
+        var startOffset = segment.Offset;
+        var length = segment.Length;
 
         _isUpdatingFromEditor = true;
         SelectionStart = startOffset;
-        SelectionLength = sel.Length; // already char offsets
+        SelectionLength = length;
         _isUpdatingFromEditor = false;
     }
 
