@@ -95,13 +95,39 @@ Download the latest version of **OpenccNetLibGui** for your platform:
   Reflowed text should be treated as a **draft-quality starting point**, and users are encouraged to perform **manual
   review and formatting** if the content is intended for editing, distribution, or publication.
 
+---
+
 ## Dependencies
 
-- [Avalonia](https://avaloniaui.net/): Cross-platform .NET UI framework.
-- [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit): Text editor for Avalonia with virtualization support.
-- [OpenccNetLib](https://github.com/laisuk/OpenccNet): .NET library for conversions between Traditional and Simplified
-  Chinese.
-- [Newtonsoft.Json](https://www.newtonsoft.com/json): High-performance JSON framework for .NET.
+- **[Avalonia](https://avaloniaui.net/)**  
+  Cross-platform .NET UI framework used to build the application’s user interface.
+
+- **[AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)**  
+  A performant text editor control with syntax-highlighting, line numbers, and virtualization support.
+
+- **[OpenccNetLib](https://github.com/laisuk/OpenccNet)**  
+  Core conversion engine providing optimized OpenCC dictionary handling, FMM segmentation,  
+  Jieba integration, and multi-stage dictionary pipelines for Simplified/Traditional conversion.
+
+- **[Newtonsoft.Json](https://www.newtonsoft.com/json)**  
+  High-performance JSON serialization/deserialization library used for settings, layout recovery,  
+  and application configuration files.
+
+- **[UglyToad.PdfPig](https://github.com/UglyToad/PdfPig)**  
+  A fully managed PDF text extraction library used for:
+    - Parsing PDF structure
+    - Extracting raw Unicode text
+    - Fallback extraction when Pdfium is unavailable  
+      Ideal for CPU-only scenarios or when using a 100% managed dependency chain.
+
+- **Pdfium (native library + .NET binding)**  
+  High-performance native PDF rendering & text extraction engine used for:
+    - Faster page loading on large PDFs
+    - More accurate CJK character extraction
+    - Improved handling of rotated text, clipped glyphs, and embedded fonts  
+      Provides the “fast mode” when users choose **Pdfium** in PDF Engine settings.
+
+---
 
 ## Getting Started
 
@@ -140,8 +166,9 @@ dotnet run
 ### Single Mode
 
 ![image01](./Assets/image01.png)
+![image04](./Assets/image04.png)
 
-Support most **text base** file types.
+Support most **text base** file types and **Text-Embedded PDF documents**.
 
 1. Paste the text or open a file you wish to convert (file/text drag and drop are supported on Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).
@@ -154,14 +181,24 @@ Support most **text base** file types.
 ![image02](./Assets/image02.png)
 ![image03](./Assets/image03.png)
 
-Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`) and
-EPUB (`.epub`).
+Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`), EPUB (
+`.epub`) and PDF (`.pdf`).
 
 1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and
    macOS).
 2. Select the desired conversion configuration.
 3. Set the output folder.
-4. Click the **Batch Start** button to begin batch conversion.
+4. For **PDF document** conversion, **right-click** List Box to set `PDF Options`. (`PDF engine`, `add page header`,
+   `auto-reflow CJK text` etc.)
+5. Click the **Batch Start** button to begin batch conversion.
+
+### Dark Theme Mode
+
+![image05](./Assets/image05.png)
+
+`OpenccNetLibGui` is **Dark Theme Mode** friendly.
+
+---
 
 ### Custom Dictionary
 
@@ -184,7 +221,7 @@ Options are:
 
 ### Custom Chinese Language in UI Settings (繁體界面 / 简体界面)
 
-![image04](./Assets/image04.png)
+![image06](./Assets/image06.png)
 
 Custom Chinese Language in UI can be set in `LanguageSettings.json`:
 
@@ -212,8 +249,18 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
 
 ## Acknowledgements
 
-- [OpenCC](https://github.com/BYVoid/OpenCC) for the Chinese text conversion lexicon.
-- [OpenccNet](https://github.com/laisuk/OpenccNet) for the .NET Chinese conversion library.
-- [Avalonia](https://avaloniaui.net/) for the cross-platform UI framework.
-- [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit) for the text editor with virtualization.
-- [Newtonsoft.Json](https://www.newtonsoft.com/json) for JSON parsing.
+- **[OpenCC](https://github.com/BYVoid/OpenCC)**  
+  For providing the high-quality Chinese conversion lexicons.
+- **[OpenccNet](https://github.com/laisuk/OpenccNet)**  
+  For the optimized .NET implementation of OpenCC used as the core engine.
+- **[Avalonia](https://avaloniaui.net/)**  
+  For the modern, cross-platform UI framework powering the application.
+- **[AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)**  
+  For the performant text editor component with line numbers and virtualization.
+- **[Newtonsoft.Json](https://www.newtonsoft.com/json)**  
+  For the robust and flexible JSON serialization and configuration handling.
+- **[PdfPig](https://github.com/UglyToad/PdfPig)**  
+  For the fully-managed PDF text extraction engine used in the standard extraction mode.
+- **Pdfium (native library + .NET bindings)**  
+  For providing high-performance PDF rendering and fast CJK text extraction in Pdfium mode.
+

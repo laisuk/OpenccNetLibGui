@@ -119,5 +119,5 @@
   "autoReflowPdfText": 1,
   "pdfEngine": 2,
   "dictionary": "zstd",
-  "locale": 2
+  "locale": 1
 }
