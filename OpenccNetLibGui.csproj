@@ -19,60 +19,95 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" />
+        <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include=".github\workflows\release.yml" />
-        <Content Include="Assets\openccnetlib.ico" />
+        <Content Include=".github\workflows\release.yml"/>
+        <Content Include="Assets\openccnetlib.ico"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.9" />
-        <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
+        <PackageReference Include="Avalonia" Version="11.3.9"/>
+        <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.9"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.0" />
-        <PackageReference Include="FluentAvaloniaUI" Version="2.4.1" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-        <PackageReference Include="OpenccNetLib" Version="1.3.1" />
-        <PackageReference Include="PdfPig" Version="0.1.12" />
-        <PackageReference Include="ReactiveUI.Avalonia" Version="11.3.8" />
-        <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.6.2" />
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9" />
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.0"/>
+        <PackageReference Include="FluentAvaloniaUI" Version="2.4.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
+        <PackageReference Include="OpenccNetLib" Version="1.3.1"/>
+        <PackageReference Include="PdfPig" Version="0.1.12"/>
+        <PackageReference Include="ReactiveUI.Avalonia" Version="11.3.8"/>
+        <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.6.2"/>
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9"/>
     </ItemGroup>
 
+    <!-- Shared files always copied -->
     <ItemGroup>
         <None Update="LanguageSettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </None>
+
         <None Update="LICENSE">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </None>
+
         <None Update="THIRD_PARTY_NOTICES.md">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </None>
+    </ItemGroup>
+
+    <!-- ========================= -->
+    <!-- Pdfium — Release + RID    -->
+    <!-- ========================= -->
+
+    <!-- Windows x64 -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'win-x64'">
         <None Update="runtimes\win-x64\native\pdfium.dll">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+
+    <!-- Linux x64 -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'linux-x64'">
+        <None Update="runtimes\linux-x64\native\libpdfium.so">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+
+    <!-- macOS arm64 -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'osx-arm64'">
+        <None Update="runtimes\osx-arm64\native\libpdfium.dylib">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+
+    <!-- Local build: Debug/Release without -r (no RuntimeIdentifier) -->
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == '' AND ('$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release')">
+        <None Update="runtimes\win-x64\native\pdfium.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="runtimes\linux-x64\native\libpdfium.so">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="runtimes\osx-arm64\native\libpdfium.dylib">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="runtimes\win-x86\native\pdfium.dll">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="runtimes\osx-x64\native\libpdfium.dylib">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="runtimes\win-x86\native\pdfium.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Assets\Icons\" />
+        <Folder Include="Assets\Icons\"/>
     </ItemGroup>
 </Project>

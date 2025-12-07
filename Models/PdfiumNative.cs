@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace ZhoConverterGui.Models;
+namespace OpenccNetLibGui.Models;
 
 internal static class PdfiumNative
 {
