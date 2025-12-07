@@ -179,6 +179,18 @@ Support most **text base** file types and **Text-Embedded PDF documents**.
 3. `PDF options` can be set in reight-click context menu.
 4. Click the **Process** button to see the results.
 
+#### Notes
+
+PDF Engine can be set in `LanguageSettings.json`:
+Where:  
+`1` = `PdfPig`, `2`= `Pdfium`
+
+```json
+{
+  "pdfEngine": 1
+}
+```
+
 ---
 
 ### Batch Mode
