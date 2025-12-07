@@ -71,6 +71,8 @@
     <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'win-x64'">
         <None Update="runtimes\win-x64\native\pdfium.dll">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <!-- put it beside your .exe -->
+            <TargetPath>pdfium.dll</TargetPath>
         </None>
     </ItemGroup>
 
@@ -78,6 +80,7 @@
     <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'linux-x64'">
         <None Update="runtimes\linux-x64\native\libpdfium.so">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <TargetPath>libpdfium.so</TargetPath>
         </None>
     </ItemGroup>
 
@@ -85,6 +88,16 @@
     <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'osx-arm64'">
         <None Update="runtimes\osx-arm64\native\libpdfium.dylib">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <TargetPath>libpdfium.dylib</TargetPath>
+        </None>
+    </ItemGroup>
+
+    <!-- Windows x86 -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'win-x86'">
+        <None Update="runtimes\win-x86\native\pdfium.dll">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <!-- put it beside .exe -->
+            <TargetPath>pdfium.dll</TargetPath>
         </None>
     </ItemGroup>
 
