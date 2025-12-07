@@ -150,12 +150,14 @@ public class MainWindowViewModel : ViewModelBase
         _addPdfPageHeader = languageSettings.AddPdfPageHeader > 0;
         _compactPdfText = languageSettings.CompactPdfText > 0;
         _autoReflow = languageSettings.AutoReflowPdfText > 0;
-        _pdfEngine = languageSettings.PdfEngine switch
-        {
-            1 => PdfEngine.PdfPig,
-            2 => PdfEngine.Pdfium,
-            _ => PdfEngine.PdfPig, // fallback
-        };
+        
+        // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
+        var engine = PdfEngineHelper.InitPdfEngine(languageSettings.PdfEngine);
+        if (engine == PdfEngine.PdfPig && languageSettings.PdfEngine == 2)
+            // LblStatusBarContent = "Pdfium not supported on this platform. Falling back to PdfPig.";
+            TbSourceTextDocument!.Text = "Pdfium not supported on this platform. Falling back to PdfPig.";
+
+        _pdfEngine = engine;
 
         // Show the .NET runtime version and current dictionary in the status bar
         var runtimeVersion = RuntimeInformation.FrameworkDescription;
