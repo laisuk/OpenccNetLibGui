@@ -223,7 +223,7 @@ Where:
 ![image03](./Assets/image03.png)
 
 Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`), EPUB (
-`.epub`) and PDF (`.pdf`).
+`.epub`) and **PDF** (`.pdf`, introduced in OpenccNetLibGui v1.3.2).
 
 1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and
    macOS).
@@ -233,7 +233,7 @@ Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `
    `auto-reflow CJK text` etc.)
 5. Click the **Batch Start** button to begin batch conversion.
 
-### Dark Theme Mode
+### Dark Theme
 
 ![image05](./Assets/image05.png)
 
