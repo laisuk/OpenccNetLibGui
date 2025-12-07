@@ -22,11 +22,11 @@ public static class PdfEngineHelper
             return PdfEngine.PdfPig;
 
         // Determine current runtime
-        string os = OperatingSystem.IsWindows() ? "win" :
+        var os = OperatingSystem.IsWindows() ? "win" :
             OperatingSystem.IsLinux()   ? "linux" :
             OperatingSystem.IsMacOS()   ? "osx" : "unknown";
 
-        string arch = RuntimeInformation.ProcessArchitecture switch
+        var arch = RuntimeInformation.ProcessArchitecture switch
         {
             Architecture.X64  => "x64",
             Architecture.Arm64 => "arm64",
@@ -34,13 +34,11 @@ public static class PdfEngineHelper
             _ => "unknown"
         };
 
-        string rid = $"{os}-{arch}";
+        var rid = $"{os}-{arch}";
 
         // Check if Pdfium supported
-        if (SupportedPdfiumRuntimes.Contains(rid))
-            return PdfEngine.Pdfium;
-
-        // Fallback
-        return PdfEngine.PdfPig;
+        return SupportedPdfiumRuntimes.Contains(rid) ? PdfEngine.Pdfium :
+            // Fallback
+            PdfEngine.PdfPig;
     }
 }

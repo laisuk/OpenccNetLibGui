@@ -7,47 +7,47 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] - 2025-12-06
+## [1.4.0] - 2025-12-07
 
 ### Added
 
 - **PDF import support** for the Source panel using both **Pdfium** (native) and **UglyToad.PdfPig** (managed) engines.
 - **CJK-aware PDF text reflow pipeline**:
-  - Merges wrapped lines intelligently.
-  - Preserves chapter titles and headings.
-  - Repairs cross-page word breaks (e.g., `面` + `容` → `面容`).
-  - Handles CJK punctuation and spacing normalization.
+    - Merges wrapped lines intelligently.
+    - Preserves chapter titles and headings.
+    - Repairs cross-page word breaks (e.g., `面` + `容` → `面容`).
+    - Handles CJK punctuation and spacing normalization.
 - **Configurable PDF extraction options** (`LanguageSettings.json`):
-  - `addPdfPageHeader` — insert or remove page markers (`=== [Page X/Y] ===`).
-  - `compactPdfText` — enable compact reflow mode.
-  - `autoReflowPdfText` — automatically reflow extracted PDF text.
-  - `pdfEngine` — choose PdfPig or Pdfium.
-  - `convertFilename` — convert filenames during batch operations.
+    - `addPdfPageHeader` — insert or remove page markers (`=== [Page X/Y] ===`).
+    - `compactPdfText` — enable compact reflow mode.
+    - `autoReflowPdfText` — automatically reflow extracted PDF text.
+    - `pdfEngine` — choose PdfPig or Pdfium.
+    - `convertFilename` — convert filenames during batch operations.
 - **Status-bar progressive feedback**:
-  - Added fake progress bar with percentage indicator when loading multipage PDFs.
+    - Added fake progress bar with percentage indicator when loading multipage PDFs.
 - **Drag-and-drop PDF loading**:
-  - PDFs dragged into the Source editor now use the same extraction + reflow pipeline as the Open File dialog.
+    - PDFs dragged into the Source editor now use the same extraction + reflow pipeline as the Open File dialog.
 - **Selected-text reflow** for PDF text in AvaloniaEdit:
-  - Supports forward & backward selections.
-  - Reflows only the affected paragraph range.
+    - Supports forward & backward selections.
+    - Reflows only the affected paragraph range.
 - **PDF Options context menu**:
-  - Toggle reflow, compact mode, page headers, and PDF engine directly from the UI.
+    - Toggle reflow, compact mode, page headers, and PDF engine directly from the UI.
 - **PDF text extraction + OpenCC conversion** in both **Main Conversion** and **Batch Conversion** modes.
 - **Runtime PDF engine bindings included**:
-  - `win-x64`, `win-x86`, `linux-x64`, `osx-x64`, `osx-arm64` native Pdfium binaries.
+    - `win-x64`, `win-x86`, `linux-x64`, `osx-x64`, `osx-arm64` native Pdfium binaries.
 
 ### Changed
 
 - **Refined Fluent 2 UI theme**:
-  - Improved Dark/Light mode contrast.
-  - Enhanced editor pane borders and spacing.
-  - Redesigned primary/secondary buttons using Fluent styling.
+    - Improved Dark/Light mode contrast.
+    - Enhanced editor pane borders and spacing.
+    - Redesigned primary/secondary buttons using Fluent styling.
 - **Batch mode no longer blocks the UI thread**:
-  - All conversions (text + PDF) now run on background tasks (`Task.Run`).
-  - Log entries update progressively instead of appearing in a single batch.
+    - All conversions (text + PDF) now run on background tasks (`Task.Run`).
+    - Log entries update progressively instead of appearing in a single batch.
 - **Improved AvaloniaEdit selection syncing**:
-  - Fixed backward-selection offset issues.
-  - Added precise selection restore after reflow.
+    - Fixed backward-selection offset issues.
+    - Added precise selection restore after reflow.
 - **Unified file dialogs and drag-and-drop behaviors** to match Fluent interaction patterns.
 
 ### Fixed
@@ -59,7 +59,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.3.1] - 2025-11-20
+## [1.3.2] - 2025-11-20
 
 ### Added
 
@@ -110,6 +110,17 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Even faster GUI performance with fewer disk operations
 
 - CLI behavior remains unchanged; file I/O continues to behave exactly as before.
+
+### Notes for .NET Runtimes
+
+> This release (v1.3.2) will be the final version targeting .NET 8.  
+> Beginning with the next major release (v1.4.0), OpenccNetLibGui will migrate to .NET 10  
+> to take advantage of the improved JIT performance, reduced memory usage, updated libraries,  
+> and long-term ecosystem support introduced in .NET 10.
+
+> Existing users on .NET 8 may continue using v1.3.x without issues.  
+> However, new features, optimizations (including PDF engine improvements),  
+> and future maintenance will be available only on the .NET 10 builds
 
 ---
 

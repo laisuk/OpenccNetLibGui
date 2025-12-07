@@ -155,7 +155,8 @@ public class MainWindowViewModel : ViewModelBase
         var engine = PdfEngineHelper.InitPdfEngine(languageSettings.PdfEngine);
         if (engine == PdfEngine.PdfPig && languageSettings.PdfEngine == 2)
             // LblStatusBarContent = "Pdfium not supported on this platform. Falling back to PdfPig.";
-            TbSourceTextDocument!.Text = "Pdfium not supported on this platform. Falling back to PdfPig.";
+            TbSourceTextDocument!.Text = "Pdfium not supported on this platform. Falling back to PdfPig.\n" +
+                                         "You can set default pdfEngine to 1 in LanguageSettings.json for PdfPig ";
 
         _pdfEngine = engine;
 
