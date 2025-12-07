@@ -57,6 +57,17 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Fixed Linux/macOS runtime loading failures by placing Pdfium binaries in correct RID folders.
 - Eliminated duplicate PDF header lines in PdfPig extraction under certain layouts.
 
+### Notes for .NET Runtimes
+
+> This release (**v1.3.2**) will be the final version targeting **.NET 8**.  
+> Beginning with the next major release (**v1.4.0**), `OpenccNetLibGui` will migrate to **.NET 10**  
+> to take advantage of the improved **JIT performance**, **reduced memory usage**, updated libraries,  
+> and **long-term ecosystem** support introduced in **.NET 10**.
+
+> Existing users on **.NET 8** may continue using **v1.3.x** without issues.  
+> However, new features, optimizations (including **PDF engine improvements**),  
+> and future maintenance will be available only on the **.NET 10** builds
+
 ---
 
 ## [1.3.1] - 2025-11-20
@@ -110,17 +121,6 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Even faster GUI performance with fewer disk operations
 
 - CLI behavior remains unchanged; file I/O continues to behave exactly as before.
-
-### Notes for .NET Runtimes
-
-> This release (v1.3.2) will be the final version targeting .NET 8.  
-> Beginning with the next major release (v1.4.0), OpenccNetLibGui will migrate to .NET 10  
-> to take advantage of the improved JIT performance, reduced memory usage, updated libraries,  
-> and long-term ecosystem support introduced in .NET 10.
-
-> Existing users on .NET 8 may continue using v1.3.x without issues.  
-> However, new features, optimizations (including PDF engine improvements),  
-> and future maintenance will be available only on the .NET 10 builds
 
 ---
 
