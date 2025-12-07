@@ -30,70 +30,94 @@ Download the latest version of **OpenccNetLibGui** for your platform:
 ## Features
 
 - **Chinese Conversion**  
-  Convert text between Simplified and Traditional Chinese using optimized OpenCC lexicons and FMM-based dictionary
-  matching.
+  Convert text between Simplified and Traditional Chinese using optimized OpenCC lexicons combined with an efficient
+  FMM-based dictionary matcher.
 
-- **Single / Batch Conversion**  
-  Perform conversion on individual files or entire folders in one operation.
+- **Single & Batch Conversion**  
+  Convert individual files or entire directories in one operation.
 
 - **Wide File Format Support**  
-  Designed to convert most **text-based file types**, including:
+  Supports most **text-based file types**, including:
     - Plain text (`.txt`)
     - Subtitles (`.srt`, `.vtt`, `.ass`, `.ttml2`)
     - **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
     - **EPUB** (`.epub`)
-    - **PDF** (`.pdf`) with intelligent CJK reflow
+    - **PDF** (`.pdf`) with intelligent CJK text reflow
 
-- **PDF Extraction & CJK Reflow (New in v1.0.1)**  
+- **PDF Extraction & CJK Reflow**  
   Import PDF files and automatically:
-    - Extract text using PdfPig
-    - Remove irrelevant page headers/footers (configurable)
-    - Merge lines broken across pages (e.g., `面` + `容` → `面容`)
-    - Preserve titles and chapter headers (`序章`, `第一章》`, etc.)
-    - Produce clean, novel-style flowing text for conversion
+    - Extract text using **PdfPig** or **Pdfium**
+    - Remove repetitive headers and footers (optional)
+    - Merge broken lines across pages (e.g., `面` + `容` → `面容`)
+    - Preserve chapter titles and headings
+    - Produce clean, continuous text suitable for reading or conversion
 
-- **Drag & Drop Support**  
+- **Drag-and-Drop Support**  
   Drop text, PDF, EPUB, or Office files directly into the Source panel.
 
 - **CJK-Aware Reflow Engine**  
   Smart handling of:
-    - Paragraphs
-    - Chapter markers
+    - Paragraph boundaries
+    - Chapter markers (`第一章`, `序章`, etc.)
     - Chinese punctuation
-    - Page break artifacts
-    - Indentation heuristics
+    - Page-break artifacts
+    - Indentation and spacing heuristics
 
 - **Cross-Platform Avalonia GUI**  
-  Runs consistently on Windows, macOS, and Linux with modern MVVM architecture.
+  Modern MVVM-based UI that runs consistently on **Windows**, **macOS**, and **Linux**.
 
-### Notes
+---
 
-- **PDF Support**  
-  Only **text-embedded PDF files** are supported.  
-  ZhoConverterGui relies on PDF text extraction engines (PdfPig or Pdfium) to read Unicode text directly from the PDF
-  content stream.  
-  Scanned PDFs or image-based PDFs (pure bitmap pages without embedded text) **are not supported**.  
-  To process such files, OCR (Optical Character Recognition) would be required — which is **not included** in this
-  version.
+## Notes
 
-- **PDF Extraction Engines**  
-  ZhoConverterGui provides two PDF text-extraction engines:
-    - **PdfPig** – a fast, pure-managed engine suitable for most standard text-embedded PDFs.
-    - **Pdfium (native)** – an enhanced engine offering higher Unicode accuracy and better handling of complex CJK
-      layouts and tricky page structures.
+### **PDF Support**
 
-  You can switch between these engines in the application settings.
+Only **text-embedded PDFs** are supported.  
+OpenccNetLibGui reads Unicode text directly from the PDF content stream using either PdfPig or Pdfium.
 
-- **CJK Paragraph Reflow**  
-  The CJK Paragraph Reflow feature is designed as a **lightweight readability enhancement** for text extracted from PDFs
-  and EPUBs.  
-  It merges broken lines, reconstructs dialogue, identifies headings, and removes common page-level artifacts to produce
-  cleaner, easier-to-read text.
+❌ Scanned PDFs or pure image-based PDFs **are not supported**.  
+Such files require OCR (Optical Character Recognition), which is **not included** in this application.
 
-  This feature is **not intended for professional publishing, article preparation, typesetting, or print-ready layout
-  work**.  
-  Reflowed text should be treated as a **draft-quality starting point**, and users are encouraged to perform **manual
-  review and formatting** if the content is intended for editing, distribution, or publication.
+---
+
+### **PDF Extraction Engines**
+
+OpenccNetLibGui offers two selectable engines for PDF text extraction:
+
+- **PdfPig**  
+  A pure-managed, cross-platform engine suitable for most standard text-embedded PDFs.
+
+- **Pdfium (native)**  
+  A high-accuracy native engine with superior handling of:
+    - CJK characters
+    - complex layouts
+    - overlapping glyphs
+    - repeated text tokens
+    - tricky multi-column or multi-page flows
+
+The preferred engine can be changed in the **Settings** menu.
+
+---
+
+### **CJK Paragraph Reflow**
+
+The CJK paragraph reflow module is designed as a **lightweight readability enhancement** for extracted PDF/EPUB text.  
+It provides:
+
+- Line merging
+- Dialogue reconstruction
+- Chapter heading detection
+- Removal of common page-level artifacts
+
+Reflowed text aims for **cleaner, novel-style readability**, but **is not intended for:**
+
+- professional publishing
+- academic typesetting
+- print-ready layout
+- high-precision editorial work
+
+Users should consider reflowed output as a **draft-quality starting point**, and perform manual review if the content
+will be published or redistributed.
 
 ---
 
