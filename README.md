@@ -167,7 +167,7 @@ dotnet run
 
 ![image01](./Assets/image01.png)
 
-#### Support PDF Text Extraction (Text-Embedded PDF)
+#### PDF Text Extraction (Text-Embedded PDF) and conversion
 
 ![image04](./Assets/image04.png)
 
