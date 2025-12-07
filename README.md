@@ -166,13 +166,18 @@ dotnet run
 ### Single Mode
 
 ![image01](./Assets/image01.png)
+
+#### Support PDF Text Extraction (Text-Embedded PDF)
+
 ![image04](./Assets/image04.png)
 
 Support most **text base** file types and **Text-Embedded PDF documents**.
 
-1. Paste the text or open a file you wish to convert (file/text drag and drop are supported on Windows and macOS).
+1. Paste the text or open a file (text or PDF file) you wish to convert (file/text drag and drop are supported on
+   Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).
-3. Click the **Process** button to see the results.
+3. `PDF options` can be set in reight-click context menu.
+4. Click the **Process** button to see the results.
 
 ---
 
