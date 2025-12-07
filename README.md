@@ -11,20 +11,18 @@ Chinese conversion.
 
 ## 🚀 Download
 
-Download the latest version of **OpenccNetLibGui** for your platform:
+Always get the **latest version** of OpenccNetLibGui from the GitHub Releases page:
 
-- 💻 *
-  *[Windows (win-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.1.0-win-x64.zip)
-  **
-- 🐧 *
-  *[Linux (linux-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.1.0-linux-x64.tar.gz)
-  **
-- 🍎 *
-  *[macOS (osx-x64)](https://github.com/laisuk/OpenccNetLibGui/releases/latest/download/OpenccNetLibGui-v1.1.0-osx-x64.tar.gz)
-  **
+- 🔖 **[Latest release (all platforms)](https://github.com/laisuk/OpenccNetLibGui/releases/latest)**
 
-> 📦 These are **framework-dependent builds**, targeting `.NET 8`.  
-> You must have [.NET Runtime 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) installed to run
+On the release page, look for assets named:
+
+- `OpenccNetLibGui-vX.Y.Z-win-x64.zip` – **Windows (win-x64)**
+- `OpenccNetLibGui-vX.Y.Z-linux-x64.tar.gz` – **Linux (linux-x64)**
+- `OpenccNetLibGui-vX.Y.Z-osx-arm64.tar.gz` – **macOS (Apple Silicon, osx-arm64)**
+
+> 📦 These are **framework-dependent builds**, targeting **.NET 8**.  
+> You must have the [.NET 8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) installed to run
 > them.
 
 ## Features
@@ -141,15 +139,15 @@ will be published or redistributed.
   A fully managed PDF text extraction library used for:
     - Parsing PDF structure
     - Extracting raw Unicode text
-    - Fallback extraction when Pdfium is unavailable  
+    - Fallback extraction when PDFium is unavailable  
       Ideal for CPU-only scenarios or when using a 100% managed dependency chain.
 
-- **Pdfium (native library + .NET binding)**  
+- **PDFium (native library + .NET binding)**  
   High-performance native PDF rendering & text extraction engine used for:
     - Faster page loading on large PDFs
     - More accurate CJK character extraction
     - Improved handling of rotated text, clipped glyphs, and embedded fonts  
-      Provides the “fast mode” when users choose **Pdfium** in PDF Engine settings.
+      Provides the “fast mode” when users choose **PDFium** in PDF Engine settings.
 
 ---
 
@@ -302,6 +300,6 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
   For the robust and flexible JSON serialization and configuration handling.
 - **[PdfPig](https://github.com/UglyToad/PdfPig)**  
   For the fully-managed PDF text extraction engine used in the standard extraction mode.
-- **Pdfium (native library + .NET bindings)**  
+- **PDFium (native library + .NET bindings)**  
   For providing high-performance PDF rendering and fast CJK text extraction in Pdfium mode.
 
