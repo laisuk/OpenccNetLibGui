@@ -278,9 +278,26 @@ public static class PdfiumModel
                     continue;
 
                 var text = ExtractPageText(textPage, ref buffer);
-                if (string.IsNullOrEmpty(text))
-                    continue;
+                // if (string.IsNullOrEmpty(text))
+                //     continue;
+                //
+                // if (addPdfPageHeader)
+                //     sb.AppendLine($"=== [Page {i + 1}/{pageCount}] ===");
+                // 🔹 handle empty/blank pages explicitly
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    if (addPdfPageHeader)
+                    {
+                        sb.AppendLine($"=== [Page {i + 1}/{pageCount}] ===");
+                    }
 
+                    // always emit at least one blank line for this empty page
+                    sb.AppendLine(); // visible blank page separator
+
+                    continue;
+                }
+
+                // 🔹 non-empty page
                 if (addPdfPageHeader)
                     sb.AppendLine($"=== [Page {i + 1}/{pageCount}] ===");
 

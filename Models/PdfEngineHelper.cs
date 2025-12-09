@@ -12,7 +12,7 @@ public static class PdfEngineHelper
         "linux-x64",
         "osx-x64",
         "osx-arm64",
-        "osx-x86"
+        "win-x86"
     };
 
     public static PdfEngine InitPdfEngine(int requestedEngine)

@@ -40,7 +40,7 @@ namespace OpenccNetLibGui.Models
             '。', '！', '？', '；', '：', '…', '—', '”', '」', '’', '』', '.',
 
             // Chinese closing brackets / quotes
-            '）', '】', '》', '〗', '〕', '〉', '」', '』', '］', '｝',
+            '）', '】', '》', '〗', '〕', '〉', '」', '』', '］', '｝', ')', ':'
         };
 
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
@@ -48,7 +48,7 @@ namespace OpenccNetLibGui.Models
             new(
                 @"^(?=.{0,60}$)
                   (前言|序章|终章|尾声|后记|番外|尾聲|後記
-                  |第.{0,10}?(章|节|部|卷|節|回)
+                  |.{0,20}?第.{0,10}?(章|节|部|卷|節|回).{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
@@ -57,10 +57,75 @@ namespace OpenccNetLibGui.Models
             new(@"^[\s\u3000]{2,}", RegexOptions.Compiled);
 
         // Dialog brackets (Simplified / Traditional / JP-style)
-        private const string DialogOpeners = "“‘「『";
+        private const string DialogOpeners = "“‘「『﹁﹃";
 
-        private static readonly string OpenBrackets = "（([【《";
-        private static readonly string CloseBrackets = "）)]】》";
+        private static bool IsDialogOpener(char ch)
+            => DialogOpeners.Contains(ch);
+
+        private static readonly string OpenBrackets = "（([【《｛〈";
+        private static readonly string CloseBrackets = "）)]】》｝〉";
+
+        // Metadata key-value separators
+        private static readonly char[] MetadataSeparators =
+        {
+            '：', // full-width colon
+            ':', // ASCII colon
+            '　' // full-width ideographic space (U+3000)
+        };
+
+        private static readonly HashSet<string> MetadataKeys = new(StringComparer.Ordinal)
+        {
+            // ===== 1. Title / Author / Publishing =====
+            "書名", "书名",
+            "作者",
+            "譯者", "译者",
+            "校訂", "校订",
+            "出版社",
+            "出版時間", "出版时间",
+            "出版日期",
+
+            // ===== 2. Copyright / License =====
+            "版權", "版权",
+            "版權頁", "版权页",
+            "版權信息", "版权信息",
+
+            // ===== 3. Editor / Pricing =====
+            "責任編輯", "责任编辑",
+            "編輯", "编辑", // 有些出版社簡化成「编辑」
+            "責編", "责编", // 等同责任编辑，但常見
+            "定價", "定价",
+
+            // ===== 4. Descriptions / Forewords =====
+            // "內容簡介", "内容简介",
+            // "作者簡介", "作者简介",
+            "前言",
+            "序章",
+            "終章", "终章",
+            "尾聲", "尾声",
+            "後記", "后记",
+
+            // ===== 5. Digital Publishing (ebook platforms) =====
+            "品牌方",
+            "出品方",
+            "授權方", "授权方",
+            "電子版權", "数字版权",
+            "掃描", "扫描",
+            "OCR",
+
+            // ===== 6. CIP / Cataloging =====
+            "CIP",
+            "在版編目", "在版编目",
+            "分類號", "分类号",
+            "主題詞", "主题词",
+
+            // ===== 7. Publishing Cycle =====
+            "發行日", "发行日",
+            "初版",
+
+            // ===== 8. Common keys without variants =====
+            "ISBN"
+        };
+
 
         /// <summary>
         /// Tracks the state of open or unmatched dialog quotation marks within
@@ -336,6 +401,7 @@ namespace OpenccNetLibGui.Models
 
                 var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
                 var isShortHeading = IsHeadingLike(stripped);
+                var isMetadata = IsMetadataLine(stripped); // 〈── 新增
 
                 // Collapse style-layer repeated titles
                 if (isTitleHeading)
@@ -392,40 +458,89 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // 3b) 弱 heading-like：只在上一段尾不是逗號時才生效
-                if (isShortHeading)
+                // 3b) Metadata 行（短 key:val，如「書名：xxx」「作者：yyy」）
+                if (isMetadata)
                 {
                     if (buffer.Length > 0)
                     {
-                        var bt = buffer.ToString().TrimEnd();
-                        if (bt.Length > 0)
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
+
+                    // Metadata 每行獨立存放（之後你可以決定係 skip、折疊、顯示）
+                    segments.Add(stripped);
+                    continue;
+                }
+
+                // 3c) 弱 heading-like：只在「上一段安全」且「上一段尾部像一句話的結束」時才生效
+                if (isShortHeading)
+                {
+                    // 判斷當前行是否「全 CJK」（忽略空白）
+                    bool isAllCjk = true;
+                    foreach (var ch in stripped)
+                    {
+                        if (char.IsWhiteSpace(ch))
+                            continue;
+
+                        if (ch <= 0x7F)
                         {
-                            var last = bt[^1];
-                            if (last == '，' || last == ',')
+                            isAllCjk = false;
+                            break;
+                        }
+                    }
+
+                    if (buffer.Length > 0)
+                    {
+                        var bufText = buffer.ToString();
+
+                        // 🔐 1) 若上一段仍有未配對括號／書名號 → 必定是續行，不能當 heading
+                        if (HasUnclosedBracket(bufText))
+                        {
+                            // fall through → 當普通行，由後面的 merge 邏輯處理
+                        }
+                        else
+                        {
+                            var bt = bufText.TrimEnd();
+                            if (bt.Length > 0)
                             {
-                                // 上一行逗號結尾 → 視作續句，不當 heading
-                                // fall through → 後面 default merge 邏輯處理
+                                var last = bt[^1];
+
+                                // 🔸 2) 上一行逗號結尾 → 視作續句，不當 heading
+                                if (last == '，' || last == ',')
+                                {
+                                    // fall through → default merge
+                                }
+                                // 🔸 3) 對於「全 CJK 的短 heading-like」，
+                                //     如果上一行 *不是* 以 CJK 句末符號結束，也當續句，不切段。
+                                else if (isAllCjk && Array.IndexOf(CjkPunctEndChars, last) < 0)
+                                {
+                                    // e.g.:
+                                    //   内容简介： 《盗
+                                    //   墓笔记:吴邪的盗墓笔   ← 雖然像短 heading，但上一行未「句號收尾」
+                                    // fall through → 當續行
+                                }
+                                else
+                                {
+                                    // ✅ 真 heading-like → flush 舊段，再把當前行當作獨立 heading
+                                    segments.Add(bufText);
+                                    buffer.Clear();
+                                    dialogState.Reset();
+                                    segments.Add(stripped);
+                                    continue;
+                                }
                             }
                             else
                             {
-                                // 真 heading-like → flush
-                                segments.Add(buffer.ToString());
-                                buffer.Clear();
-                                dialogState.Reset();
+                                // buffer 有長度但全空白，其實等同無 → 直接當 heading
                                 segments.Add(stripped);
                                 continue;
                             }
                         }
-                        else
-                        {
-                            // buffer 有長度但全空白，其實等同無 → 直接當 heading
-                            segments.Add(stripped);
-                            continue;
-                        }
                     }
                     else
                     {
-                        // buffer 空 → 直接當 heading
+                        // buffer 空（文件開頭／上一段剛 flush 完）→ 允許短 heading 單獨出現
                         segments.Add(stripped);
                         continue;
                     }
@@ -446,16 +561,42 @@ namespace OpenccNetLibGui.Models
                 // We already have some text in buffer
                 var bufferText = buffer.ToString();
 
-                // *** DIALOG: if this line starts a dialog, always flush previous paragraph
-                if (currentIsDialogStart)
+                // 🔸 NEW RULE: If previous line ends with comma, 
+                //     do NOT flush even if this line starts dialog.
+                //     (comma-ending means the sentence is not finished)
+                if (bufferText.Length > 0)
                 {
-                    segments.Add(bufferText);
-                    buffer.Clear();
-                    buffer.Append(stripped);
-                    dialogState.Reset();
-                    dialogState.Update(stripped);
-                    continue;
+                    var trimmed = bufferText.TrimEnd();
+                    char last = trimmed.Length > 0 ? trimmed[^1] : '\0';
+                    if (last == '，' || last == ',')
+                    {
+                        // fall through → treat as continuation
+                        // do NOT flush here
+                    }
+                    else if (currentIsDialogStart)
+                    {
+                        // *** DIALOG: if this line starts a dialog, 
+                        //     flush previous paragraph (only if safe)
+                        segments.Add(bufferText);
+                        buffer.Clear();
+                        buffer.Append(stripped);
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
+                    }
                 }
+                else
+                {
+                    // buffer empty, just add new dialog line
+                    if (currentIsDialogStart)
+                    {
+                        buffer.Append(stripped);
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
+                    }
+                }
+
 
                 // NEW RULE: colon + dialog continuation
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
@@ -552,15 +693,27 @@ namespace OpenccNetLibGui.Models
                 if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
                     return false;
 
-                // Reject headings with unclosed brackets (「『“”( 等未配對)
+                // Reject headings with unclosed brackets
                 if (HasUnclosedBracket(s))
+                    return false;
+
+                // 🔥 NEW: reject any short line containing comma "，" or ","
+                // Because short headings NEVER contain a comma inside.
+                if (s.Contains('，') || s.Contains(',') || s.Contains('、'))
                     return false;
 
                 var len = s.Length;
 
-                // Short line heuristics (<= 15 chars)
-                if (len <= 15)
+                // 🔥 NEW RULE: short line containing ANY CJK punctuation → NOT heading
+                // e.g. 奇怪。 不安！ 她想： etc.
+                if (len <= 10)
                 {
+                    foreach (var p in CjkPunctEndChars)
+                    {
+                        if (s.Contains(p))
+                            return false;
+                    }
+
                     var hasNonAscii = false;
                     var allAscii = true;
                     var hasLetter = false;
@@ -585,21 +738,54 @@ namespace OpenccNetLibGui.Models
                             hasLetter = true;
                     }
 
-                    // Rule C: pure ASCII digits (1, 007, 23, 128 ...) → heading
+                    // Rule C: pure ASCII digits → heading
                     if (allAsciiDigits)
                         return true;
 
-                    // Rule A: CJK/mixed short line, not ending with comma
-                    if (hasNonAscii && last != '，' && last != ',')
+                    // Rule A: CJK/mixed short line (has non-ASCII)
+                    if (hasNonAscii)
                         return true;
 
-                    // Rule B: pure ASCII short line with at least one letter (PROLOGUE / END)
+                    // Rule B: pure ASCII short line with at least one letter
                     return allAscii && hasLetter;
                 }
 
                 return false;
             }
 
+            static bool IsMetadataLine(string line)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    return false;
+
+                // A) length limit
+                if (line.Length > 30)
+                    return false;
+
+                // B) find first separator
+                int idx = line.IndexOfAny(MetadataSeparators);
+                if (idx <= 0 || idx > 10)
+                    return false;
+
+                // C) extract key
+                string key = line[..idx].Trim();
+                if (!MetadataKeys.Contains(key))
+                    return false;
+
+                // D) get next non-space character
+                int j = idx + 1;
+                while (j < line.Length && char.IsWhiteSpace(line[j]))
+                    j++;
+
+                if (j >= line.Length)
+                    return false;
+
+                // E) must NOT be dialog opener
+                if (IsDialogOpener(line[j]))
+                    return false;
+
+                return true;
+            }
 
             // Check if any unclosed brackets in text string
             static bool HasUnclosedBracket(string s)
