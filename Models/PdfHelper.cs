@@ -48,7 +48,7 @@ namespace OpenccNetLibGui.Models
             new(
                 @"^(?=.{0,60}$)
                   (前言|序章|终章|尾声|后记|番外|尾聲|後記
-                  |.{0,20}?第.{0,10}?(章|节|部|卷|節|回).{0,20}?
+                  |.{0,20}?第.{0,10}?([章节部卷節回][^分合]).{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
@@ -763,17 +763,17 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // B) find first separator
-                int idx = line.IndexOfAny(MetadataSeparators);
+                var idx = line.IndexOfAny(MetadataSeparators);
                 if (idx <= 0 || idx > 10)
                     return false;
 
                 // C) extract key
-                string key = line[..idx].Trim();
+                var key = line[..idx].Trim();
                 if (!MetadataKeys.Contains(key))
                     return false;
 
                 // D) get next non-space character
-                int j = idx + 1;
+                var j = idx + 1;
                 while (j < line.Length && char.IsWhiteSpace(line[j]))
                     j++;
 
