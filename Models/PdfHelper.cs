@@ -40,7 +40,7 @@ namespace OpenccNetLibGui.Models
             '。', '！', '？', '；', '：', '…', '—', '”', '」', '’', '』', '.',
 
             // Chinese closing brackets / quotes
-            '）', '】', '》', '〗', '〕', '〉', '」', '』', '］', '｝', ')', ':'
+            '）', '】', '》', '〗', '〕', '〉', '」', '』', '］', '｝', ')', ':', '!'
         };
 
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
@@ -164,6 +164,16 @@ namespace OpenccNetLibGui.Models
             private int _cornerBold;
 
             /// <summary>
+            /// Counter for unmatched upper corner brackets: ﹁ ﹂.
+            /// </summary>
+            private int _cornerTop;
+
+            /// <summary>
+            /// Counter for unmatched wide corner brackets: ﹃ ﹄.
+            /// </summary>
+            private int _cornerWide;
+
+            /// <summary>
             /// Resets all quote counters to zero.
             /// Call this at the start of a new paragraph buffer.
             /// </summary>
@@ -173,6 +183,8 @@ namespace OpenccNetLibGui.Models
                 _singleQuote = 0;
                 _corner = 0;
                 _cornerBold = 0;
+                _cornerTop = 0;
+                _cornerWide = 0;
             }
 
             /// <summary>
@@ -197,32 +209,40 @@ namespace OpenccNetLibGui.Models
                 {
                     switch (ch)
                     {
-                        case '“':
-                            _doubleQuote++;
-                            break;
+                        // ===== Double quotes =====
+                        case '“': _doubleQuote++; break;
                         case '”':
                             if (_doubleQuote > 0) _doubleQuote--;
                             break;
 
-                        case '‘':
-                            _singleQuote++;
-                            break;
+                        // ===== Single quotes =====
+                        case '‘': _singleQuote++; break;
                         case '’':
                             if (_singleQuote > 0) _singleQuote--;
                             break;
 
-                        case '「':
-                            _corner++;
-                            break;
+                        // ===== Corner brackets =====
+                        case '「': _corner++; break;
                         case '」':
                             if (_corner > 0) _corner--;
                             break;
 
-                        case '『':
-                            _cornerBold++;
-                            break;
+                        // ===== Bold corner brackets =====
+                        case '『': _cornerBold++; break;
                         case '』':
                             if (_cornerBold > 0) _cornerBold--;
+                            break;
+
+                        // ===== NEW: vertical brackets (﹁ ﹂) =====
+                        case '﹁': _cornerTop++; break;
+                        case '﹂':
+                            if (_cornerTop > 0) _cornerTop--;
+                            break;
+
+                        // ===== NEW: vertical bold brackets (﹃ ﹄) =====
+                        case '﹃': _cornerWide++; break;
+                        case '﹄':
+                            if (_cornerWide > 0) _cornerWide--;
                             break;
                     }
                 }
@@ -235,7 +255,8 @@ namespace OpenccNetLibGui.Models
             /// reflow logic should avoid forcing paragraph breaks until closure.
             /// </summary>
             public bool IsUnclosed =>
-                _doubleQuote > 0 || _singleQuote > 0 || _corner > 0 || _cornerBold > 0;
+                _doubleQuote > 0 || _singleQuote > 0 || _corner > 0 || _cornerBold > 0 || _cornerTop > 0 ||
+                _cornerWide > 0;
         }
 
         /// <summary>
@@ -322,17 +343,15 @@ namespace OpenccNetLibGui.Models
                 // Adaptive progress update interval
                 static int GetProgressBlock(int totalPages)
                 {
-                    if (totalPages <= 20)
-                        return 1; // every page
-
-                    if (totalPages <= 100)
-                        return 3; // every 3 pages
-
-                    if (totalPages <= 300)
-                        return 5; // every 5 pages
+                    return totalPages switch
+                    {
+                        <= 20 => 1,
+                        <= 100 => 3,
+                        <= 300 => 5,
+                        _ => Math.Max(1, totalPages / 20)
+                    };
 
                     // large PDFs: ~5% intervals
-                    return Math.Max(1, totalPages / 20);
                 }
 
                 var block = GetProgressBlock(total);
@@ -396,6 +415,9 @@ namespace OpenccNetLibGui.Models
                 var stripped = rawLine.TrimEnd();
                 stripped = StripHalfWidthIndentKeepFullWidth(stripped);
 
+                // 🔹 NEW: collapse style-layer repeated segments *before* heading detection
+                stripped = CollapseRepeatedSegments(stripped);
+
                 // 2) Logical form for heading detection: no indent at all
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
@@ -405,30 +427,30 @@ namespace OpenccNetLibGui.Models
 
                 // Collapse style-layer repeated titles
                 if (isTitleHeading)
-                    stripped = CollapseRepeatedSegments(stripped);
+                    // stripped = CollapseRepeatedSegments(stripped);
 
-                // 1) Empty line
-                if (stripped.Length == 0)
-                {
-                    if (!addPdfPageHeader && buffer.Length > 0)
+                    // 1) Empty line
+                    if (stripped.Length == 0)
                     {
-                        var lastChar = buffer[^1];
+                        if (!addPdfPageHeader && buffer.Length > 0)
+                        {
+                            var lastChar = buffer[^1];
 
-                        // Page-break-like blank line, skip it
-                        if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
-                            continue;
+                            // Page-break-like blank line, skip it
+                            if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
+                                continue;
+                        }
+
+                        // End of paragraph → flush buffer, do not add ""
+                        if (buffer.Length > 0)
+                        {
+                            segments.Add(buffer.ToString());
+                            buffer.Clear();
+                            dialogState.Reset();
+                        }
+
+                        continue;
                     }
-
-                    // End of paragraph → flush buffer, do not add ""
-                    if (buffer.Length > 0)
-                    {
-                        segments.Add(buffer.ToString());
-                        buffer.Clear();
-                        dialogState.Reset();
-                    }
-
-                    continue;
-                }
 
                 // 2) Page markers
                 if (stripped.StartsWith("=== ") && stripped.EndsWith("==="))
@@ -477,17 +499,15 @@ namespace OpenccNetLibGui.Models
                 if (isShortHeading)
                 {
                     // 判斷當前行是否「全 CJK」（忽略空白）
-                    bool isAllCjk = true;
+                    var isAllCjk = true;
                     foreach (var ch in stripped)
                     {
                         if (char.IsWhiteSpace(ch))
                             continue;
 
-                        if (ch <= 0x7F)
-                        {
-                            isAllCjk = false;
-                            break;
-                        }
+                        if (ch > 0x7F) continue;
+                        isAllCjk = false;
+                        break;
                     }
 
                     if (buffer.Length > 0)
@@ -567,7 +587,7 @@ namespace OpenccNetLibGui.Models
                 if (bufferText.Length > 0)
                 {
                     var trimmed = bufferText.TrimEnd();
-                    char last = trimmed.Length > 0 ? trimmed[^1] : '\0';
+                    var last = trimmed.Length > 0 ? trimmed[^1] : '\0';
                     if (last == '，' || last == ',')
                     {
                         // fall through → treat as continuation
@@ -602,7 +622,7 @@ namespace OpenccNetLibGui.Models
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
                 if (bufferText.EndsWith('：') || bufferText.EndsWith(':'))
                 {
-                    if (stripped.Length > 0 && DialogOpeners.IndexOf(stripped[0]) >= 0)
+                    if (stripped.Length > 0 && DialogOpeners.Contains(stripped[0]))
                     {
                         buffer.Append(stripped);
                         dialogState.Update(stripped);
@@ -672,7 +692,7 @@ namespace OpenccNetLibGui.Models
             static bool IsDialogStarter(string s)
             {
                 s = s.TrimStart(' ', '\u3000'); // ignore indent
-                return s.Length > 0 && DialogOpeners.IndexOf(s[0]) >= 0;
+                return s.Length > 0 && DialogOpeners.Contains(s[0]);
             }
 
             static bool IsHeadingLike(string? s)
@@ -706,51 +726,47 @@ namespace OpenccNetLibGui.Models
 
                 // 🔥 NEW RULE: short line containing ANY CJK punctuation → NOT heading
                 // e.g. 奇怪。 不安！ 她想： etc.
-                if (len <= 10)
+                if (len > 10) return false;
+                foreach (var p in CjkPunctEndChars)
                 {
-                    foreach (var p in CjkPunctEndChars)
-                    {
-                        if (s.Contains(p))
-                            return false;
-                    }
-
-                    var hasNonAscii = false;
-                    var allAscii = true;
-                    var hasLetter = false;
-                    var allAsciiDigits = true;
-
-                    for (var i = 0; i < len; i++)
-                    {
-                        var ch = s[i];
-
-                        if (ch > 0x7F)
-                        {
-                            hasNonAscii = true;
-                            allAscii = false;
-                            allAsciiDigits = false;
-                            continue;
-                        }
-
-                        if (!char.IsDigit(ch))
-                            allAsciiDigits = false;
-
-                        if (char.IsLetter(ch))
-                            hasLetter = true;
-                    }
-
-                    // Rule C: pure ASCII digits → heading
-                    if (allAsciiDigits)
-                        return true;
-
-                    // Rule A: CJK/mixed short line (has non-ASCII)
-                    if (hasNonAscii)
-                        return true;
-
-                    // Rule B: pure ASCII short line with at least one letter
-                    return allAscii && hasLetter;
+                    if (s.Contains(p))
+                        return false;
                 }
 
-                return false;
+                var hasNonAscii = false;
+                var allAscii = true;
+                var hasLetter = false;
+                var allAsciiDigits = true;
+
+                for (var i = 0; i < len; i++)
+                {
+                    var ch = s[i];
+
+                    if (ch > 0x7F)
+                    {
+                        hasNonAscii = true;
+                        allAscii = false;
+                        allAsciiDigits = false;
+                        continue;
+                    }
+
+                    if (!char.IsDigit(ch))
+                        allAsciiDigits = false;
+
+                    if (char.IsLetter(ch))
+                        hasLetter = true;
+                }
+
+                // Rule C: pure ASCII digits → heading
+                if (allAsciiDigits)
+                    return true;
+
+                // Rule A: CJK/mixed short line (has non-ASCII)
+                if (hasNonAscii)
+                    return true;
+
+                // Rule B: pure ASCII short line with at least one letter
+                return allAscii && hasLetter;
             }
 
             static bool IsMetadataLine(string line)
@@ -764,7 +780,7 @@ namespace OpenccNetLibGui.Models
 
                 // B) find first separator
                 var idx = line.IndexOfAny(MetadataSeparators);
-                if (idx <= 0 || idx > 10)
+                if (idx is <= 0 or > 10)
                     return false;
 
                 // C) extract key
@@ -781,10 +797,7 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // E) must NOT be dialog opener
-                if (IsDialogOpener(line[j]))
-                    return false;
-
-                return true;
+                return !IsDialogOpener(line[j]);
             }
 
             // Check if any unclosed brackets in text string
@@ -820,34 +833,167 @@ namespace OpenccNetLibGui.Models
             return s.Substring(i);
         }
 
+        // ------------------------------------------------------------
+        // Style-layer repeat collapse for PDF headings / title lines.
+        //
+        // Conceptually this emulates a regex like:
+        //
+        //    (.{4,10}?)\1{2,3}
+        //
+        // i.e. “a phrase of length 4–10 chars, repeated 3–4 times”,
+        // but implemented in a token- and phrase-aware way so we can
+        // correctly handle CJK titles and multi-word headings.
+        //
+        // This routine is intentionally conservative:
+        //   - It targets layout / styling noise (highlighted titles,
+        //     duplicated TOC entries, etc.).
+        //   - It avoids collapsing natural language like “哈哈哈哈哈哈”.
+        // ------------------------------------------------------------
         private static string CollapseRepeatedSegments(string line)
         {
             if (string.IsNullOrEmpty(line))
                 return line;
 
-            // Split on whitespace into chunks (titles often have 1–3 parts)
+            // Split on whitespace into discrete tokens.
+            // Typical headings have 1–3 tokens; TOC / cover captions may have more.
             var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0)
                 return line;
 
+            // 1) Phrase-level collapse:
+            //    Detect and collapse repeated *word sequences*, e.g.:
+            //
+            //    "背负着一切的麒麟 背负着一切的麒麟 背负着一切的麒麟 背负着一切的麒麟"
+            //      → "背负着一切的麒麟"
+            //
+            //    "（第一季大结局） （第一季大结局） （第一季大结局） （第一季大结局）"
+            //      → "（第一季大结局）"
+            //
+            parts = CollapseRepeatedWordSequences(parts);
+
+            // 2) Token-level collapse:
+            //    As a fallback, if an individual token itself is made of
+            //    a repeated substring (e.g. "abcdabcdabcd"), collapse it:
+            //
+            //      "abcdabcdabcd" → "abcd"
+            //
+            //    This is carefully tuned so we do *not* destroy natural
+            //    short repeats such as "哈哈哈哈哈哈".
             for (var i = 0; i < parts.Length; i++)
             {
                 parts[i] = CollapseRepeatedToken(parts[i]);
             }
 
-            // Re-join with a single space between tokens
+            // Re-join with a single space between tokens.
             return string.Join(" ", parts);
         }
 
+        /// <summary>
+        /// Collapses repeated sequences of tokens (phrases) within a line.
+        ///
+        /// This targets PDF-styled headings where the same phrase is rendered
+        /// 3–4 times for emphasis, for example:
+        ///
+        ///   「背负着一切的麒麟 背负着一切的麒麟 背负着一切的麒麟 背负着一切的麒麟」
+        ///
+        /// The algorithm:
+        ///   - Scans for candidate phrases of length 1 to <c>maxPhraseLen</c> tokens.
+        ///   - If the same phrase occurs consecutively at least <c>minRepeats</c>
+        ///     times (default = 3), all repeats are collapsed into a single copy.
+        ///   - Prefix and suffix tokens are preserved.
+        ///
+        /// This is intentionally conservative to avoid collapsing normal text,
+        /// while effectively removing layout/styling repetition in headings.
+        /// </summary>
+        private static string[] CollapseRepeatedWordSequences(string[] parts)
+        {
+            const int minRepeats = 3; // minimum number of consecutive repeats required
+            const int maxPhraseLen = 8; // typical heading phrases are short
+
+            var n = parts.Length;
+            if (n < minRepeats)
+                return parts;
+
+            // Scan from left to right for any repeating phrase.
+            for (var start = 0; start < n; start++)
+            {
+                for (var phraseLen = 1; phraseLen <= maxPhraseLen && start + phraseLen <= n; phraseLen++)
+                {
+                    // phrase = parts[start .. start+phraseLen-1]
+                    var count = 1;
+
+                    while (true)
+                    {
+                        var nextStart = start + count * phraseLen;
+                        if (nextStart + phraseLen > n)
+                            break;
+
+                        var equal = true;
+                        for (var k = 0; k < phraseLen; k++)
+                        {
+                            if (parts[start + k].Equals(parts[nextStart + k], StringComparison.Ordinal)) continue;
+                            equal = false;
+                            break;
+                        }
+
+                        if (!equal)
+                            break;
+
+                        count++;
+                    }
+
+                    if (count < minRepeats) continue;
+                    {
+                        // Build collapsed list:
+                        //   [prefix] + [one phrase] + [tail]
+                        var result = new List<string>(n - (count - 1) * phraseLen);
+
+                        // Prefix before the repeated phrase.
+                        for (var i = 0; i < start; i++)
+                            result.Add(parts[i]);
+
+                        // Single copy of the repeated phrase.
+                        for (var k = 0; k < phraseLen; k++)
+                            result.Add(parts[start + k]);
+
+                        // Tail after all repeats.
+                        var tailStart = start + count * phraseLen;
+                        for (var i = tailStart; i < n; i++)
+                            result.Add(parts[i]);
+
+                        return result.ToArray();
+                    }
+                }
+            }
+
+            return parts;
+        }
+
+        /// <summary>
+        /// Collapses a single token if it is composed entirely of a repeated
+        /// substring, where the base unit is between 4 and 10 characters and
+        /// appears at least 3 times.
+        ///
+        /// Examples:
+        ///   "abcdabcdabcd"      → "abcd"
+        ///   "第一季大结局第一季大结局第一季大结局" → "第一季大结局"
+        ///
+        /// Very short units (length &lt; 4) are ignored on purpose to avoid
+        /// collapsing natural language patterns such as "哈哈哈哈哈哈".
+        /// </summary>
         private static string CollapseRepeatedToken(string token)
         {
-            // Very short tokens or huge ones are unlikely to be styled repeats
+            // Very short tokens or huge ones are unlikely to be styled repeats.
             if (token.Length is < 4 or > 200)
                 return token;
 
-            // Try unit sizes between 2 and 20 chars
-            // Enough for things like "第十九章", "信的故事", etc.
-            for (var unitLen = 2; unitLen <= 20 && unitLen <= token.Length / 2; unitLen++)
+            // Try unit sizes between 4 and 10 chars, and require at least
+            // 3 repeats (N >= 3). This corresponds roughly to a pattern like:
+            //
+            //   (.{4,10}?)\1{2,}
+            //
+            // but constrained to exactly fill the entire token.
+            for (var unitLen = 4; unitLen <= 10 && unitLen <= token.Length / 3; unitLen++)
             {
                 if (token.Length % unitLen != 0)
                     continue;
@@ -864,7 +1010,8 @@ namespace OpenccNetLibGui.Models
 
                 if (allMatch)
                 {
-                    // token is just unit repeated N times, collapse to a single unit
+                    // Token is just [unit] repeated N times (N >= 3):
+                    // collapse it to a single unit.
                     return unit;
                 }
             }
@@ -872,7 +1019,9 @@ namespace OpenccNetLibGui.Models
             return token;
         }
 
+        // ---------------------------------------------------------
         // change BuildProgressBar to use percent, not current/total
+        // ---------------------------------------------------------
         private static string BuildProgressBar(int percent, int width = 10)
         {
             percent = Math.Clamp(percent, 0, 100);
