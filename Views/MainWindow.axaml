@@ -166,7 +166,7 @@
                                         <!-- 📝 Convert filename -->
                                         <!-- IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay}"> -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding DataContext.IsCbConvertFilename, ElementName=MainWindowRoot, Mode=TwoWay}">
+                                                  IsChecked="{Binding DataContext.IsCbConvertFilename, ElementName=MainWindowRoot, Mode=TwoWay, FallbackValue=false}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="📝" />
@@ -177,7 +177,7 @@
 
                                         <!-- 📄 Add page header -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAddPdfPageHeader, Mode=TwoWay}">
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAddPdfPageHeader, Mode=TwoWay, FallbackValue=false}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="📄" />
@@ -188,7 +188,7 @@
 
                                         <!-- 🔧 Compact PDF text -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCompactPdfText, Mode=TwoWay}">
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCompactPdfText, Mode=TwoWay, FallbackValue=false}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🔧" />
@@ -199,7 +199,7 @@
 
                                         <!-- 🔃 Auto-Reflow PDF text -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay}">
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🔃" />
@@ -224,7 +224,7 @@
 
                                         <!-- ⚙️ Use PdfPig engine -->
                                         <MenuItem ToggleType="Radio"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay}"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay, FallbackValue=false}"
                                                   ToolTip.Tip="Managed PdfPig engine – fast and great for simple text-based PDFs.">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
@@ -236,7 +236,7 @@
 
                                         <!-- ⚙️ Use Pdfium engine -->
                                         <MenuItem ToggleType="Radio"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay}"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay, FallbackValue=true}"
                                                   ToolTip.Tip="Native Pdfium engine – better for complex layout, rotated text, and tricky PDFs.">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
@@ -401,7 +401,7 @@
 
                                     <!-- 📝 Convert filename -->
                                     <MenuItem ToggleType="CheckBox"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay}">
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay, FallbackValue=false}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="📝" />
@@ -412,7 +412,7 @@
 
                                     <!-- 📄 Add page header -->
                                     <MenuItem ToggleType="CheckBox"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAddPdfPageHeader, Mode=TwoWay}">
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAddPdfPageHeader, Mode=TwoWay, FallbackValue=false}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="📄" />
@@ -423,7 +423,7 @@
 
                                     <!-- 🔧 Compact PDF text -->
                                     <MenuItem ToggleType="CheckBox"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCompactPdfText, Mode=TwoWay}">
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCompactPdfText, Mode=TwoWay, FallbackValue=false}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🔧" />
@@ -434,7 +434,7 @@
 
                                     <!-- 🔃 Auto-Reflow PDF text -->
                                     <MenuItem ToggleType="CheckBox"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay}">
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🔃" />
@@ -459,7 +459,7 @@
 
                                     <!-- ⚙️ Use PdfPig engine -->
                                     <MenuItem ToggleType="Radio"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay}"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay, FallbackValue=false}"
                                               ToolTip.Tip="Managed PdfPig engine – fast and great for simple text-based PDFs.">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -471,7 +471,7 @@
 
                                     <!-- ⚙️ Use Pdfium engine -->
                                     <MenuItem ToggleType="Radio"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay}"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay, FallbackValue=true}"
                                               ToolTip.Tip="Native Pdfium engine – better for complex layout, rotated text, and tricky PDFs.">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
