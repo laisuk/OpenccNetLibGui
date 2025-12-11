@@ -17,11 +17,22 @@ public static class PdfEngineHelper
 
     public static PdfEngine InitPdfEngine(int requestedEngine)
     {
-        // User selected PdfPig
-        if (requestedEngine == 1)
+        var selected = (PdfEngine)requestedEngine;
+
+        // If user selected PdfPig → always return PdfPig
+        if (selected == PdfEngine.PdfPig)
             return PdfEngine.PdfPig;
 
-        // Determine current runtime
+        // Otherwise user selected Pdfium → check platform
+        var rid = GetCurrentRid();
+
+        return SupportedPdfiumRuntimes.Contains(rid)
+            ? PdfEngine.Pdfium     // success
+            : PdfEngine.PdfPig;    // fallback
+    }
+
+    private static string GetCurrentRid()
+    {
         var os = OperatingSystem.IsWindows() ? "win" :
             OperatingSystem.IsLinux()   ? "linux" :
             OperatingSystem.IsMacOS()   ? "osx" : "unknown";
@@ -34,11 +45,7 @@ public static class PdfEngineHelper
             _ => "unknown"
         };
 
-        var rid = $"{os}-{arch}";
-
-        // Check if Pdfium supported
-        return SupportedPdfiumRuntimes.Contains(rid) ? PdfEngine.Pdfium :
-            // Fallback
-            PdfEngine.PdfPig;
+        return $"{os}-{arch}";
     }
 }
+

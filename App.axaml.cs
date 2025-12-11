@@ -42,8 +42,9 @@ public class App : Application
     private static void ConfigureServices(ServiceCollection services)
     {
         // Register LanguageSettingsService with the path to the settings file
-        services.AddSingleton(new LanguageSettingsService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            "LanguageSettings.json")));
+        services.AddSingleton<LanguageSettingsService>(_ =>
+            new LanguageSettingsService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LanguageSettings.json")));
+
         services.AddSingleton<ITopLevelService, TopLevelService>();
         // Register ViewModels
         services.AddSingleton<MainWindowViewModel>();

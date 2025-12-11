@@ -20,7 +20,7 @@ namespace OpenccNetLibGui.Models
         /// most text-embedded PDFs.  
         /// Pure managed code, no native dependencies.
         /// </summary>
-        PdfPig,
+        PdfPig = 1,
 
         /// <summary>
         /// Uses the PDFium backend for text extraction.
@@ -28,7 +28,20 @@ namespace OpenccNetLibGui.Models
         /// vector overlays, rotated text, or unusual PDF layouts.  
         /// Requires native PDFium runtime libraries.
         /// </summary>
-        Pdfium
+        Pdfium = 2
+    }
+    
+    public static class PdfEngineExtensions
+    {
+        public static string ToDisplayName(this PdfEngine engine)
+        {
+            return engine switch
+            {
+                PdfEngine.PdfPig  => "PdfPig [managed]",
+                PdfEngine.Pdfium  => "Pdfium [native]",
+                _                 => engine.ToString()
+            };
+        }
     }
 
     internal static class PdfHelper

@@ -24,7 +24,7 @@ namespace OpenccNetLibGui.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    // private readonly List<Language>? _languagesInfo;
+    private readonly LanguageSettings? _languageSettings;
     private readonly Language? _selectedLanguage;
     private readonly List<string>? _textFileTypes;
     private readonly List<string>? _officeFileTypes;
@@ -127,10 +127,10 @@ public class MainWindowViewModel : ViewModelBase
         this()
     {
         _topLevelService = topLevelService;
-        var languageSettings = languageSettingsService.LanguageSettings;
+        _languageSettings = languageSettingsService.LanguageSettings;
         // _languagesInfo = languageSettings?.Languages;
-        _locale = languageSettings.Locale == 1 ? languageSettings.Locale : 2;
-        _selectedLanguage = languageSettings.Languages![_locale];
+        _locale = _languageSettings.Locale == 1 ? _languageSettings.Locale : 2;
+        _selectedLanguage = _languageSettings.Languages![_locale];
         _rbT2SContent = _selectedLanguage.T2SContent ?? "zh-Hant to zh-Hans";
         _rbS2TContent = _selectedLanguage.S2TContent ?? "zh-Hans to zh-Hant";
         _rbCustomContent = _selectedLanguage.CustomContent ?? "Manual";
@@ -148,19 +148,19 @@ public class MainWindowViewModel : ViewModelBase
 
         SelectedItem =
             CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
-        _textFileTypes = languageSettings.TextFileTypes ?? new List<string>();
-        _officeFileTypes = languageSettings.OfficeFileTypes ?? new List<string>();
-        _isCbConvertFilename = languageSettings.ConvertFilename > 0;
-        _addPdfPageHeader = languageSettings.AddPdfPageHeader > 0;
-        _compactPdfText = languageSettings.CompactPdfText > 0;
-        _autoReflow = languageSettings.AutoReflowPdfText > 0;
-        ShortHeadingMaxLen = languageSettings.ShortHeadingMaxLen > 0
-            ? languageSettings.ShortHeadingMaxLen
+        _textFileTypes = _languageSettings.TextFileTypes ?? new List<string>();
+        _officeFileTypes = _languageSettings.OfficeFileTypes ?? new List<string>();
+        _isCbConvertFilename = _languageSettings.ConvertFilename > 0;
+        _addPdfPageHeader = _languageSettings.AddPdfPageHeader > 0;
+        _compactPdfText = _languageSettings.CompactPdfText > 0;
+        _autoReflow = _languageSettings.AutoReflowPdfText > 0;
+        ShortHeadingMaxLen = _languageSettings.ShortHeadingMaxLen > 0
+            ? _languageSettings.ShortHeadingMaxLen
             : 8;
 
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
-        var engine = PdfEngineHelper.InitPdfEngine(languageSettings.PdfEngine);
-        if (engine == PdfEngine.PdfPig && languageSettings.PdfEngine == 2)
+        var engine = PdfEngineHelper.InitPdfEngine(_languageSettings.PdfEngine);
+        if (engine == PdfEngine.PdfPig && _languageSettings.PdfEngine == 2)
             // LblStatusBarContent = "Pdfium not supported on this platform. Falling back to PdfPig.";
             TbSourceTextDocument!.Text = "Pdfium not supported on this platform. Falling back to PdfPig.\n" +
                                          "You can set default pdfEngine to 1 in LanguageSettings.json for PdfPig ";
@@ -170,7 +170,7 @@ public class MainWindowViewModel : ViewModelBase
         // Show the .NET runtime version and current dictionary in the status bar
         var runtimeVersion = RuntimeInformation.FrameworkDescription;
 
-        switch (languageSettings.Dictionary)
+        switch (_languageSettings.Dictionary)
         {
             case "dicts":
                 Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
@@ -377,7 +377,7 @@ public class MainWindowViewModel : ViewModelBase
                 UpdateEncodeInfo(Opencc.ZhoCheck(text));
 
                 LblStatusBarContent =
-                    $"Loaded PDF ({engine}{(_autoReflow ? ", Auto-Reflowed" : "")}): {fileName}";
+                    $"Loaded PDF ({engine.ToDisplayName()}{(_autoReflow ? ", Auto-Reflowed" : "")}): {fileName}";
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -388,7 +388,7 @@ public class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             if (requestId == _pdfRequestId)
-                LblStatusBarContent = $"Error loading PDF ({engine}): {ex.Message}";
+                LblStatusBarContent = $"Error loading PDF ({engine.ToDisplayName()}): {ex.Message}";
         }
         finally
         {
@@ -487,7 +487,8 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var result = PdfHelper.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeadingMaxLen);
+        var result =
+            PdfHelper.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeadingMaxLen);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
         if (hasSelection)
@@ -1102,7 +1103,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         LblTotalCharsContent = $"[ Ch: {TbSourceTextDocument!.Text!.Length:N0} ]";
     }
-    
+
     private async Task ShowShortHeadingDialogAsync()
     {
         var lifetime = (IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime;
@@ -1117,7 +1118,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             ShortHeadingMaxLen = newLen;
 
-            // _languageSettings.ShortHeadingMaxLen = newLen;
+            _languageSettings!.ShortHeadingMaxLen = newLen;
             // LanguageSettingsHelper.Save(_languageSettings);
         }
     }
@@ -1547,14 +1548,17 @@ public class MainWindowViewModel : ViewModelBase
         get => _pdfEngine;
         set
         {
-            if (_pdfEngine != value)
-            {
-                this.RaiseAndSetIfChanged(ref _pdfEngine, value);
+            if (_pdfEngine == value)
+                return;
 
-                // PdfEngine changed → inform these two RadioButton to Re-Evaluate
-                this.RaisePropertyChanged(nameof(IsPdfPigEngine));
-                this.RaisePropertyChanged(nameof(IsPdfiumEngine));
-            }
+            this.RaiseAndSetIfChanged(ref _pdfEngine, value);
+
+            // Sync settings object (no magic numbers)
+            _languageSettings!.PdfEngine = (int)value;
+
+            // PdfEngine changed → notify RadioButtons
+            this.RaisePropertyChanged(nameof(IsPdfPigEngine));
+            this.RaisePropertyChanged(nameof(IsPdfiumEngine));
         }
     }
 
@@ -1564,8 +1568,8 @@ public class MainWindowViewModel : ViewModelBase
         get => PdfEngine == PdfEngine.PdfPig;
         set
         {
-            if (value && PdfEngine != PdfEngine.PdfPig)
-                PdfEngine = PdfEngine.PdfPig;
+            if (!value || PdfEngine == PdfEngine.PdfPig) return;
+            PdfEngine = PdfEngine.PdfPig;
         }
     }
 
@@ -1575,16 +1579,24 @@ public class MainWindowViewModel : ViewModelBase
         get => PdfEngine == PdfEngine.Pdfium;
         set
         {
-            if (value && PdfEngine != PdfEngine.Pdfium)
-                PdfEngine = PdfEngine.Pdfium;
+            if (!value || PdfEngine == PdfEngine.Pdfium) return;
+            PdfEngine = PdfEngine.Pdfium;
         }
     }
-    
+
     public int ShortHeadingMaxLen
     {
         get => _shortHeadingMaxLen;
-        set => this.RaiseAndSetIfChanged(ref _shortHeadingMaxLen,
-            Math.Clamp(value, 3, 30));
+        set
+        {
+            var clamped = Math.Clamp(value, 3, 30);
+
+            if (_shortHeadingMaxLen == clamped) return;
+            this.RaiseAndSetIfChanged(ref _shortHeadingMaxLen, clamped);
+
+            // Sync to settings object
+            _languageSettings!.ShortHeadingMaxLen = clamped;
+        }
     }
 
     #endregion

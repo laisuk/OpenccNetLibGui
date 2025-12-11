@@ -244,9 +244,24 @@
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
-                                        
-                                        <!-- ✏️ Short heading length -->
-                                        <MenuItem Command="{Binding ShowShortHeadingDialogCommand}">
+
+                                        <!-- Separator -->
+                                        <Separator />
+
+                                        <!-- 🔹 Section: Heading rules -->
+                                        <MenuItem IsEnabled="False" Classes="section-header">
+                                            <MenuItem.Header>
+                                                <TextBlock Text="Heading rules"
+                                                           Foreground="Gray"
+                                                           FontWeight="Bold"
+                                                           LetterSpacing="0.5"
+                                                           Padding="8,4" />
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- ✏️ Short heading maximum length -->
+                                        <MenuItem Command="{Binding ShowShortHeadingDialogCommand}"
+                                                  ToolTip.Tip="Configure the maximum length of a short heading. Default: 8 (recommended: 5–15).">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock Text="✏️" />
@@ -443,7 +458,7 @@
 
                                     <!-- ⚙️ Use PdfPig engine -->
                                     <MenuItem ToggleType="Radio"
-                                              GroupName="PdfEngineGroup"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay}"
                                               ToolTip.Tip="Managed PdfPig engine – fast and great for simple text-based PDFs.">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -461,6 +476,31 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="⚙️" />
                                                 <TextBlock Text="Use Pdfium (native) engine" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- Separator -->
+                                    <Separator />
+
+                                    <!-- 🔹 Section: Heading rules -->
+                                    <MenuItem IsEnabled="False" Classes="section-header">
+                                        <MenuItem.Header>
+                                            <TextBlock Text="Heading rules"
+                                                       Foreground="Gray"
+                                                       FontWeight="Bold"
+                                                       LetterSpacing="0.5"
+                                                       Padding="8,4" />
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- ✏️ Short heading maximum length -->
+                                    <MenuItem Command="{Binding ShowShortHeadingDialogCommand}"
+                                              ToolTip.Tip="Configure the maximum length of a short heading. Default: 8 (recommended: 5–15).">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="✏️" />
+                                                <TextBlock Text="Set short heading max length..." />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
