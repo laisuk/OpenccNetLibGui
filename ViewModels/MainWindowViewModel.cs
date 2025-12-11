@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using OpenccNetLibGui.Models;
 
 namespace OpenccNetLibGui.ViewModels;
@@ -83,6 +85,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _compactPdfText;
     private bool _autoReflow;
     private PdfEngine _pdfEngine;
+    private int _shortHeadingMaxLen = 8;
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -116,6 +119,7 @@ public class MainWindowViewModel : ViewModelBase
         BtnBatchStartCommand = ReactiveCommand.CreateFromTask(BtnBatchStart);
         CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
         BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
+        ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
@@ -123,7 +127,7 @@ public class MainWindowViewModel : ViewModelBase
         this()
     {
         _topLevelService = topLevelService;
-        var languageSettings = languageSettingsService.LanguageSettings!;
+        var languageSettings = languageSettingsService.LanguageSettings;
         // _languagesInfo = languageSettings?.Languages;
         _locale = languageSettings.Locale == 1 ? languageSettings.Locale : 2;
         _selectedLanguage = languageSettings.Languages![_locale];
@@ -150,7 +154,10 @@ public class MainWindowViewModel : ViewModelBase
         _addPdfPageHeader = languageSettings.AddPdfPageHeader > 0;
         _compactPdfText = languageSettings.CompactPdfText > 0;
         _autoReflow = languageSettings.AutoReflowPdfText > 0;
-        
+        ShortHeadingMaxLen = languageSettings.ShortHeadingMaxLen > 0
+            ? languageSettings.ShortHeadingMaxLen
+            : 8;
+
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
         var engine = PdfEngineHelper.InitPdfEngine(languageSettings.PdfEngine);
         if (engine == PdfEngine.PdfPig && languageSettings.PdfEngine == 2)
@@ -158,7 +165,7 @@ public class MainWindowViewModel : ViewModelBase
             TbSourceTextDocument!.Text = "Pdfium not supported on this platform. Falling back to PdfPig.\n" +
                                          "You can set default pdfEngine to 1 in LanguageSettings.json for PdfPig ";
 
-        _pdfEngine = engine;
+        PdfEngine = engine;
 
         // Show the .NET runtime version and current dictionary in the status bar
         var runtimeVersion = RuntimeInformation.FrameworkDescription;
@@ -204,6 +211,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnBatchStartCommand { get; }
     public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
 
     #endregion
 
@@ -275,8 +283,8 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     await UpdateTbSourcePdfAsync(
                         path,
-                        _pdfEngine,
-                        _addPdfPageHeader);
+                        PdfEngine,
+                        IsAddPdfPageHeader);
                 }
                 catch (Exception ex)
                 {
@@ -315,7 +323,7 @@ public class MainWindowViewModel : ViewModelBase
     internal Task UpdateTbSourcePdfAsync(string path)
     {
         // Delegate to the core method, using VM-level settings
-        return UpdateTbSourcePdfAsync(path, _pdfEngine, _addPdfPageHeader);
+        return UpdateTbSourcePdfAsync(path, PdfEngine, IsAddPdfPageHeader);
     }
 
     private async Task UpdateTbSourcePdfAsync(
@@ -431,7 +439,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (autoReflow)
         {
-            text = PdfHelper.ReflowCjkParagraphs(text, addPdfPageHeader, compactText);
+            text = PdfHelper.ReflowCjkParagraphs(text, addPdfPageHeader, compactText, ShortHeadingMaxLen);
         }
 
         return text;
@@ -479,7 +487,7 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var result = PdfHelper.ReflowCjkParagraphs(sourceText, _addPdfPageHeader);
+        var result = PdfHelper.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeadingMaxLen);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
         if (hasSelection)
@@ -925,11 +933,11 @@ public class MainWindowViewModel : ViewModelBase
         LbxDestinationItems!.Clear();
 
         var counter = 0;
-        
+
         foreach (var item in LbxSourceItems)
         {
             ++counter;
-            
+
             var fileExt = Path.GetExtension(item);
 
             if (fileExt.Length == 0 || _textFileTypes!.Contains(fileExt))
@@ -1093,6 +1101,25 @@ public class MainWindowViewModel : ViewModelBase
     public void TbSourceTextChanged()
     {
         LblTotalCharsContent = $"[ Ch: {TbSourceTextDocument!.Text!.Length:N0} ]";
+    }
+    
+    private async Task ShowShortHeadingDialogAsync()
+    {
+        var lifetime = (IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime;
+        if (lifetime?.MainWindow is not { } owner)
+            return;
+
+        // simple numeric input dialog – you can replace with your own nice UI
+        var dialog = new ShortHeadingDialog(ShortHeadingMaxLen);
+        var result = await dialog.ShowDialog<int?>(owner);
+
+        if (result is { } newLen and >= 3 and <= 30)
+        {
+            ShortHeadingMaxLen = newLen;
+
+            // _languageSettings.ShortHeadingMaxLen = newLen;
+            // LanguageSettingsHelper.Save(_languageSettings);
+        }
     }
 
     #region Control Binding fields
@@ -1518,29 +1545,46 @@ public class MainWindowViewModel : ViewModelBase
     public PdfEngine PdfEngine
     {
         get => _pdfEngine;
-        set => this.RaiseAndSetIfChanged(ref _pdfEngine, value);
+        set
+        {
+            if (_pdfEngine != value)
+            {
+                this.RaiseAndSetIfChanged(ref _pdfEngine, value);
+
+                // PdfEngine changed → inform these two RadioButton to Re-Evaluate
+                this.RaisePropertyChanged(nameof(IsPdfPigEngine));
+                this.RaisePropertyChanged(nameof(IsPdfiumEngine));
+            }
+        }
     }
 
-    // Bind for "Use PdfPig"
+    // ⚙️ Use PdfPig engine
     public bool IsPdfPigEngine
     {
         get => PdfEngine == PdfEngine.PdfPig;
         set
         {
-            if (value)
+            if (value && PdfEngine != PdfEngine.PdfPig)
                 PdfEngine = PdfEngine.PdfPig;
         }
     }
 
-    // Bind for "Use Pdfium"
+    // ⚙️ Use Pdfium engine
     public bool IsPdfiumEngine
     {
         get => PdfEngine == PdfEngine.Pdfium;
         set
         {
-            if (value)
+            if (value && PdfEngine != PdfEngine.Pdfium)
                 PdfEngine = PdfEngine.Pdfium;
         }
+    }
+    
+    public int ShortHeadingMaxLen
+    {
+        get => _shortHeadingMaxLen;
+        set => this.RaiseAndSetIfChanged(ref _shortHeadingMaxLen,
+            Math.Clamp(value, 3, 30));
     }
 
     #endregion

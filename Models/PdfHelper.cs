@@ -387,16 +387,128 @@ namespace OpenccNetLibGui.Models
         }
 
         /// <summary>
-        /// Reflows CJK text extracted from PDF into cleaner paragraphs.
-        /// Produces compact or novel-style output depending on <paramref name="compact"/>.
+        /// Reflows CJK (Chinese/Japanese/Korean) text extracted from a PDF into clean,
+        /// human-readable paragraphs.
+        ///
+        /// <para>
+        /// PDF text extraction often produces broken lines, incorrect paragraph boundaries,
+        /// missing or excessive newlines, and split words across lines or pages.
+        /// This method applies a rule-driven reflow pipeline that reconstructs paragraphs
+        /// while preserving semantic structure such as titles, headings, dialogs,
+        /// metadata blocks, and page markers.
+        /// </para>
         /// </summary>
-        /// <param name="text">Raw extracted text.</param>
-        /// <param name="addPdfPageHeader">Whether to keep PDF page headers.</param>
-        /// <param name="compact">
-        /// If true → compact mode (one line per paragraph, no blank lines).  
-        /// If false → novel mode (blank line between paragraphs).
+        ///
+        /// <param name="text">
+        /// Raw text extracted from a PDF (via PdfPig, Pdfium, or any other engine).
+        /// The input is expected to be line-based with newline separators.
         /// </param>
-        internal static string ReflowCjkParagraphs(string text, bool addPdfPageHeader, bool compact = false)
+        ///
+        /// <param name="addPdfPageHeader">
+        /// If <c>true</c>, PDF page headers of the form <c>"=== [Page X/Y] ==="</c>
+        /// are preserved during reflow.  
+        /// If <c>false</c>, page markers (including markers inserted during extraction)
+        /// are removed during reconstruction.
+        /// </param>
+        ///
+        /// <param name="compact">
+        /// Determines output formatting style:
+        /// <list type="bullet">
+        ///   <item>
+        ///     <description>
+        ///     <c>true</c> — Compact mode:  
+        ///     Produces one line per paragraph with no blank lines in between.
+        ///     Ideal for dictionary building, NLP preprocessing, and plain text exports.
+        ///     </description>
+        ///   </item>
+        ///   <item>
+        ///     <description>
+        ///     <c>false</c> — Novel mode:  
+        ///     Inserts a blank line between paragraphs, matching book-style formatting.
+        ///     </description>
+        ///   </item>
+        /// </list>
+        /// </param>
+        ///
+        /// <param name="shortHeadingMaxLen">
+        /// Maximum length used to classify a line as a short heading (e.g., "前言", "序章").
+        /// Typical range is 5–15; default is 8.  
+        ///
+        /// <para>
+        /// English headings (ASCII-only lines) automatically receive a larger effective
+        /// threshold — up to <c>Math.Clamp(shortHeadingMaxLen × 2, 10, 30)</c> — ensuring
+        /// that common headings such as “Introduction”, “Chapter One”, “Summary”, etc.
+        /// are correctly recognized and preserved as standalone paragraphs.
+        /// </para>
+        /// </param>
+        ///
+        /// <returns>
+        /// A fully reflowed, cleanly segmented text string with consistent paragraph breaks,
+        /// preserved headings, correctly grouped dialog blocks, and normalized whitespace.
+        /// </returns>
+        ///
+        /// <remarks>
+        /// <para>
+        /// The reflow engine performs several processing stages:
+        /// </para>
+        /// <list type="number">
+        ///   <item>
+        ///     <description><b>Page marker detection</b>  
+        ///     Identifies lines representing page headers or separators.
+        ///     </description>
+        ///   </item>
+        ///
+        ///   <item>
+        ///     <description><b>Metadata block handling</b>  
+        ///     Recognizes copyright/ISBN/publishing information and keeps them intact.
+        ///     </description>
+        ///   </item>
+        ///
+        ///   <item>
+        ///     <description><b>Heading detection</b>  
+        ///     Includes:
+        ///     <list type="bullet">
+        ///       <item><description>Regex-based title/section headings (“第X章”, “序章”, “终章”).</description></item>
+        ///       <item><description>Short-heading rules based on configurable length.</description></item>
+        ///       <item><description>
+        ///       Smart ASCII expansion — English headings automatically allow longer
+        ///       lengths to avoid misclassification.
+        ///       </description></item>
+        ///     </list>
+        ///     </description>
+        ///   </item>
+        ///
+        ///   <item>
+        ///     <description><b>Dialog grouping</b>  
+        ///     Tracks brackets (“「」”, “『』”, '“”', etc.) to keep dialog paragraphs together.
+        ///     </description>
+        ///   </item>
+        ///
+        ///   <item>
+        ///     <description><b>Paragraph join/reject heuristics</b>  
+        ///     Uses punctuation, indentation, heading signals, CJK rules, and colon-continuation
+        ///     logic to determine whether a line should join the previous paragraph or start a new one.
+        ///     </description>
+        ///   </item>
+        ///
+        ///   <item>
+        ///     <description><b>Output formatting</b>  
+        ///     Normalizes whitespace, enforces compact or novel layout, removes or preserves
+        ///     PDF page markers, and ensures consistent paragraph boundaries.
+        ///     </description>
+        ///   </item>
+        /// </list>
+        ///
+        /// <para>
+        /// This reflow pipeline is designed specifically for CJK text but also handles
+        /// mixed CJK/Latin PDFs reliably.  
+        /// </para>
+        /// </remarks>
+        internal static string ReflowCjkParagraphs(
+            string text,
+            bool addPdfPageHeader,
+            bool compact = false,
+            int shortHeadingMaxLen = 8)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
@@ -422,7 +534,8 @@ namespace OpenccNetLibGui.Models
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
                 var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
-                var isShortHeading = IsHeadingLike(stripped);
+                var effectiveMaxLen = GetEffectiveMaxLen(stripped, shortHeadingMaxLen);
+                var isShortHeading = IsHeadingLike(stripped, effectiveMaxLen);
                 var isMetadata = IsMetadataLine(stripped); // 〈── 新增
 
                 // Collapse style-layer repeated titles
@@ -695,7 +808,7 @@ namespace OpenccNetLibGui.Models
                 return s.Length > 0 && DialogOpeners.Contains(s[0]);
             }
 
-            static bool IsHeadingLike(string? s)
+            static bool IsHeadingLike(string? s, int headingMaxLen)
             {
                 if (s is null)
                     return false;
@@ -722,11 +835,14 @@ namespace OpenccNetLibGui.Models
                 if (s.Contains('，') || s.Contains(',') || s.Contains('、'))
                     return false;
 
+                // NEW: clamp the configured value to a safe range
+                var maxLen = Math.Clamp(headingMaxLen, 3, 30);
                 var len = s.Length;
 
                 // 🔥 NEW RULE: short line containing ANY CJK punctuation → NOT heading
                 // e.g. 奇怪。 不安！ 她想： etc.
-                if (len > 10) return false;
+
+                if (len > maxLen) return false;
                 foreach (var p in CjkPunctEndChars)
                 {
                     if (s.Contains(p))
@@ -819,6 +935,31 @@ namespace OpenccNetLibGui.Models
                 }
 
                 return hasOpen && !hasClose;
+            }
+
+            static bool IsAllAscii(string s)
+            {
+                foreach (var ch in s)
+                {
+                    if (ch > 127) return false;
+                }
+
+                return true;
+            }
+
+            static int GetEffectiveMaxLen(string s, int userMaxLen)
+            {
+                return IsAllAscii(s)
+                    ?
+                    // 英文 heading 通常較長：Introduction, Summary, etc.
+                    // 你可揀以下其一：
+                    Math.Clamp(userMaxLen * 2, 10, 30)
+                    :
+                    // 或用固定值：
+                    // return 20;
+                    // 或更 aggressive：
+                    // return Math.Clamp(userMaxLen + 12, 10, 30);
+                    userMaxLen; // CJK 用正常值
             }
         }
 

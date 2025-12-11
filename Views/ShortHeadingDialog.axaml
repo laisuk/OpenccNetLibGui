@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
+        x:Class="OpenccNetLibGui.Views.ShortHeadingDialog"
+        Width="380"
+        Height="180"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Title="Short heading max length">
+
+    <Grid RowDefinitions="Auto,Auto,Auto"
+          Margin="18">
+
+        <!-- Title + info -->
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="Short heading maximum length"
+                       FontSize="14"
+                       FontWeight="SemiBold" />
+
+            <TextBlock Text="Range: 3–30 characters"
+                       Foreground="{DynamicResource ThemeForegroundLowBrush}"
+                       FontSize="12" />
+
+            <TextBlock Text="Default: 8    •    Recommended: 5–15"
+                       Foreground="{DynamicResource ThemeForegroundLowBrush}"
+                       FontSize="12" />
+        </StackPanel>
+
+        <!-- Value + restore default -->
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Spacing="12"
+                    Margin="0,10,0,0">
+            <TextBlock Text="Value:" VerticalAlignment="Center" />
+
+            <controls:NumericUpDown x:Name="ValueBox"
+                                    Width="120"
+                                    MinHeight="28"
+                                    FontSize="14"
+                                    Minimum="3"
+                                    Maximum="30"
+                                    Increment="1"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center" />
+
+            <!-- Restore default link -->
+            <TextBlock Text="Restore default (8)"
+                       Foreground="{DynamicResource SystemAccentColor}"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       Cursor="Hand"
+                       TextDecorations="Underline"
+                       PointerPressed="RestoreDefault_Click" />
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,18,0,0"
+                    Spacing="10">
+            <Button Content="Cancel"
+                    Width="90"
+                    HorizontalContentAlignment="Center"
+                    Click="Cancel_Click" />
+            <Button Content="OK"
+                    Width="90"
+                    HorizontalContentAlignment="Center"
+                    IsDefault="True"
+                    Click="Ok_Click" />
+        </StackPanel>
+
+    </Grid>
+</Window>

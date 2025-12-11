@@ -244,6 +244,16 @@
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
+                                        
+                                        <!-- ✏️ Short heading length -->
+                                        <MenuItem Command="{Binding ShowShortHeadingDialogCommand}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="✏️" />
+                                                    <TextBlock Text="Set short heading max length..." />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
 
                                     </ContextMenu>
                                 </avaloniaEdit:TextEditor.ContextMenu>
@@ -433,7 +443,7 @@
 
                                     <!-- ⚙️ Use PdfPig engine -->
                                     <MenuItem ToggleType="Radio"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay}"
+                                              GroupName="PdfEngineGroup"
                                               ToolTip.Tip="Managed PdfPig engine – fast and great for simple text-based PDFs.">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">

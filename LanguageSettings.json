@@ -118,6 +118,7 @@
   "compactPdfText": 0,
   "autoReflowPdfText": 1,
   "pdfEngine": 2,
+  "ShortHeadingMaxLen": 8,
   "dictionary": "zstd",
   "locale": 2
 }

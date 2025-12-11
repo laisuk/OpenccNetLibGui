@@ -123,4 +123,12 @@
     <ItemGroup>
         <Folder Include="Assets\Icons\"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <!-- Inform IDE：ShortHeadingDialog.axaml.cs is ShortHeadingDialog.axaml related code-behind -->
+        <Compile Update="Views\ShortHeadingDialog.axaml.cs">
+            <DependentUpon>ShortHeadingDialog.axaml</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
 </Project>

@@ -5,20 +5,59 @@ namespace OpenccNetLibGui.Services;
 
 public class LanguageSettingsService
 {
+    private readonly string _settingsFilePath;
+
     public LanguageSettingsService(string settingsFilePath)
     {
-        LanguageSettings = ReadLanguageSettingsFromJson(settingsFilePath);
+        _settingsFilePath = settingsFilePath;
+        LanguageSettings = ReadOrCreateLanguageSettings(settingsFilePath);
     }
 
-    public LanguageSettings? LanguageSettings { get; private set; }
+    /// <summary>
+    /// The in-memory language settings used by the application.
+    /// Never <c>null</c>; if the file is missing or corrupted, a default
+    /// configuration will be created and written back to disk.
+    /// </summary>
+    public LanguageSettings LanguageSettings { get; private set; }
 
-    private static LanguageSettings ReadLanguageSettingsFromJson(string filePath)
+    /// <summary>
+    /// Persists the current <see cref="LanguageSettings"/> to the JSON file.
+    /// You can call this from a Settings dialog when the user clicks OK.
+    /// </summary>
+    public void Save()
     {
+        var json = JsonConvert.SerializeObject(LanguageSettings, Formatting.Indented);
+        File.WriteAllText(_settingsFilePath, json);
+    }
+
+    /// <summary>
+    /// Reloads settings from disk, falling back to defaults if the file
+    /// is missing or invalid. Useful if you ever add a "Reload" action.
+    /// </summary>
+    public void Reload()
+    {
+        LanguageSettings = ReadOrCreateLanguageSettings(_settingsFilePath);
+    }
+
+    private static LanguageSettings ReadOrCreateLanguageSettings(string filePath)
+    {
+        // 1) Try load existing file
         if (File.Exists(filePath))
         {
-            return JsonConvert.DeserializeObject<LanguageSettings>(File.ReadAllText(filePath))!;
+            try
+            {
+                var json = File.ReadAllText(filePath);
+                var settings = JsonConvert.DeserializeObject<LanguageSettings>(json);
+                if (settings is not null)
+                    return settings;
+            }
+            catch
+            {
+                // corrupted / unreadable → fall through to default
+            }
         }
 
+        // 2) Fallback: write default JSON and return defaults
         const string languageSettingsText = @"
 {
   ""languages"": [
@@ -140,6 +179,7 @@ public class LanguageSettingsService
   ""compactPdfText"": 0,
   ""autoReflowPdfText"": 1,
   ""pdfEngine"": 2,
+  ""ShortHeadingMaxLen"": 8,
   ""dictionary"": ""zstd"",
   ""locale"": 2
 }

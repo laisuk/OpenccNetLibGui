@@ -19,6 +19,7 @@ public class LanguageSettings
     public int CompactPdfText { get; set; }
     public int AutoReflowPdfText { get; set; }
     public int PdfEngine { get; set; }
+    public int ShortHeadingMaxLen { get; set; } = 8;
 }
 
 [Serializable]
