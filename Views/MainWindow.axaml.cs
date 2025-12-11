@@ -17,12 +17,16 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel();
 
         var tbSource = this.FindControl<TextEditor>("TbSource");
         var lbxSource = this.FindControl<ListBox>("LbxSource");
         InitializeDragAndDrop(tbSource);
         InitializeDragAndDrop(lbxSource);
+    }
+
+    public MainWindow(MainWindowViewModel vm) : this()
+    {
+        DataContext = vm;
     }
 
     private void InitializeDragAndDrop(Control? control)

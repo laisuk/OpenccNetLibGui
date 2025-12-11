@@ -46,10 +46,11 @@ public class App : Application
             new LanguageSettingsService(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LanguageSettings.json")));
 
         services.AddSingleton<ITopLevelService, TopLevelService>();
+        services.AddSingleton<Opencc>();
         // Register ViewModels
         services.AddSingleton<MainWindowViewModel>();
         // Register MainWindow
         services.AddTransient<MainWindow>();
-        services.AddSingleton<Opencc>();
+       
     }
 }
