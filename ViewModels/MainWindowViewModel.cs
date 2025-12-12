@@ -441,7 +441,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (autoReflow)
         {
-            text = PdfHelper.ReflowCjkParagraphs(text, addPdfPageHeader, compactText, ShortHeading);
+            text = ReflowModel.ReflowCjkParagraphs(text, addPdfPageHeader, compactText, ShortHeading);
         }
 
         return text;
@@ -490,7 +490,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var result =
-            PdfHelper.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading);
+            ReflowModel.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
         if (hasSelection)
