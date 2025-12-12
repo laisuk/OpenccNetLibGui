@@ -176,13 +176,20 @@ public class LanguageSettingsService
     "".odp"",
     "".epub""
   ],
+  ""shortHeadingSettings"": {
+    ""maxLen"": 8,
+    ""allCjk"": 1,
+    ""allAscii"": 1,
+    ""allAsciiDigits"": 1,
+    ""mixedCjkAscii"": 0
+  },
+  ""ShortHeadingMaxLen"": 8,
   ""punctuation"": 1,
   ""convertFilename"": 0,
   ""addPdfPageHeader"": 0,
   ""compactPdfText"": 0,
   ""autoReflowPdfText"": 1,
-  ""pdfEngine"": 2,
-  ""ShortHeadingMaxLen"": 8,
+  ""pdfEngine"": 2,  
   ""dictionary"": ""zstd"",
   ""locale"": 2
 }

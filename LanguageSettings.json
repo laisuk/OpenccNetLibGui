@@ -115,7 +115,7 @@
   "shortHeadingSettings": {
     "maxLen": 8,
     "allCjk": 1,
-    "allAscii": 0,
+    "allAscii": 1,
     "allAsciiDigits": 1,
     "mixedCjkAscii": 0
   },
