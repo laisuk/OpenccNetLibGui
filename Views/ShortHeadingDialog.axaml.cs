@@ -241,6 +241,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
             // If user selects digits-only, parent becomes indeterminate (not auto-check).
             // But if you prefer "digits implies ascii", uncomment:
             // if (value && !AllAscii) AllAscii = true;
+            if (!value && AllAscii) AllAscii = false;
 
             RaiseAsciiStateChanged();
         }
