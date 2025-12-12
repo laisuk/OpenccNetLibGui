@@ -1,108 +1,3 @@
-<!-- <Window xmlns="https://github.com/avaloniaui" -->
-<!--         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" -->
-<!--         xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls" -->
-<!--         xmlns:vm="clr-namespace:OpenccNetLibGui.Views" -->
-<!--         x:DataType="vm:ShortHeadingDialogViewModel" -->
-<!--         x:Class="OpenccNetLibGui.Views.ShortHeadingDialog" -->
-<!--         Width="420" -->
-<!--         Height="400" -->
-<!--         CanResize="False" -->
-<!--         WindowStartupLocation="CenterOwner" -->
-<!--         Title="Short heading settings"> -->
-<!-- -->
-<!--     <Design.DataContext> -->
-<!--         <vm:ShortHeadingDialogViewModel /> -->
-<!--     </Design.DataContext> -->
-<!-- -->
-<!--     <Grid RowDefinitions="Auto,Auto,Auto,Auto" -->
-<!--           Margin="18"> -->
-<!-- -->
-<!--         ~1~ Header @1@ -->
-<!--         <StackPanel Grid.Row="0" Spacing="4"> -->
-<!--             <TextBlock Text="Short heading settings" -->
-<!--                        FontSize="14" -->
-<!--                        FontWeight="SemiBold" /> -->
-<!-- -->
-<!--             <TextBlock Text="Maximum length: range 3–30 characters" -->
-<!--                        Foreground="{DynamicResource ThemeForegroundLowBrush}" -->
-<!--                        FontSize="12" /> -->
-<!-- -->
-<!--             <TextBlock Text="Default: 8    •    Recommended: 5–15" -->
-<!--                        Foreground="{DynamicResource ThemeForegroundLowBrush}" -->
-<!--                        FontSize="12" /> -->
-<!--         </StackPanel> -->
-<!-- -->
-<!--         ~1~ Value + restore @1@ -->
-<!--         <StackPanel Grid.Row="1" -->
-<!--                     Orientation="Horizontal" -->
-<!--                     Spacing="12" -->
-<!--                     Margin="0,14,0,0"> -->
-<!--             <TextBlock Text="Value:" VerticalAlignment="Center" /> -->
-<!-- -->
-<!--             <controls:NumericUpDown Width="120" -->
-<!--                                     MinHeight="28" -->
-<!--                                     FontSize="14" -->
-<!--                                     Minimum="3" -->
-<!--                                     Maximum="30" -->
-<!--                                     Increment="1" -->
-<!--                                     HorizontalContentAlignment="Center" -->
-<!--                                     VerticalContentAlignment="Center" -->
-<!--                                     Value="{Binding MaxLen, Mode=TwoWay}" /> -->
-<!-- -->
-<!--             <TextBlock Text="Restore default (8)" -->
-<!--                        Foreground="{DynamicResource SystemAccentColor}" -->
-<!--                        FontSize="12" -->
-<!--                        VerticalAlignment="Center" -->
-<!--                        Cursor="Hand" -->
-<!--                        TextDecorations="Underline" -->
-<!--                        PointerPressed="RestoreDefault_Click" /> -->
-<!--         </StackPanel> -->
-<!-- -->
-<!--         ~1~ Pattern Allowed @1@ -->
-<!--         <Border Grid.Row="2" -->
-<!--                 Margin="0,14,0,0" -->
-<!--                 Padding="12" -->
-<!--                 CornerRadius="10" -->
-<!--                 BorderThickness="1" -->
-<!--                 BorderBrush="{DynamicResource ThemeBorderLowBrush}"> -->
-<!--             <StackPanel Spacing="8"> -->
-<!--                 <TextBlock Text="Pattern allowed:" -->
-<!--                            FontSize="13" -->
-<!--                            FontWeight="SemiBold" /> -->
-<!-- -->
-<!--                 <CheckBox Content="All CJK characters" -->
-<!--                           IsChecked="{Binding AllCjk, Mode=TwoWay}" /> -->
-<!-- -->
-<!--                 <CheckBox Content="All ASCII characters" -->
-<!--                           IsChecked="{Binding AllAscii, Mode=TwoWay}" /> -->
-<!-- -->
-<!--                 <CheckBox Content="All ASCII digits" -->
-<!--                           IsChecked="{Binding AllAsciiDigits, Mode=TwoWay}" /> -->
-<!-- -->
-<!--                 <CheckBox Content="Mixed CJK and ASCII characters" -->
-<!--                           IsChecked="{Binding MixedCjkAscii, Mode=TwoWay}" /> -->
-<!--             </StackPanel> -->
-<!--         </Border> -->
-<!-- -->
-<!--         ~1~ Buttons @1@ -->
-<!--         <StackPanel Grid.Row="3" -->
-<!--                     Orientation="Horizontal" -->
-<!--                     HorizontalAlignment="Right" -->
-<!--                     Margin="0,18,0,0" -->
-<!--                     Spacing="10"> -->
-<!--             <Button Content="Cancel" -->
-<!--                     Width="90" -->
-<!--                     HorizontalContentAlignment="Center" -->
-<!--                     Click="Cancel_Click" /> -->
-<!--             <Button Content="OK" -->
-<!--                     Width="90" -->
-<!--                     HorizontalContentAlignment="Center" -->
-<!--                     IsDefault="True" -->
-<!--                     Click="Ok_Click" /> -->
-<!--         </StackPanel> -->
-<!-- -->
-<!--     </Grid> -->
-<!-- </Window> -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
@@ -209,8 +104,7 @@
                     HorizontalContentAlignment="Center"
                     Click="Cancel_Click" />
             <Button Content="OK"
-                    Width="90"
-                    HorizontalContentAlignment="Center"
+                    Width="90" HorizontalContentAlignment="Center"
                     IsDefault="True"
                     Click="Ok_Click" />
         </StackPanel>

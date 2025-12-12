@@ -195,7 +195,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
             try
             {
                 // clicking an indeterminate checkbox typically toggles to checked
-                if (value == true || value is null)
+                if (value is true or null)
                 {
                     AllAscii = true; // full ASCII enabled
                     // ✅ Parent checked => select all children
