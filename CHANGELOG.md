@@ -7,6 +7,52 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.4.0] – 2025-12-12
+
+### Added
+
+- **Advanced Short Heading Settings dialog**
+    - Configurable maximum heading length (range 3–30, default 8).
+    - Fine-grained pattern controls:
+        - All CJK characters
+        - All ASCII characters
+        - ASCII digits only (auto-enabled when ASCII is selected)
+        - Mixed CJK + ASCII
+    - Visual hierarchical layout (parent/child options) inspired by Visual Studio feature selection.
+- **User-configurable short heading detection** integrated into the PDF reflow pipeline.
+- **Design-time preview support** for the Short Heading dialog using `Design.DataContext`.
+
+### Changed
+
+- **Reflow engine refactored into `ReflowModel`**
+    - Moved all CJK paragraph reflow logic out of PDF helpers.
+    - Shared by PdfPig and Pdfium extraction pipelines.
+    - Greatly improves maintainability, testability, and reuse across formats.
+- **Short heading detection upgraded**
+    - Uses `ShortHeadingSettings` instead of a single integer value.
+    - ASCII-only headings automatically allow a larger effective length
+      (`maxLen × 2`, clamped to 10–30) to better support English headings
+      such as *Introduction*, *Chapter One*, *Black Water*, etc.
+- **PDF reflow heuristics improved**
+    - Better handling of dialog continuation, punctuation-based joins,
+      metadata lines, and mixed CJK/ASCII content.
+    - More robust collapse of layout-level repeated titles and headings.
+- **Internal architecture cleanup**
+    - Clear separation between:
+        - PDF extraction (PdfPig / Pdfium)
+        - Text reflow logic (ReflowModel)
+        - User configuration (LanguageSettings / ShortHeadingSettings)
+
+### Notes
+
+- This release focuses on **correctness, configurability, and long-term maintainability** of PDF text reflow.
+- Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally synchronized with the new settings
+  model.
+- The reflow engine is now suitable for reuse in future features
+  (Office documents, EPUB, CLI tools, batch processing, and testing).
+
+---
+
 ## [1.3.2] - 2025-12-07
 
 ### Added
