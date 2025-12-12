@@ -260,13 +260,13 @@
                                             </MenuItem.Header>
                                         </MenuItem>
 
-                                        <!-- ✏️ Short heading maximum length -->
+                                        <!-- ✏️ Short heading settings -->
                                         <MenuItem Command="{Binding ShowShortHeadingDialogCommand}"
-                                                  ToolTip.Tip="Configure the maximum length of a short heading. Default: 8 (recommended: 5–15).">
+                                                  ToolTip.Tip="Configure short heading detection rules, including maximum length and allowed character patterns.">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock Text="✏️" />
-                                                    <TextBlock Text="Set short heading max length..." />
+                                                    <TextBlock Text="Short heading settings..." />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -495,13 +495,13 @@
                                         </MenuItem.Header>
                                     </MenuItem>
 
-                                    <!-- ✏️ Short heading maximum length -->
+                                    <!-- ✏️ Short heading settings -->
                                     <MenuItem Command="{Binding ShowShortHeadingDialogCommand}"
-                                              ToolTip.Tip="Configure the maximum length of a short heading. Default: 8 (recommended: 5–15).">
+                                              ToolTip.Tip="Configure short heading detection rules, including maximum length and allowed character patterns.">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="✏️" />
-                                                <TextBlock Text="Set short heading max length..." />
+                                                <TextBlock Text="Short heading settings..." />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>

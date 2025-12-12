@@ -18,8 +18,30 @@ public class LanguageSettings
     public int AddPdfPageHeader { get; set; }
     public int CompactPdfText { get; set; }
     public int AutoReflowPdfText { get; set; }
+
     public int PdfEngine { get; set; }
+
+    // NEW: preferred config shape
+    public ShortHeadingSettings ShortHeading { get; set; } = ShortHeadingSettings.Default;
+
+    // LEGACY: keep for loading older JSON (optional but recommended)
     public int ShortHeadingMaxLen { get; set; } = 8;
+
+    /// <summary>
+    /// Call after deserialization. Migrates legacy ShortHeadingMaxLen into ShortHeading when needed.
+    /// </summary>
+    public void Normalize()
+    {
+        // If new JSON doesn't exist but legacy exists, migrate it once.
+        if (ShortHeading.MaxLen == ShortHeadingSettings.Default.MaxLen
+            && ShortHeadingMaxLen != ShortHeadingSettings.Default.MaxLen)
+        {
+            ShortHeading.MaxLen = ShortHeadingMaxLen;
+        }
+
+        // Keep legacy in sync (so any old code path still behaves)
+        ShortHeadingMaxLen = ShortHeading.MaxLen;
+    }
 }
 
 [Serializable]
@@ -37,4 +59,24 @@ public class Language
     public string? CbZhtwContent { get; set; }
     public string? CbPunctuationContent { get; set; }
     public List<string>? CustomOptions { get; set; }
+}
+
+[Serializable]
+public sealed class ShortHeadingSettings
+{
+    public int MaxLen { get; set; } = 8;
+
+    public bool AllCjk { get; set; } = true;
+    public bool AllAscii { get; set; }
+    public bool AllAsciiDigits { get; set; } = true;
+    public bool MixedCjkAscii { get; set; }
+
+    public static ShortHeadingSettings Default => new()
+    {
+        MaxLen = 8,
+        AllCjk = true,
+        AllAscii = false,
+        AllAsciiDigits = true,
+        MixedCjkAscii = false
+    };
 }

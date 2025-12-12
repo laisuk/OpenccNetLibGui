@@ -49,7 +49,10 @@ public class LanguageSettingsService
                 var json = File.ReadAllText(filePath);
                 var settings = JsonConvert.DeserializeObject<LanguageSettings>(json);
                 if (settings is not null)
-                    return settings;
+                {
+                  settings.Normalize();
+                  return settings;
+                }
             }
             catch
             {

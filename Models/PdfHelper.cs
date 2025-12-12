@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenccNetLibGui.Services;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
@@ -30,16 +31,16 @@ namespace OpenccNetLibGui.Models
         /// </summary>
         Pdfium = 2
     }
-    
+
     public static class PdfEngineExtensions
     {
         public static string ToDisplayName(this PdfEngine engine)
         {
             return engine switch
             {
-                PdfEngine.PdfPig  => "PdfPig [managed]",
-                PdfEngine.Pdfium  => "Pdfium [native]",
-                _                 => engine.ToString()
+                PdfEngine.PdfPig => "PdfPig [managed]",
+                PdfEngine.Pdfium => "Pdfium [native]",
+                _ => engine.ToString()
             };
         }
     }
@@ -60,7 +61,7 @@ namespace OpenccNetLibGui.Models
         private static readonly Regex TitleHeadingRegex =
             new(
                 @"^(?=.{0,60}$)
-                  (前言|序章|终章|尾声|后记|番外|尾聲|後記
+                  (前言|序章|终章|尾声|后记|尾聲|後記|番外.{0,10}
                   |.{0,20}?第.{0,10}?([章节部卷節回][^分合]).{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
@@ -75,8 +76,8 @@ namespace OpenccNetLibGui.Models
         private static bool IsDialogOpener(char ch)
             => DialogOpeners.Contains(ch);
 
-        private static readonly string OpenBrackets = "（([【《｛〈";
-        private static readonly string CloseBrackets = "）)]】》｝〉";
+        private const string OpenBrackets = "（([【《｛〈";
+        private const string CloseBrackets = "）)]】》｝〉";
 
         // Metadata key-value separators
         private static readonly char[] MetadataSeparators =
@@ -443,15 +444,42 @@ namespace OpenccNetLibGui.Models
         /// </list>
         /// </param>
         ///
-        /// <param name="shortHeadingMaxLen">
-        /// Maximum length used to classify a line as a short heading (e.g., "前言", "序章").
-        /// Typical range is 5–15; default is 8.  
+        /// <param name="shortHeading">
+        /// Configuration object that controls how a line is classified as a
+        /// <em>short heading</em> during CJK paragraph reflow.
         ///
         /// <para>
-        /// English headings (ASCII-only lines) automatically receive a larger effective
-        /// threshold — up to <c>Math.Clamp(shortHeadingMaxLen × 2, 10, 30)</c> — ensuring
-        /// that common headings such as “Introduction”, “Chapter One”, “Summary”, etc.
-        /// are correctly recognized and preserved as standalone paragraphs.
+        /// The classification is based on a combination of:
+        /// </para>
+        /// <list type="bullet">
+        ///   <item>
+        ///     <description>
+        ///     <b>Maximum length</b> (<see cref="ShortHeadingSettings.MaxLen"/>):
+        ///     Lines longer than this value are never considered headings.
+        ///     Typical range is 5–15 characters; default is 8.
+        ///     </description>
+        ///   </item>
+        ///   <item>
+        ///     <description>
+        ///     <b>Allowed character patterns</b>, such as:
+        ///     all CJK characters, all ASCII characters, ASCII digits only,
+        ///     or mixed CJK + ASCII (controlled by the corresponding flags
+        ///     in <see cref="ShortHeadingSettings"/>).
+        ///     </description>
+        ///   </item>
+        /// </list>
+        ///
+        /// <para>
+        /// Before pattern matching, several <b>absolute rejection rules</b> are applied:
+        /// lines containing sentence-ending punctuation, commas or list separators,
+        /// unclosed brackets, or PDF page markers are never treated as headings,
+        /// even if they satisfy length and pattern constraints.
+        /// </para>
+        ///
+        /// <para>
+        /// This rule-based approach avoids hard-coded language assumptions and allows
+        /// users to fine-tune heading detection behavior for different document styles,
+        /// including novels, technical documents, and bilingual (CJK + English) texts.
         /// </para>
         /// </param>
         ///
@@ -521,8 +549,10 @@ namespace OpenccNetLibGui.Models
             string text,
             bool addPdfPageHeader,
             bool compact = false,
-            int shortHeadingMaxLen = 8)
+            ShortHeadingSettings? shortHeading = null)
         {
+            shortHeading ??= ShortHeadingSettings.Default;
+
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
 
@@ -547,36 +577,35 @@ namespace OpenccNetLibGui.Models
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
                 var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
-                var effectiveMaxLen = GetEffectiveMaxLen(stripped, shortHeadingMaxLen);
-                var isShortHeading = IsHeadingLike(stripped, effectiveMaxLen);
+                var isShortHeading = IsHeadingLike(stripped, shortHeading);
                 var isMetadata = IsMetadataLine(stripped); // 〈── 新增
 
                 // Collapse style-layer repeated titles
-                if (isTitleHeading)
-                    // stripped = CollapseRepeatedSegments(stripped);
+                // if (isTitleHeading)
+                // stripped = CollapseRepeatedSegments(stripped);
 
-                    // 1) Empty line
-                    if (stripped.Length == 0)
+                // 1) Empty line
+                if (stripped.Length == 0)
+                {
+                    if (!addPdfPageHeader && buffer.Length > 0)
                     {
-                        if (!addPdfPageHeader && buffer.Length > 0)
-                        {
-                            var lastChar = buffer[^1];
+                        var lastChar = buffer[^1];
 
-                            // Page-break-like blank line, skip it
-                            if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
-                                continue;
-                        }
-
-                        // End of paragraph → flush buffer, do not add ""
-                        if (buffer.Length > 0)
-                        {
-                            segments.Add(buffer.ToString());
-                            buffer.Clear();
-                            dialogState.Reset();
-                        }
-
-                        continue;
+                        // Page-break-like blank line, skip it
+                        if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
+                            continue;
                     }
+
+                    // End of paragraph → flush buffer, do not add ""
+                    if (buffer.Length > 0)
+                    {
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
+
+                    continue;
+                }
 
                 // 2) Page markers
                 if (stripped.StartsWith("=== ") && stripped.EndsWith("==="))
@@ -653,7 +682,7 @@ namespace OpenccNetLibGui.Models
                                 var last = bt[^1];
 
                                 // 🔸 2) 上一行逗號結尾 → 視作續句，不當 heading
-                                if (last == '，' || last == ',')
+                                if (last is '，' or ',')
                                 {
                                     // fall through → default merge
                                 }
@@ -714,7 +743,7 @@ namespace OpenccNetLibGui.Models
                 {
                     var trimmed = bufferText.TrimEnd();
                     var last = trimmed.Length > 0 ? trimmed[^1] : '\0';
-                    if (last == '，' || last == ',')
+                    if (last is '，' or ',')
                     {
                         // fall through → treat as continuation
                         // do NOT flush here
@@ -821,20 +850,20 @@ namespace OpenccNetLibGui.Models
                 return s.Length > 0 && DialogOpeners.Contains(s[0]);
             }
 
-            static bool IsHeadingLike(string? s, int headingMaxLen)
+            static bool IsHeadingLike(string? s, ShortHeadingSettings sh)
             {
                 if (s is null)
                     return false;
 
                 s = s.Trim();
-                if (string.IsNullOrEmpty(s))
+                if (s.Length == 0)
                     return false;
 
                 // keep page markers intact
                 if (s.StartsWith("=== ") && s.EndsWith("==="))
                     return false;
 
-                // If *ends* with CJK punctuation → not heading
+                // If ends with CJK punctuation → not heading
                 var last = s[^1];
                 if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
                     return false;
@@ -843,59 +872,28 @@ namespace OpenccNetLibGui.Models
                 if (HasUnclosedBracket(s))
                     return false;
 
-                // 🔥 NEW: reject any short line containing comma "，" or ","
-                // Because short headings NEVER contain a comma inside.
+                // Reject any short line containing comma-like separators
                 if (s.Contains('，') || s.Contains(',') || s.Contains('、'))
                     return false;
 
-                // NEW: clamp the configured value to a safe range
-                var maxLen = Math.Clamp(headingMaxLen, 3, 30);
+                // Clamp maxLen
+                var maxLen = Math.Clamp(sh.MaxLen, 3, 30);
                 var len = s.Length;
+                if (len > maxLen)
+                    return false;
 
-                // 🔥 NEW RULE: short line containing ANY CJK punctuation → NOT heading
-                // e.g. 奇怪。 不安！ 她想： etc.
-
-                if (len > maxLen) return false;
+                // Reject any CJK end punctuation inside the string (strong heuristic)
                 foreach (var p in CjkPunctEndChars)
                 {
                     if (s.Contains(p))
                         return false;
                 }
 
-                var hasNonAscii = false;
-                var allAscii = true;
-                var hasLetter = false;
-                var allAsciiDigits = true;
-
-                for (var i = 0; i < len; i++)
-                {
-                    var ch = s[i];
-
-                    if (ch > 0x7F)
-                    {
-                        hasNonAscii = true;
-                        allAscii = false;
-                        allAsciiDigits = false;
-                        continue;
-                    }
-
-                    if (!char.IsDigit(ch))
-                        allAsciiDigits = false;
-
-                    if (char.IsLetter(ch))
-                        hasLetter = true;
-                }
-
-                // Rule C: pure ASCII digits → heading
-                if (allAsciiDigits)
-                    return true;
-
-                // Rule A: CJK/mixed short line (has non-ASCII)
-                if (hasNonAscii)
-                    return true;
-
-                // Rule B: pure ASCII short line with at least one letter
-                return allAscii && hasLetter;
+                // ---- Pattern checks (your requested style) ----
+                return (sh.AllAscii && IsAllAscii(s))
+                       || (sh.AllCjk && IsAllCjk(s))
+                       || (sh.AllAsciiDigits && IsAllAsciiDigits(s))
+                       || (sh.MixedCjkAscii && IsMixedCjkAscii(s));
             }
 
             static bool IsMetadataLine(string line)
@@ -952,27 +950,84 @@ namespace OpenccNetLibGui.Models
 
             static bool IsAllAscii(string s)
             {
-                foreach (var ch in s)
-                {
-                    if (ch > 127) return false;
-                }
-
+                for (var i = 0; i < s.Length; i++)
+                    if (s[i] > 0x7F)
+                        return false;
                 return true;
             }
 
-            static int GetEffectiveMaxLen(string s, int userMaxLen)
+            static bool IsAllAsciiDigits(string s)
             {
-                return IsAllAscii(s)
-                    ?
-                    // 英文 heading 通常較長：Introduction, Summary, etc.
-                    // 你可揀以下其一：
-                    Math.Clamp(userMaxLen * 2, 10, 30)
-                    :
-                    // 或用固定值：
-                    // return 20;
-                    // 或更 aggressive：
-                    // return Math.Clamp(userMaxLen + 12, 10, 30);
-                    userMaxLen; // CJK 用正常值
+                for (var i = 0; i < s.Length; i++)
+                {
+                    var ch = s[i];
+                    if (ch > 0x7F || ch < '0' || ch > '9')
+                        return false;
+                }
+
+                return s.Length > 0;
+            }
+
+            static bool IsAllCjk(string s)
+            {
+                for (var i = 0; i < s.Length; i++)
+                {
+                    var ch = s[i];
+
+                    // treat common full-width space as not CJK heading content
+                    if (char.IsWhiteSpace(ch))
+                        return false;
+
+                    if (!IsCjk(ch))
+                        return false;
+                }
+
+                return s.Length > 0;
+            }
+
+            // Minimal CJK checker (BMP focused). You can swap with your existing one.
+            static bool IsCjk(char ch)
+            {
+                var c = (int)ch;
+
+                // CJK Unified Ideographs + Extension A
+                if ((uint)(c - 0x3400) <= (0x4DBF - 0x3400)) return true;
+                if ((uint)(c - 0x4E00) <= (0x9FFF - 0x4E00)) return true;
+
+                // Compatibility Ideographs
+                return (uint)(c - 0xF900) <= (0xFAFF - 0xF900);
+            }
+
+            static bool IsMixedCjkAscii(string s)
+            {
+                var hasCjk = false;
+                var hasAscii = false;
+
+                for (var i = 0; i < s.Length; i++)
+                {
+                    var ch = s[i];
+
+                    if (ch <= 0x7F)
+                    {
+                        // ASCII letter/digit only (you can decide if punctuation counts)
+                        if (char.IsLetterOrDigit(ch))
+                            hasAscii = true;
+                        else
+                            return false; // reject ASCII punctuation in headings
+                    }
+                    else
+                    {
+                        if (IsCjk(ch))
+                            hasCjk = true;
+                        else
+                            return false; // reject other scripts/symbols
+                    }
+
+                    if (hasCjk && hasAscii)
+                        return true;
+                }
+
+                return false;
             }
         }
 

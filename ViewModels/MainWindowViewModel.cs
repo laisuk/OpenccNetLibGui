@@ -86,6 +86,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _autoReflow;
     private PdfEngine _pdfEngine;
     private int _shortHeadingMaxLen = 8;
+    private ShortHeadingSettings? _shortHeadingSettings;
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -154,6 +155,7 @@ public class MainWindowViewModel : ViewModelBase
         _addPdfPageHeader = _languageSettings.AddPdfPageHeader > 0;
         _compactPdfText = _languageSettings.CompactPdfText > 0;
         _autoReflow = _languageSettings.AutoReflowPdfText > 0;
+        _shortHeadingSettings = _languageSettings.ShortHeading;
         ShortHeadingMaxLen = _languageSettings.ShortHeadingMaxLen > 0
             ? _languageSettings.ShortHeadingMaxLen
             : 8;
@@ -439,7 +441,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (autoReflow)
         {
-            text = PdfHelper.ReflowCjkParagraphs(text, addPdfPageHeader, compactText, ShortHeadingMaxLen);
+            text = PdfHelper.ReflowCjkParagraphs(text, addPdfPageHeader, compactText, ShortHeading);
         }
 
         return text;
@@ -488,7 +490,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var result =
-            PdfHelper.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeadingMaxLen);
+            PdfHelper.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
         if (hasSelection)
@@ -1110,18 +1112,28 @@ public class MainWindowViewModel : ViewModelBase
         if (lifetime?.MainWindow is not { } owner)
             return;
 
-        // simple numeric input dialog – you can replace with your own nice UI
-        var dialog = new ShortHeadingDialog(ShortHeadingMaxLen);
-        var result = await dialog.ShowDialog<int?>(owner);
+        var dialog = new ShortHeadingDialog(ShortHeading!);
 
-        if (result is { } newLen and >= 3 and <= 30)
-        {
-            ShortHeadingMaxLen = newLen;
+        // ✅ dialog now returns ShortHeading? (not int?)
+        var result = await dialog.ShowDialog<ShortHeadingSettings?>(owner);
 
-            _languageSettings!.ShortHeadingMaxLen = newLen;
-            // LanguageSettingsHelper.Save(_languageSettings);
-        }
+        if (result is null)
+            return;
+
+        // optional clamp (dialog already clamps, but safe)
+        var newLen = Math.Clamp(result.MaxLen, 3, 30);
+
+        // update your in-memory state
+        ShortHeading = result;
+        ShortHeadingMaxLen = newLen;
+
+        // write back to LanguageSettings
+        _languageSettings!.ShortHeadingMaxLen = newLen; // legacy compat (optional)
+        _languageSettings!.ShortHeading = result; // ✅ new preferred field
+
+        // LanguageSettingsHelper.Save(_languageSettings);
     }
+
 
     #region Control Binding fields
 
@@ -1596,6 +1608,21 @@ public class MainWindowViewModel : ViewModelBase
 
             // Sync to settings object
             _languageSettings!.ShortHeadingMaxLen = clamped;
+        }
+    }
+
+    public ShortHeadingSettings? ShortHeading
+    {
+        get => _shortHeadingSettings;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _shortHeadingSettings, value);
+
+            if (_languageSettings is not null)
+            {
+                _languageSettings.ShortHeading =
+                    value ?? ShortHeadingSettings.Default;
+            }
         }
     }
 
