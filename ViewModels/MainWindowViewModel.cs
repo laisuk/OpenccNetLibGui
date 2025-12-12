@@ -151,10 +151,11 @@ public class MainWindowViewModel : ViewModelBase
             CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
         _textFileTypes = _languageSettings.TextFileTypes ?? new List<string>();
         _officeFileTypes = _languageSettings.OfficeFileTypes ?? new List<string>();
-        _isCbConvertFilename = _languageSettings.ConvertFilename > 0;
-        _addPdfPageHeader = _languageSettings.AddPdfPageHeader > 0;
-        _compactPdfText = _languageSettings.CompactPdfText > 0;
-        _autoReflow = _languageSettings.AutoReflowPdfText > 0;
+        IsCbPunctuation = _languageSettings.Punctuation > 0;
+        IsCbConvertFilename = _languageSettings.ConvertFilename > 0;
+        IsAddPdfPageHeader = _languageSettings.AddPdfPageHeader > 0;
+        IsCompactPdfText = _languageSettings.CompactPdfText > 0;
+        IsAutoReflow = _languageSettings.AutoReflowPdfText > 0;
         ShortHeading = _languageSettings.ShortHeadingSettings;
         ShortHeadingMaxLen = _languageSettings.ShortHeadingMaxLen > 0
             ? _languageSettings.ShortHeadingMaxLen
