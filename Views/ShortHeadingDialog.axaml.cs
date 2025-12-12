@@ -41,6 +41,91 @@ public partial class ShortHeadingDialog : Window
     }
 }
 
+// public sealed class ShortHeadingDialogViewModel : ReactiveObject
+// {
+//     private const int MinValue = 3;
+//     private const int MaxValue = 30;
+//
+//     private int _maxLen;
+//     private bool _allCjk;
+//     private bool _allAscii;
+//     private bool _allAsciiDigits;
+//     private bool _mixedCjkAscii;
+//
+//     // ✅ REQUIRED for Design.DataContext
+//     public ShortHeadingDialogViewModel()
+//         : this(ShortHeadingSettings.Default)
+//     {
+//     }
+//     
+//     public ShortHeadingDialogViewModel(ShortHeadingSettings s) => LoadFrom(s);
+//
+//     /// <summary>
+//     /// Integer max length used by your core logic.
+//     /// </summary>
+//     public int MaxLen
+//     {
+//         get => _maxLen;
+//         set
+//         {
+//             var v = Math.Clamp(value, MinValue, MaxValue);
+//             this.RaiseAndSetIfChanged(ref _maxLen, v);
+//             this.RaisePropertyChanged(nameof(MaxLenValue)); // keep NumericUpDown synced
+//         }
+//     }
+//
+//     /// <summary>
+//     /// Bridge for Avalonia NumericUpDown.Value (double? in many versions).
+//     /// Bind XAML to this to avoid type mismatch.
+//     /// </summary>
+//     public double MaxLenValue
+//     {
+//         get => MaxLen;
+//         set => MaxLen = (int)Math.Round(value);
+//     }
+//
+//     public bool AllCjk
+//     {
+//         get => _allCjk;
+//         set => this.RaiseAndSetIfChanged(ref _allCjk, value);
+//     }
+//
+//     public bool AllAscii
+//     {
+//         get => _allAscii;
+//         set => this.RaiseAndSetIfChanged(ref _allAscii, value);
+//     }
+//
+//     public bool AllAsciiDigits
+//     {
+//         get => _allAsciiDigits;
+//         set => this.RaiseAndSetIfChanged(ref _allAsciiDigits, value);
+//     }
+//
+//     public bool MixedCjkAscii
+//     {
+//         get => _mixedCjkAscii;
+//         set => this.RaiseAndSetIfChanged(ref _mixedCjkAscii, value);
+//     }
+//
+//     public void LoadFrom(ShortHeadingSettings s)
+//     {
+//         MaxLen = s.MaxLen;
+//         AllCjk = s.AllCjk;
+//         AllAscii = s.AllAscii;
+//         AllAsciiDigits = s.AllAsciiDigits;
+//         MixedCjkAscii = s.MixedCjkAscii;
+//     }
+//
+//     public ShortHeadingSettings ToSettings() => new()
+//     {
+//         MaxLen = MaxLen,
+//         AllCjk = AllCjk,
+//         AllAscii = AllAscii,
+//         AllAsciiDigits = AllAsciiDigits,
+//         MixedCjkAscii = MixedCjkAscii
+//     };
+// }
 public sealed class ShortHeadingDialogViewModel : ReactiveObject
 {
     private const int MinValue = 3;
@@ -52,17 +137,16 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
     private bool _allAsciiDigits;
     private bool _mixedCjkAscii;
 
+    private bool _syncingAsciiState;
+
     // ✅ REQUIRED for Design.DataContext
     public ShortHeadingDialogViewModel()
         : this(ShortHeadingSettings.Default)
     {
     }
-    
+
     public ShortHeadingDialogViewModel(ShortHeadingSettings s) => LoadFrom(s);
 
-    /// <summary>
-    /// Integer max length used by your core logic.
-    /// </summary>
     public int MaxLen
     {
         get => _maxLen;
@@ -70,18 +154,17 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         {
             var v = Math.Clamp(value, MinValue, MaxValue);
             this.RaiseAndSetIfChanged(ref _maxLen, v);
-            this.RaisePropertyChanged(nameof(MaxLenValue)); // keep NumericUpDown synced
+            this.RaisePropertyChanged(nameof(MaxLenValue));
         }
     }
 
     /// <summary>
-    /// Bridge for Avalonia NumericUpDown.Value (double? in many versions).
-    /// Bind XAML to this to avoid type mismatch.
+    /// Bridge for NumericUpDown.Value (decimal?)
     /// </summary>
-    public double MaxLenValue
+    public decimal? MaxLenValue
     {
-        get => MaxLen;
-        set => MaxLen = (int)Math.Round(value);
+        get => MaxLen; // int -> decimal? (implicit OK)
+        set => MaxLen = (int)Math.Round((double)(value ?? MinValue));
     }
 
     public bool AllCjk
@@ -90,16 +173,77 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _allCjk, value);
     }
 
+    /// <summary>
+    /// Tri-state parent for ASCII selection (VS-style):
+    /// true  = AllAscii enabled
+    /// null  = partial (digits only)
+    /// false = none
+    /// </summary>
+    public bool? AsciiState
+    {
+        get
+        {
+            if (AllAscii) return true;
+            if (AllAsciiDigits) return null;
+            return false;
+        }
+        set
+        {
+            if (_syncingAsciiState) return;
+
+            _syncingAsciiState = true;
+            try
+            {
+                // clicking an indeterminate checkbox typically toggles to checked
+                if (value == true || value is null)
+                {
+                    AllAscii = true; // full ASCII enabled
+                    // ✅ Parent checked => select all children
+                    AllAsciiDigits = true;
+                }
+                else
+                {
+                    // value == false
+                    AllAscii = false;
+                    AllAsciiDigits = false;
+                }
+            }
+            finally
+            {
+                _syncingAsciiState = false;
+                this.RaisePropertyChanged();
+            }
+        }
+    }
+
     public bool AllAscii
     {
         get => _allAscii;
-        set => this.RaiseAndSetIfChanged(ref _allAscii, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _allAscii, value);
+
+            // If user turns off ASCII, digits-only cannot remain enabled.
+            if (!value && AllAsciiDigits)
+                AllAsciiDigits = false;
+
+            RaiseAsciiStateChanged();
+        }
     }
 
     public bool AllAsciiDigits
     {
         get => _allAsciiDigits;
-        set => this.RaiseAndSetIfChanged(ref _allAsciiDigits, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _allAsciiDigits, value);
+
+            // If user selects digits-only, parent becomes indeterminate (not auto-check).
+            // But if you prefer "digits implies ascii", uncomment:
+            // if (value && !AllAscii) AllAscii = true;
+
+            RaiseAsciiStateChanged();
+        }
     }
 
     public bool MixedCjkAscii
@@ -108,12 +252,21 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _mixedCjkAscii, value);
     }
 
+    private void RaiseAsciiStateChanged()
+    {
+        if (_syncingAsciiState) return;
+        this.RaisePropertyChanged(nameof(AsciiState));
+    }
+
     public void LoadFrom(ShortHeadingSettings s)
     {
         MaxLen = s.MaxLen;
         AllCjk = s.AllCjk;
-        AllAscii = s.AllAscii;
-        AllAsciiDigits = s.AllAsciiDigits;
+        _allAscii = s.AllAscii;
+        _allAsciiDigits = s.AllAsciiDigits;
+        this.RaisePropertyChanged(nameof(AllAscii));
+        this.RaisePropertyChanged(nameof(AllAsciiDigits));
+        this.RaisePropertyChanged(nameof(AsciiState));
         MixedCjkAscii = s.MixedCjkAscii;
     }
 

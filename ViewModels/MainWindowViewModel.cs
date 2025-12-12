@@ -155,7 +155,7 @@ public class MainWindowViewModel : ViewModelBase
         _addPdfPageHeader = _languageSettings.AddPdfPageHeader > 0;
         _compactPdfText = _languageSettings.CompactPdfText > 0;
         _autoReflow = _languageSettings.AutoReflowPdfText > 0;
-        _shortHeadingSettings = _languageSettings.ShortHeading;
+        ShortHeading = _languageSettings.ShortHeadingSettings;
         ShortHeadingMaxLen = _languageSettings.ShortHeadingMaxLen > 0
             ? _languageSettings.ShortHeadingMaxLen
             : 8;
@@ -1129,7 +1129,7 @@ public class MainWindowViewModel : ViewModelBase
 
         // write back to LanguageSettings
         _languageSettings!.ShortHeadingMaxLen = newLen; // legacy compat (optional)
-        _languageSettings!.ShortHeading = result; // ✅ new preferred field
+        _languageSettings!.ShortHeadingSettings = result; // ✅ new preferred field
 
         // LanguageSettingsHelper.Save(_languageSettings);
     }
@@ -1620,7 +1620,7 @@ public class MainWindowViewModel : ViewModelBase
 
             if (_languageSettings is not null)
             {
-                _languageSettings.ShortHeading =
+                _languageSettings.ShortHeadingSettings =
                     value ?? ShortHeadingSettings.Default;
             }
         }

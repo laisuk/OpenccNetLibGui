@@ -22,7 +22,7 @@ public class LanguageSettings
     public int PdfEngine { get; set; }
 
     // NEW: preferred config shape
-    public ShortHeadingSettings ShortHeading { get; set; } = ShortHeadingSettings.Default;
+    public ShortHeadingSettings ShortHeadingSettings { get; set; } = ShortHeadingSettings.Default;
 
     // LEGACY: keep for loading older JSON (optional but recommended)
     public int ShortHeadingMaxLen { get; set; } = 8;
@@ -33,14 +33,14 @@ public class LanguageSettings
     public void Normalize()
     {
         // If new JSON doesn't exist but legacy exists, migrate it once.
-        if (ShortHeading.MaxLen == ShortHeadingSettings.Default.MaxLen
+        if (ShortHeadingSettings.MaxLen == ShortHeadingSettings.Default.MaxLen
             && ShortHeadingMaxLen != ShortHeadingSettings.Default.MaxLen)
         {
-            ShortHeading.MaxLen = ShortHeadingMaxLen;
+            ShortHeadingSettings.MaxLen = ShortHeadingMaxLen;
         }
 
         // Keep legacy in sync (so any old code path still behaves)
-        ShortHeadingMaxLen = ShortHeading.MaxLen;
+        ShortHeadingMaxLen = ShortHeadingSettings.MaxLen;
     }
 }
 
@@ -75,7 +75,7 @@ public sealed class ShortHeadingSettings
     {
         MaxLen = 8,
         AllCjk = true,
-        AllAscii = false,
+        AllAscii = true,
         AllAsciiDigits = true,
         MixedCjkAscii = false
     };

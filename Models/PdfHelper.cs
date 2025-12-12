@@ -877,9 +877,18 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // Clamp maxLen
-                var maxLen = Math.Clamp(sh.MaxLen, 3, 30);
+                var baseMax = Math.Clamp(sh.MaxLen, 3, 30);
                 var len = s.Length;
-                if (len > maxLen)
+
+                // ASCII headings can be longer
+                var effectiveMax = baseMax;
+
+                if (sh.AllAscii && IsAllAscii(s))
+                {
+                    effectiveMax = Math.Clamp(baseMax * 2, 10, 30);
+                }
+
+                if (len > effectiveMax)
                     return false;
 
                 // Reject any CJK end punctuation inside the string (strong heuristic)
