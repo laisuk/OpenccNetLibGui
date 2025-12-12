@@ -196,6 +196,8 @@ public class LanguageSettingsService
 ";
 
         File.WriteAllText(filePath, languageSettingsText);
-        return JsonConvert.DeserializeObject<LanguageSettings>(languageSettingsText)!;
+        var defaultSettings = JsonConvert.DeserializeObject<LanguageSettings>(languageSettingsText)!;
+        defaultSettings.Normalize();
+        return defaultSettings;
     }
 }
