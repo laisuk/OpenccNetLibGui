@@ -1153,7 +1153,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
 
-    #region Control Binding fields
+    #region Control Binding fields Region
 
     public string? LblSourceCodeContent
     {
@@ -1255,27 +1255,6 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tbOutFolderText, value);
     }
 
-    #region Save Target Region
-
-    public enum SaveTarget
-    {
-        Destination,
-        Source
-    }
-
-    public IReadOnlyList<SaveTarget> SaveTargets { get; } =
-        Enum.GetValues<SaveTarget>().ToList();
-
-    private SaveTarget _selectedSaveTarget = SaveTarget.Destination;
-
-    public SaveTarget SelectedSaveTarget
-    {
-        get => _selectedSaveTarget;
-        set => this.RaiseAndSetIfChanged(ref _selectedSaveTarget, value);
-    }
-
-    #endregion
-
     // public string? TbPreviewText
     // {
     //     get => _tbPreviewText;
@@ -1328,6 +1307,27 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _cbPunctuationContent;
         set => this.RaiseAndSetIfChanged(ref _cbPunctuationContent, value);
+    }
+
+    #endregion
+
+    #region Save Target Region
+
+    public enum SaveTarget
+    {
+        Destination,
+        Source
+    }
+
+    public IReadOnlyList<SaveTarget> SaveTargets { get; } =
+        Enum.GetValues<SaveTarget>().ToList();
+
+    private SaveTarget _selectedSaveTarget = SaveTarget.Destination;
+
+    public SaveTarget SelectedSaveTarget
+    {
+        get => _selectedSaveTarget;
+        set => this.RaiseAndSetIfChanged(ref _selectedSaveTarget, value);
     }
 
     #endregion
