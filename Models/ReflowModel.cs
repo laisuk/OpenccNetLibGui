@@ -54,7 +54,8 @@ namespace OpenccNetLibGui.Models
         {
             '：', // full-width colon
             ':', // ASCII colon
-            '　' // full-width ideographic space (U+3000)
+            '　', // full-width ideographic space (U+3000)
+            '・' // full-width ideographic dot (U+3000)
         };
 
         // Metadata heading title noames
@@ -63,6 +64,7 @@ namespace OpenccNetLibGui.Models
             // ===== 1. Title / Author / Publishing =====
             "書名", "书名",
             "作者",
+            "原著",
             "譯者", "译者",
             "校訂", "校订",
             "出版社",
@@ -83,6 +85,7 @@ namespace OpenccNetLibGui.Models
             // ===== 4. Descriptions / Forewords =====
             // "內容簡介", "内容简介",
             // "作者簡介", "作者简介",
+            "簡介", "简介",
             "前言",
             "序章",
             "終章", "终章",
@@ -95,6 +98,7 @@ namespace OpenccNetLibGui.Models
             "授權方", "授权方",
             "電子版權", "数字版权",
             "掃描", "扫描",
+            "發行", "发行",
             "OCR",
 
             // ===== 6. CIP / Cataloging =====
@@ -102,6 +106,9 @@ namespace OpenccNetLibGui.Models
             "在版編目", "在版编目",
             "分類號", "分类号",
             "主題詞", "主题词",
+            "類型", "类型",
+            "標簽", "标签",
+            "系列",
 
             // ===== 7. Publishing Cycle =====
             "發行日", "发行日",
