@@ -26,7 +26,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Handles paragraphs, lists (numbered and bulleted), tables (flattened as TSV),
       headers/footers, footnotes, and comments.
     - Formatting is intentionally stripped to provide clean, editable plain text
-      suitable for reflow and OpenCC conversion.
+      suitable for reflow and Opencc conversion.
 - **ODT (.odt) plain-text import support**
     - Extracts text from OpenDocument Text files via `content.xml`.
     - Supports paragraphs, headings, lists, and tables.
@@ -63,7 +63,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - This release focuses on **correctness, configurability, and long-term maintainability**
   of text reflow and document import.
 - DOCX and ODT are treated as **input formats only**; all content is converted to
-  plain text before editing, reflow, or OpenCC conversion.
+  plain text before editing, reflow, or Opencc conversion.
 - Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally
   synchronized with the new settings model.
 - The reflow engine is now suitable for reuse across
@@ -96,7 +96,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Reflows only the affected paragraph range.
 - **PDF Options context menu**:
     - Toggle reflow, compact mode, page headers, and PDF engine directly from the UI.
-- **PDF text extraction + OpenCC conversion** in both **Main Conversion** and **Batch Conversion** modes.
+- **PDF text extraction + Opencc conversion** in both **Main Conversion** and **Batch Conversion** modes.
 - **Runtime PDF engine bindings included**:
     - `win-x64`, `win-x86`, `linux-x64`, `osx-x64`, `osx-arm64` native Pdfium binaries.
 
