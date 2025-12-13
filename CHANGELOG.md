@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] – 2025-12-12
+## [1.4.0] – 2025-12-13
 
 ### Added
 
@@ -21,6 +21,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Visual hierarchical layout (parent/child options) inspired by Visual Studio feature selection.
 - **User-configurable short heading detection** integrated into the PDF reflow pipeline.
 - **Design-time preview support** for the Short Heading dialog using `Design.DataContext`.
+- **DOCX (.docx) plain-text import support**
+    - Extracts human-readable text from Word documents into the source editor.
+    - Handles paragraphs, lists (numbered and bulleted), tables (flattened as TSV),
+      headers/footers, footnotes, and comments.
+    - Formatting is intentionally stripped to provide clean, editable plain text
+      suitable for reflow and OpenCC conversion.
+- **ODT (.odt) plain-text import support**
+    - Extracts text from OpenDocument Text files via `content.xml`.
+    - Supports paragraphs, headings, lists, and tables.
+    - Designed for lightweight, predictable text editing in the source editor.
 
 ### Changed
 
@@ -37,19 +47,27 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Better handling of dialog continuation, punctuation-based joins,
       metadata lines, and mixed CJK/ASCII content.
     - More robust collapse of layout-level repeated titles and headings.
+- **Main text import pipeline unified**
+    - Drag-and-drop and Open File now share the same document-loading logic.
+    - DOCX, ODT, and plain text files are consistently routed through the same
+      source editor update path.
 - **Internal architecture cleanup**
     - Clear separation between:
         - PDF extraction (PdfPig / Pdfium)
+        - Office document parsing (DOCX / ODT)
         - Text reflow logic (ReflowModel)
         - User configuration (LanguageSettings / ShortHeadingSettings)
 
 ### Notes
 
-- This release focuses on **correctness, configurability, and long-term maintainability** of PDF text reflow.
-- Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally synchronized with the new settings
-  model.
-- The reflow engine is now suitable for reuse in future features
-  (Office documents, EPUB, CLI tools, batch processing, and testing).
+- This release focuses on **correctness, configurability, and long-term maintainability**
+  of text reflow and document import.
+- DOCX and ODT are treated as **input formats only**; all content is converted to
+  plain text before editing, reflow, or OpenCC conversion.
+- Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally
+  synchronized with the new settings model.
+- The reflow engine is now suitable for reuse across
+  PDF, Office documents, EPUB, CLI tools, batch processing, and automated testing.
 
 ---
 
