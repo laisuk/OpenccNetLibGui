@@ -234,7 +234,7 @@ public class MainWindowViewModel : ViewModelBase
         var codeText = Opencc.ZhoCheck(inputText);
         UpdateEncodeInfo(codeText);
         LblFileNameContent = string.Empty;
-        _currentOpenFileName = string.Empty;
+        CurrentOpenFilename = string.Empty;
     }
 
     private async Task BtnCopy()
@@ -268,6 +268,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 new("Text Files") { Patterns = new[] { "*.txt", "*.md", "*.csv", "*.html", "*.xml" } },
                 new("Subtitle Files") { Patterns = new[] { "*.srt", "*.vtt", "*.ass", "*.ttml2" } },
+                new("Word Documents") { Patterns = new[] { "*.docx", "*.odt" } },
                 new("Pdf Files") { Patterns = new[] { "*.pdf" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
@@ -297,8 +298,8 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-
-            if (_textFileTypes == null || !_textFileTypes!.Contains(fileExt))
+            if ((_textFileTypes == null || !_textFileTypes!.Contains(fileExt)) && !OpenXmlHelper.IsDocx(path) &&
+                !OpenXmlHelper.IsOdt(path))
             {
                 LblStatusBarContent = $"Error: File type ({fileExt}) not support";
                 return;
@@ -374,7 +375,7 @@ public class MainWindowViewModel : ViewModelBase
             if (!token.IsCancellationRequested && requestId == _pdfRequestId)
             {
                 TbSourceTextDocument!.Text = text;
-                _currentOpenFileName = Path.GetFullPath(path);
+                CurrentOpenFilename = Path.GetFullPath(path);
                 LblFileNameContent = fileName;
 
                 UpdateEncodeInfo(Opencc.ZhoCheck(text));
@@ -805,7 +806,7 @@ public class MainWindowViewModel : ViewModelBase
     private void BtnClearTbSource()
     {
         TbSourceTextDocument!.Text = string.Empty;
-        _currentOpenFileName = string.Empty;
+        CurrentOpenFilename = string.Empty;
         LblSourceCodeContent = string.Empty;
         LblFileNameContent = string.Empty;
         LblStatusBarContent = "Source text box cleared";
@@ -1036,41 +1037,57 @@ public class MainWindowViewModel : ViewModelBase
 
     internal async Task UpdateTbSourceFileContentsAsync(string filename)
     {
-        var fileInfo = new FileInfo(filename);
-        if (fileInfo.Length > int.MaxValue)
-        {
-            LblStatusBarContent = "Error: File too large";
-            return;
-        }
+        CurrentOpenFilename = filename;
 
-        _currentOpenFileName = filename;
-
-        // Read file contents
         try
         {
-            using var reader = new StreamReader(_currentOpenFileName, Encoding.UTF8, true);
-            var contents = await reader.ReadToEndAsync();
+            string text;
 
-            // Display file contents to text box field
-            TbSourceTextDocument!.Text = contents;
-            LblStatusBarContent = $"File: {_currentOpenFileName}";
+            // ---- DOCX ----
+            if (OpenXmlHelper.IsDocx(filename))
+            {
+                text = await Task.Run(() =>
+                    OpenXmlHelper.ExtractDocxAllText(filename));
+            }
+            // ---- ODT ----
+            else if (OpenXmlHelper.IsOdt(filename))
+            {
+                text = await Task.Run(() =>
+                    OpenXmlHelper.ExtractOdtAllText(filename));
+            }
+            // ---- Plain text ----
+            else
+            {
+                var fileInfo = new FileInfo(filename);
+                if (fileInfo.Length > int.MaxValue)
+                {
+                    LblStatusBarContent = "Error: File too large";
+                    return;
+                }
 
-            var displayName = fileInfo.Name;
+                using var reader = new StreamReader(filename, Encoding.UTF8, true);
+                text = await reader.ReadToEndAsync();
+            }
+
+            // ---- Apply to TbSource ----
+            TbSourceTextDocument!.Text = text;
+
+            // ---- UI updates ----
+            LblStatusBarContent = $"File: {filename}";
+            UpdateEncodeInfo(Opencc.ZhoCheck(text));
+
+            var displayName = Path.GetFileName(filename);
             LblFileNameContent = displayName.Length > 50
                 ? $"{displayName[..25]}...{displayName[^15..]}"
                 : displayName;
-
-            var codeText = Opencc.ZhoCheck(contents);
-            UpdateEncodeInfo(codeText);
         }
         catch (Exception ex)
         {
             TbSourceTextDocument!.Text = string.Empty;
             LblSourceCodeContent = string.Empty;
-            LblStatusBarContent = "Error: Invalid file";
-            _currentOpenFileName = string.Empty;
+            LblStatusBarContent = $"Error opening file: {ex.Message}";
+            CurrentOpenFilename = string.Empty;
 
-            // Optionally log the exception
             Console.WriteLine($"Exception in UpdateTbSourceFileContentsAsync: {ex}");
         }
     }
@@ -1154,6 +1171,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _lblStatusBarContent;
         set => this.RaiseAndSetIfChanged(ref _lblStatusBarContent, value);
+    }
+
+    public string? CurrentOpenFilename
+    {
+        get => _currentOpenFileName;
+        set => this.RaiseAndSetIfChanged(ref _currentOpenFileName, value);
     }
 
     public string? LblFileNameContent
