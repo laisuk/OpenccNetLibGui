@@ -605,7 +605,7 @@ namespace OpenccNetLibGui.Models
                 // ASCII headings can be longer
                 var effectiveMax = baseMax;
 
-                if (sh.AllAscii && IsAllAscii(s))
+                if (sh.AllAsciiEnabled && IsAllAscii(s))
                 {
                     effectiveMax = Math.Clamp(baseMax * 2, 10, 30);
                 }
@@ -621,10 +621,10 @@ namespace OpenccNetLibGui.Models
                 }
 
                 // ---- Pattern checks (your requested style) ----
-                return (sh.AllAscii && IsAllAscii(s))
-                       || (sh.AllCjk && IsAllCjk(s))
-                       || (sh.AllAsciiDigits && IsAllAsciiDigits(s))
-                       || (sh.MixedCjkAscii && IsMixedCjkAscii(s));
+                return (sh.AllAsciiEnabled && IsAllAscii(s))
+                       || (sh.AllCjkEnabled && IsAllCjk(s))
+                       || (sh.AllAsciiDigitsEnabled && IsAllAsciiDigits(s))
+                       || (sh.MixedCjkAsciiEnabled && IsMixedCjkAscii(s));
             }
 
             static bool IsMetadataLine(string line)

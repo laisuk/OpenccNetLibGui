@@ -15,32 +15,87 @@ public class LanguageSettings
     public int Locale { get; set; }
     public int Punctuation { get; set; }
     public int ConvertFilename { get; set; }
+
+    // -------------------- NEW preferred shape --------------------
+    public PdfOptions? PdfOptions { get; set; } = new PdfOptions();
+
+    // -------------------- LEGACY fields (keep for old JSON) --------------------
+    // (These match your current flat JSON keys.)
     public int AddPdfPageHeader { get; set; }
     public int CompactPdfText { get; set; }
     public int AutoReflowPdfText { get; set; }
-
     public int PdfEngine { get; set; }
 
-    // NEW: preferred config shape
+    // NEW (but currently top-level in your existing file)
     public ShortHeadingSettings ShortHeadingSettings { get; set; } = ShortHeadingSettings.Default;
 
-    // LEGACY: keep for loading older JSON (optional but recommended)
+    // LEGACY: keep for loading older JSON
     public int ShortHeadingMaxLen { get; set; } = 8;
 
     /// <summary>
-    /// Call after deserialization. Migrates legacy ShortHeadingMaxLen into ShortHeading when needed.
+    /// Call after deserialization.
+    /// Ensures PdfOptions exists and migrates legacy top-level PDF settings into PdfOptions.
     /// </summary>
     public void Normalize()
     {
-        // If new JSON doesn't exist but legacy exists, migrate it once.
-        if (ShortHeadingSettings.MaxLen == ShortHeadingSettings.Default.MaxLen
-            && ShortHeadingMaxLen != ShortHeadingSettings.Default.MaxLen)
+        // Ensure PdfOptions always exists
+        PdfOptions ??= new PdfOptions();
+
+        // ---- Migrate legacy → new PdfOptions if PdfOptions looks untouched/default ----
+        // We treat "PdfOptions not explicitly configured" as: engine=0 and maxLen default etc.
+        // (engine=0 is invalid, so it's a good "unset" marker)
+        var pdfOptionsUnset = PdfOptions.PdfEngine == 0;
+
+        if (pdfOptionsUnset)
         {
-            ShortHeadingSettings.MaxLen = ShortHeadingMaxLen;
+            PdfOptions.AddPdfPageHeader = AddPdfPageHeader;
+            PdfOptions.CompactPdfText = CompactPdfText;
+            PdfOptions.AutoReflowPdfText = AutoReflowPdfText;
+            PdfOptions.PdfEngine = PdfEngine == 0 ? 1 : PdfEngine;
+
+            // Prefer new ShortHeadingSettings if present, otherwise legacy maxLen
+            var sh = ShortHeadingSettings ?? ShortHeadingSettings.Default;
+            if (ShortHeadingMaxLen > 0)
+                sh.MaxLen = ShortHeadingMaxLen;
+
+            PdfOptions.ShortHeadingSettings = sh;
         }
 
-        // Keep legacy in sync (so any old code path still behaves)
+        // ---- Normalize nested options ----
+        PdfOptions.Normalize();
+
+        // ---- Keep legacy fields synced (so any old code path still behaves) ----
+        AddPdfPageHeader = PdfOptions.AddPdfPageHeader;
+        CompactPdfText = PdfOptions.CompactPdfText;
+        AutoReflowPdfText = PdfOptions.AutoReflowPdfText;
+        PdfEngine = PdfOptions.PdfEngine;
+
+        ShortHeadingSettings = PdfOptions.ShortHeadingSettings ?? ShortHeadingSettings.Default;
         ShortHeadingMaxLen = ShortHeadingSettings.MaxLen;
+    }
+}
+
+[Serializable]
+public sealed class PdfOptions
+{
+    public int AddPdfPageHeader { get; set; } = 0;
+    public int CompactPdfText { get; set; } = 0;
+    public int AutoReflowPdfText { get; set; } = 1;
+
+    /// <summary>1 = PdfPig, 2 = Pdfium</summary>
+    public int PdfEngine { get; set; } = 0; // 0 = "unset" marker for migration
+
+    public ShortHeadingSettings ShortHeadingSettings { get; set; } = ShortHeadingSettings.Default;
+
+    public void Normalize()
+    {
+        // clamp maxLen
+        ShortHeadingSettings ??= ShortHeadingSettings.Default;
+        ShortHeadingSettings.MaxLen = Math.Clamp(ShortHeadingSettings.MaxLen, 3, 30);
+
+        // ensure engine is sane
+        if (PdfEngine != 1 && PdfEngine != 2)
+            PdfEngine = 1;
     }
 }
 
@@ -66,17 +121,24 @@ public sealed class ShortHeadingSettings
 {
     public int MaxLen { get; set; } = 8;
 
-    public bool AllCjk { get; set; } = true;
-    public bool AllAscii { get; set; }
-    public bool AllAsciiDigits { get; set; } = true;
-    public bool MixedCjkAscii { get; set; }
+    // JSON expects 0/1 flags
+    public int AllCjk { get; set; } = 1;
+    public int AllAscii { get; set; } = 1;
+    public int AllAsciiDigits { get; set; } = 1;
+    public int MixedCjkAscii { get; set; } = 0;
+
+    // Convenience bool views (optional, but makes call-sites nice)
+    public bool AllCjkEnabled => AllCjk > 0;
+    public bool AllAsciiEnabled => AllAscii > 0;
+    public bool AllAsciiDigitsEnabled => AllAsciiDigits > 0;
+    public bool MixedCjkAsciiEnabled => MixedCjkAscii > 0;
 
     public static ShortHeadingSettings Default => new()
     {
         MaxLen = 8,
-        AllCjk = true,
-        AllAscii = true,
-        AllAsciiDigits = true,
-        MixedCjkAscii = false
+        AllCjk = 1,
+        AllAscii = 1,
+        AllAsciiDigits = 1,
+        MixedCjkAscii = 0
     };
 }

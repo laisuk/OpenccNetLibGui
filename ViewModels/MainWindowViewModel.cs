@@ -80,13 +80,14 @@ public class MainWindowViewModel : ViewModelBase
     private string? _selectedItem;
 
     private readonly Opencc? _opencc;
+
     private readonly int _locale;
-    private bool _addPdfPageHeader;
-    private bool _compactPdfText;
-    private bool _autoReflow;
-    private PdfEngine _pdfEngine;
-    private int _shortHeadingMaxLen = 8;
-    private ShortHeadingSettings? _shortHeadingSettings;
+    // private bool _addPdfPageHeader;
+    // private bool _compactPdfText;
+    // private bool _autoReflow;
+    // private PdfEngine _pdfEngine;
+    // private int _shortHeadingMaxLen = 8;
+    // private ShortHeadingSettings? _shortHeadingSettings;
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -96,6 +97,8 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
     }
 
+    private PdfViewModel Pdf { get; }
+
     public MainWindowViewModel()
     {
         TbSourceTextDocument = new TextDocument();
@@ -103,6 +106,7 @@ public class MainWindowViewModel : ViewModelBase
         TbPreviewTextDocument = new TextDocument();
         LbxSourceItems = new ObservableCollection<string>();
         LbxDestinationItems = new ObservableCollection<string>();
+        Pdf = new PdfViewModel();
         BtnPasteCommand = ReactiveCommand.CreateFromTask(BtnPaste);
         BtnCopyCommand = ReactiveCommand.CreateFromTask(BtnCopy);
         BtnOpenFileCommand = ReactiveCommand.CreateFromTask(BtnOpenFile);
@@ -153,22 +157,38 @@ public class MainWindowViewModel : ViewModelBase
         _officeFileTypes = _languageSettings.OfficeFileTypes ?? new List<string>();
         IsCbPunctuation = _languageSettings.Punctuation > 0;
         IsCbConvertFilename = _languageSettings.ConvertFilename > 0;
-        IsAddPdfPageHeader = _languageSettings.AddPdfPageHeader > 0;
-        IsCompactPdfText = _languageSettings.CompactPdfText > 0;
-        IsAutoReflow = _languageSettings.AutoReflowPdfText > 0;
-        ShortHeading = _languageSettings.ShortHeadingSettings;
-        ShortHeadingMaxLen = _languageSettings.ShortHeadingMaxLen > 0
-            ? _languageSettings.ShortHeadingMaxLen
-            : 8;
+
+        // PDF Options (from pdfOptions)
+        var po = _languageSettings.PdfOptions!;
+
+        IsAddPdfPageHeader = po.AddPdfPageHeader > 0;
+        IsCompactPdfText = po.CompactPdfText > 0;
+        IsAutoReflow = po.AutoReflowPdfText > 0;
+
+        ShortHeading = po.ShortHeadingSettings ?? ShortHeadingSettings.Default;
+        ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
 
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
-        var engine = PdfEngineHelper.InitPdfEngine(_languageSettings.PdfEngine);
-        if (engine == PdfEngine.PdfPig && _languageSettings.PdfEngine == 2)
-            // LblStatusBarContent = "Pdfium not supported on this platform. Falling back to PdfPig.";
-            TbSourceTextDocument!.Text = "Pdfium not supported on this platform. Falling back to PdfPig.\n" +
-                                         "You can set default pdfEngine to 1 in LanguageSettings.json for PdfPig ";
+        var engine = PdfEngineHelper.InitPdfEngine(po.PdfEngine);
+        if (engine == PdfEngine.PdfPig && po.PdfEngine == 2)
+        {
+            TbSourceTextDocument!.Text =
+                "Pdfium not supported on this platform. Falling back to PdfPig.\n" +
+                "You can set default pdfOptions.pdfEngine to 1 in LanguageSettings.json for PdfPig.";
+        }
 
         PdfEngine = engine;
+
+        // Create PDF VM (single source of truth)
+        Pdf = new PdfViewModel
+        {
+            PdfEngine = PdfEngine,
+            IsAddPdfPageHeader = IsAddPdfPageHeader,
+            IsCompactPdfText = IsCompactPdfText,
+            IsAutoReflow = IsAutoReflow,
+            ShortHeadingMaxLen = ShortHeadingMaxLen,
+            ShortHeading = ShortHeading,
+        };
 
         // Show the .NET runtime version and current dictionary in the status bar
         var runtimeVersion = RuntimeInformation.FrameworkDescription;
@@ -285,10 +305,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    await UpdateTbSourcePdfAsync(
-                        path,
-                        PdfEngine,
-                        IsAddPdfPageHeader);
+                    await UpdateTbSourcePdfAsync(path);
                 }
                 catch (Exception ex)
                 {
@@ -320,120 +337,52 @@ public class MainWindowViewModel : ViewModelBase
 
     #region PDF Handling Region
 
-    private CancellationTokenSource? _pdfCts;
-    private int _pdfRequestId;
+    // private CancellationTokenSource? _pdfCts;
+    // private int _pdfRequestId;
 
     // Public/simple entry point used by UI / DnD / menu etc.
-    internal Task UpdateTbSourcePdfAsync(string path)
-    {
-        // Delegate to the core method, using VM-level settings
-        return UpdateTbSourcePdfAsync(path, PdfEngine, IsAddPdfPageHeader);
-    }
+    // internal Task UpdateTbSourcePdfAsync(string path)
+    // {
+    //     // Delegate to the core method, using VM-level settings
+    //     return UpdateTbSourcePdfAsync(path, PdfEngine, IsAddPdfPageHeader);
+    // }
 
-    private async Task UpdateTbSourcePdfAsync(string path, PdfEngine engine, bool addPdfPageHeader)
+    internal async Task UpdateTbSourcePdfAsync(string path)
     {
-        _pdfCts?.Cancel();
-        _pdfCts = new CancellationTokenSource();
-        var ct = _pdfCts.Token;
-
-        var requestId = Interlocked.Increment(ref _pdfRequestId);
+        var requestId = Pdf.NewRequestId();
+        var ct = Pdf.CurrentToken;
 
         try
         {
-            LblStatusBarContent = "📄 Loading PDF...";
-            var result = await LoadPdfTextCoreAsync(
-                path,
-                engine,
-                addPdfPageHeader,
-                _autoReflow,
-                _compactPdfText,
+            // LblStatusBarContent = "📄 Loading PDF...";
+            var result = await Pdf.LoadPdfAsync(path,
                 status => LblStatusBarContent = status,
                 ct);
 
             // stale request guard
-            if (requestId != _pdfRequestId)
+            if (requestId != Pdf.CurrentRequestId)
                 return;
 
             // Apply to UI (MWVM responsibility)
             TbSourceTextDocument!.Text = result.Text;
             CurrentOpenFilename = path;
-            LblFileNameContent = Path.GetFileName(path);
+            var displayName = Path.GetFileName(path);
+            LblFileNameContent = displayName;
 
             UpdateEncodeInfo(Opencc.ZhoCheck(result.Text));
-            // LblStatusBarContent = "✅ PDF loaded.";
             LblStatusBarContent =
-                $"✅ PDF loaded ({engine.ToDisplayName()}{(_autoReflow ? ", Auto-Reflowed" : "")}): {path}";
+                $"✅ PDF loaded ({result.PageCount:N0} pages, {result.EngineUsed.ToDisplayName()}{(result.AutoReflowApplied ? ", Auto-Reflowed" : "")}): {displayName}";
         }
         catch (OperationCanceledException)
         {
             // optional: keep your existing behavior
-            LblStatusBarContent = "⏹ PDF loading cancelled.";
+            LblStatusBarContent = $"⏹ PDF loading cancelled: {Path.GetFileName(path)}";
         }
         catch (Exception ex)
         {
             LblStatusBarContent = $"❌ PDF load failed: {ex.Message}";
             throw;
         }
-    }
-
-    private async Task<PdfLoadResult> LoadPdfTextCoreAsync(
-        string filePath,
-        PdfEngine engine,
-        bool addPdfPageHeader,
-        bool autoReflow,
-        bool compact,
-        Action<string>? statusCallback,
-        CancellationToken cancellationToken)
-    {
-        // 1) Extract
-        string text;
-        int pageCount = 0; // 如果你拿不到页数，先填 0 也行
-
-        switch (engine)
-        {
-            case PdfEngine.Pdfium:
-                statusCallback?.Invoke("📄 Extracting PDF text (Pdfium)...");
-                // 你的原逻辑：PdfiumModel.LoadPdfTextAsync(...)
-                text = await PdfiumModel.ExtractTextAsync(
-                    filePath,
-                    addPdfPageHeader,
-                    statusCallback,
-                    cancellationToken);
-                // 如果 Pdfium 那边能拿页数就填；不能就留 0
-                break;
-
-            case PdfEngine.PdfPig:
-            default:
-                statusCallback?.Invoke("📄 Extracting PDF text (PdfPig)...");
-                text = await PdfHelper.LoadPdfTextAsync(
-                    filePath,
-                    addPdfPageHeader,
-                    statusCallback,
-                    cancellationToken);
-                break;
-        }
-
-        // 2) Auto reflow (保持原样)
-        var reflowApplied = false;
-        if (autoReflow && !string.IsNullOrWhiteSpace(text))
-        {
-            statusCallback?.Invoke("🧹 Reflowing CJK paragraphs...");
-            text = ReflowModel.ReflowCjkParagraphs(
-                text,
-                addPdfPageHeader: addPdfPageHeader,
-                compact: compact,
-                shortHeading: ShortHeading);
-
-            reflowApplied = true;
-        }
-
-        // 3) Return record
-        return new PdfLoadResult(
-            Text: text,
-            EngineUsed: engine,
-            AutoReflowApplied: reflowApplied,
-            PageCount: pageCount
-        );
     }
 
     private void ReflowCjkParagraphs()
@@ -730,27 +679,16 @@ public class MainWindowViewModel : ViewModelBase
                 LbxDestinationItems.Add($"({count}) ⏳ Processing PDF... please wait...");
 
                 string pdfText;
+                int pageCount;
+
                 try
                 {
-                    // No progress / CTS here, simple batch usage
-                    // pdfText = await LoadPdfTextCoreAsync(
-                    //     sourceFilePath,
-                    //     _pdfEngine,
-                    //     _addPdfPageHeader,
-                    //     _autoReflow,
-                    //     _compactPdfText,
-                    //     progress: null,
-                    //     token: CancellationToken.None);
-                    var r = await LoadPdfTextCoreAsync(
-                        sourceFilePath,
-                        _pdfEngine,
-                        _addPdfPageHeader,
-                        _autoReflow,
-                        _compactPdfText,
-                        statusCallback: null,
+                    var r = await Pdf.LoadPdfAsync(
+                        sourceFilePath, statusCallback: null,
                         cancellationToken: CancellationToken.None);
 
                     pdfText = r.Text;
+                    pageCount = r.PageCount;
                 }
                 catch (Exception ex)
                 {
@@ -772,7 +710,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 await File.WriteAllTextAsync(pdfOutputPath, convertedText);
 
-                LbxDestinationItems.Add($"({count}) {pdfOutputPath} -> ✅ Done");
+                LbxDestinationItems.Add($"({count}) {pdfOutputPath} ({pageCount:N0} Pages) -> ✅ Done");
             }
             else
             {
@@ -1505,22 +1443,48 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsAddPdfPageHeader
     {
-        get => _addPdfPageHeader;
-        set => this.RaiseAndSetIfChanged(ref _addPdfPageHeader, value);
+        get => Pdf.IsAddPdfPageHeader;
+        set
+        {
+            if (Pdf.IsAddPdfPageHeader == value)
+                return;
+
+            Pdf.IsAddPdfPageHeader = value;
+            _languageSettings!.AddPdfPageHeader = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+        }
     }
 
     public bool IsCompactPdfText
     {
-        get => _compactPdfText;
-        set => this.RaiseAndSetIfChanged(ref _compactPdfText, value);
+        get => Pdf.IsCompactPdfText;
+        set
+        {
+            if (Pdf.IsCompactPdfText == value)
+                return;
+
+            Pdf.IsCompactPdfText = value;
+            _languageSettings!.CompactPdfText = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+        }
     }
 
     public bool IsAutoReflow
     {
-        get => _autoReflow;
-        set => this.RaiseAndSetIfChanged(ref _autoReflow, value);
-    }
+        get => Pdf.IsAutoReflow;
+        set
+        {
+            if (Pdf.IsAutoReflow == value)
+                return;
 
+            Pdf.IsAutoReflow = value;
+            _languageSettings!.AutoReflowPdfText = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+        }
+    }
 
     public bool IsTbOutFolderFocus
     {
@@ -1578,18 +1542,18 @@ public class MainWindowViewModel : ViewModelBase
 
     public PdfEngine PdfEngine
     {
-        get => _pdfEngine;
+        get => Pdf.PdfEngine;
         set
         {
-            if (_pdfEngine == value)
+            if (Pdf.PdfEngine == value)
                 return;
 
-            this.RaiseAndSetIfChanged(ref _pdfEngine, value);
-
+            Pdf.PdfEngine = value;
             // Sync settings object (no magic numbers)
-            _languageSettings!.PdfEngine = (int)value;
+            _languageSettings!.PdfOptions!.PdfEngine = (int)value;
 
             // PdfEngine changed → notify RadioButtons
+            this.RaisePropertyChanged(); // ✅ add this for self-changed
             this.RaisePropertyChanged(nameof(IsPdfPigEngine));
             this.RaisePropertyChanged(nameof(IsPdfiumEngine));
         }
@@ -1598,52 +1562,63 @@ public class MainWindowViewModel : ViewModelBase
     // ⚙️ Use PdfPig engine
     public bool IsPdfPigEngine
     {
-        get => PdfEngine == PdfEngine.PdfPig;
+        get => Pdf.PdfEngine == PdfEngine.PdfPig;
         set
         {
-            if (!value || PdfEngine == PdfEngine.PdfPig) return;
-            PdfEngine = PdfEngine.PdfPig;
+            if (!value || Pdf.PdfEngine == PdfEngine.PdfPig) return;
+            PdfEngine = PdfEngine.PdfPig; // ✅ go through wrapper
         }
     }
 
     // ⚙️ Use Pdfium engine
     public bool IsPdfiumEngine
     {
-        get => PdfEngine == PdfEngine.Pdfium;
+        get => Pdf.PdfEngine == PdfEngine.Pdfium;
         set
         {
-            if (!value || PdfEngine == PdfEngine.Pdfium) return;
-            PdfEngine = PdfEngine.Pdfium;
+            if (!value || Pdf.PdfEngine == PdfEngine.Pdfium) return;
+            PdfEngine = PdfEngine.Pdfium; // ✅ go through wrapper
         }
     }
 
     public int ShortHeadingMaxLen
     {
-        get => _shortHeadingMaxLen;
+        get => Pdf.ShortHeadingMaxLen;
         set
         {
             var clamped = Math.Clamp(value, 3, 30);
+            if (Pdf.ShortHeadingMaxLen == clamped)
+                return;
 
-            if (_shortHeadingMaxLen == clamped) return;
-            this.RaiseAndSetIfChanged(ref _shortHeadingMaxLen, clamped);
+            // Update PdfViewModel (single source of truth)
+            Pdf.ShortHeadingMaxLen = clamped;
 
-            // Sync to settings object
-            _languageSettings!.ShortHeadingMaxLen = clamped;
+            // Sync to pdfOptions (NEW canonical storage)
+            var po = _languageSettings!.PdfOptions!;
+            po.ShortHeadingSettings.MaxLen = clamped;
+
+            // Optional: keep legacy in sync during transition
+            _languageSettings.ShortHeadingMaxLen = clamped;
+
+            this.RaisePropertyChanged(); // ShortHeadingMaxLen
         }
     }
 
     public ShortHeadingSettings? ShortHeading
     {
-        get => _shortHeadingSettings;
+        get => Pdf.ShortHeading;
         set
         {
-            this.RaiseAndSetIfChanged(ref _shortHeadingSettings, value);
+            if (Equals(Pdf.ShortHeading, value)) return; // ✅ optional, avoids spam
+            Pdf.ShortHeading = value;
 
             if (_languageSettings is not null)
             {
-                _languageSettings.ShortHeadingSettings =
+                _languageSettings.PdfOptions!.ShortHeadingSettings =
                     value ?? ShortHeadingSettings.Default;
             }
+
+            this.RaisePropertyChanged(); // ✅
         }
     }
 

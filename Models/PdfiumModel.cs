@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace OpenccNetLibGui.Models;
 
-public static class PdfiumModel
+internal static class PdfiumModel
 {
     // -------------------------------
     //  Public APIs
@@ -33,7 +33,7 @@ public static class PdfiumModel
     /// <para>
     /// This method is a thin, synchronous wrapper around the internal
     /// PDFium-based extraction pipeline and always behaves as if
-    /// <paramref name=".addPdfPageHeader"/> were <c>true</c>, so that each page
+    /// <c>addPdfPageHeader</c> were <c>true</c>, so that each page
     /// is prefixed with a page header marker.
     /// </para>
     /// <para>
@@ -42,7 +42,7 @@ public static class PdfiumModel
     /// into selectable text.
     /// </para>
     /// </remarks>
-    public static string ExtractText(string pdfPath)
+    public static PdfExtractResult ExtractText(string pdfPath)
     {
         if (string.IsNullOrWhiteSpace(pdfPath))
             throw new ArgumentException("PDF path is required.", nameof(pdfPath));
@@ -118,12 +118,15 @@ public static class PdfiumModel
     /// text content.
     /// </para>
     /// </remarks>
-    public static Task<string> ExtractTextAsync(
+    internal static Task<PdfExtractResult> ExtractTextAsync(
         string pdfPath,
         bool addPdfPageHeader,
         Action<string>? statusCallback = null,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(pdfPath))
+            throw new ArgumentException("PDF path is required.", nameof(pdfPath));
+
         return Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -222,7 +225,7 @@ public static class PdfiumModel
     /// string.
     /// </para>
     /// </remarks>
-    private static string ExtractPages(
+    private static PdfExtractResult ExtractPages(
         IntPtr doc,
         bool addPdfPageHeader,
         Action<int, int>? statusCallback, // (pageIndex, percent)
@@ -232,7 +235,11 @@ public static class PdfiumModel
         if (pageCount <= 0)
         {
             statusCallback?.Invoke(0, 100);
-            return string.Empty;
+            // return string.Empty;
+            return new PdfExtractResult(
+                string.Empty,
+                0
+            );
         }
 
         static int GetProgressBlock(int totalPages)
@@ -312,8 +319,14 @@ public static class PdfiumModel
                     PdfiumNative.FPDF_ClosePage(page);
             }
         }
+        
+        statusCallback?.Invoke(pageCount - 1, 100);
 
-        return sb.ToString();
+        // return sb.ToString();
+        return new PdfExtractResult(
+            sb.ToString(),
+            pageCount
+        );
     }
 
     // -------------------------------

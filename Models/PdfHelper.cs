@@ -39,6 +39,11 @@ namespace OpenccNetLibGui.Models
         bool AutoReflowApplied,
         int PageCount
     );
+    
+    internal readonly record struct PdfExtractResult(
+        string Text,
+        int PageCount
+    );
 
     public static class PdfEngineExtensions
     {
@@ -117,12 +122,15 @@ namespace OpenccNetLibGui.Models
         /// thread.
         /// </para>
         /// </remarks>
-        internal static Task<string> LoadPdfTextAsync(
+        internal static Task<PdfExtractResult> LoadPdfTextAsync(
             string filename,
             bool addPdfPageHeader,
             Action<string>? statusCallback = null,
             CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filename))
+                throw new ArgumentException("PDF path is required.", nameof(filename));
+
             return Task.Run(() =>
             {
                 using var document = PdfDocument.Open(filename);
@@ -133,7 +141,11 @@ namespace OpenccNetLibGui.Models
                 if (total <= 0)
                 {
                     statusCallback?.Invoke("PDF has no pages.");
-                    return string.Empty;
+                    // return string.Empty;
+                    return new PdfExtractResult(
+                        string.Empty,
+                        0
+                    );
                 }
 
                 // Adaptive progress update interval
@@ -164,21 +176,32 @@ namespace OpenccNetLibGui.Models
                             $"Loading PDF {BuildProgressBar(percent)}  {percent}%");
                     }
 
-                    if (addPdfPageHeader)
-                    {
-                        sb.AppendLine($"=== [Page {i}/{total}] ===");
-                    }
-
                     var page = document.GetPage(i);
                     var text = ContentOrderTextExtractor.GetText(page);
 
                     text = text.Trim('\r', '\n', ' ');
+                    
+                    if (string.IsNullOrWhiteSpace(text))
+                    {
+                        if (addPdfPageHeader)
+                            sb.AppendLine($"=== [Page {i}/{total}] ===");
+
+                        sb.AppendLine(); // visible blank page separator
+                        continue;
+                    }
+
+                    if (addPdfPageHeader)
+                        sb.AppendLine($"=== [Page {i}/{total}] ===");
 
                     sb.AppendLine(text);
                     sb.AppendLine();
                 }
 
-                return sb.ToString();
+                // return sb.ToString();
+                return new PdfExtractResult(
+                    sb.ToString(),
+                   total
+                );
             }, cancellationToken);
         }
 

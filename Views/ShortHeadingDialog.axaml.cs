@@ -177,21 +177,21 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
     public void LoadFrom(ShortHeadingSettings s)
     {
         MaxLen = s.MaxLen;
-        AllCjk = s.AllCjk;
-        _allAscii = s.AllAscii;
-        _allAsciiDigits = s.AllAsciiDigits;
+        AllCjk = s.AllCjkEnabled;
+        _allAscii = s.AllAsciiEnabled;
+        _allAsciiDigits = s.AllAsciiDigitsEnabled;
         this.RaisePropertyChanged(nameof(AllAscii));
         this.RaisePropertyChanged(nameof(AllAsciiDigits));
         this.RaisePropertyChanged(nameof(AsciiState));
-        MixedCjkAscii = s.MixedCjkAscii;
+        MixedCjkAscii = s.MixedCjkAsciiEnabled;
     }
 
     public ShortHeadingSettings ToSettings() => new()
     {
         MaxLen = MaxLen,
-        AllCjk = AllCjk,
-        AllAscii = AllAscii,
-        AllAsciiDigits = AllAsciiDigits,
-        MixedCjkAscii = MixedCjkAscii
+        AllCjk = AllCjk ? 1 : 0,
+        AllAscii = AllAscii ? 1 : 0,
+        AllAsciiDigits = AllAsciiDigits ? 1 : 0,
+        MixedCjkAscii = MixedCjkAscii ? 1 : 0
     };
 }
