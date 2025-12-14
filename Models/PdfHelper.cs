@@ -29,6 +29,17 @@ namespace OpenccNetLibGui.Models
         Pdfium = 2
     }
 
+    /// <summary>
+    /// Result of loading and optionally reflowing a PDF document.
+    /// This is a pure data record and does not depend on any UI state.
+    /// </summary>
+    public sealed record PdfLoadResult(
+        string Text,
+        PdfEngine EngineUsed,
+        bool AutoReflowApplied,
+        int PageCount
+    );
+
     public static class PdfEngineExtensions
     {
         public static string ToDisplayName(this PdfEngine engine)

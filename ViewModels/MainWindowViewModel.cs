@@ -330,123 +330,110 @@ public class MainWindowViewModel : ViewModelBase
         return UpdateTbSourcePdfAsync(path, PdfEngine, IsAddPdfPageHeader);
     }
 
-    private async Task UpdateTbSourcePdfAsync(
-        string path,
-        PdfEngine engine,
-        bool addPdfPageHeader)
+    private async Task UpdateTbSourcePdfAsync(string path, PdfEngine engine, bool addPdfPageHeader)
     {
-        // Cancel + dispose previous CTS (if any)
         _pdfCts?.Cancel();
-        _pdfCts?.Dispose();
-
-        var cts = new CancellationTokenSource();
-        _pdfCts = cts;
-        var token = cts.Token;
+        _pdfCts = new CancellationTokenSource();
+        var ct = _pdfCts.Token;
 
         var requestId = Interlocked.Increment(ref _pdfRequestId);
-        var fileName = Path.GetFileName(path);
-
-        LblStatusBarContent = $"Loading PDF ({engine}): {fileName}";
-
-        // Progress pipe for status bar (UI)
-        var progress = new Progress<string>(msg =>
-        {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                if (requestId != _pdfRequestId || token.IsCancellationRequested)
-                    return;
-
-                LblStatusBarContent = msg;
-            });
-        });
 
         try
         {
-            // 🔹 Use the shared core helper here
-            var text = await LoadPdfTextCoreAsync(
+            LblStatusBarContent = "📄 Loading PDF...";
+            var result = await LoadPdfTextCoreAsync(
                 path,
                 engine,
                 addPdfPageHeader,
                 _autoReflow,
                 _compactPdfText,
-                progress,
-                token);
+                status => LblStatusBarContent = status,
+                ct);
 
-            if (!token.IsCancellationRequested && requestId == _pdfRequestId)
-            {
-                TbSourceTextDocument!.Text = text;
-                CurrentOpenFilename = Path.GetFullPath(path);
-                LblFileNameContent = fileName;
+            // stale request guard
+            if (requestId != _pdfRequestId)
+                return;
 
-                UpdateEncodeInfo(Opencc.ZhoCheck(text));
+            // Apply to UI (MWVM responsibility)
+            TbSourceTextDocument!.Text = result.Text;
+            CurrentOpenFilename = path;
+            LblFileNameContent = Path.GetFileName(path);
 
-                LblStatusBarContent =
-                    $"Loaded PDF ({engine.ToDisplayName()}{(_autoReflow ? ", Auto-Reflowed" : "")}): {fileName}";
-            }
+            UpdateEncodeInfo(Opencc.ZhoCheck(result.Text));
+            // LblStatusBarContent = "✅ PDF loaded.";
+            LblStatusBarContent =
+                $"✅ PDF loaded ({engine.ToDisplayName()}{(_autoReflow ? ", Auto-Reflowed" : "")}): {path}";
         }
-        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
-            if (requestId == _pdfRequestId)
-                LblStatusBarContent = "PDF loading cancelled.";
+            // optional: keep your existing behavior
+            LblStatusBarContent = "⏹ PDF loading cancelled.";
         }
         catch (Exception ex)
         {
-            if (requestId == _pdfRequestId)
-                LblStatusBarContent = $"Error loading PDF ({engine.ToDisplayName()}): {ex.Message}";
-        }
-        finally
-        {
-            if (ReferenceEquals(_pdfCts, cts))
-                _pdfCts = null;
-
-            cts.Dispose();
+            LblStatusBarContent = $"❌ PDF load failed: {ex.Message}";
+            throw;
         }
     }
 
-    private async Task<string> LoadPdfTextCoreAsync(
-        string path,
+    private async Task<PdfLoadResult> LoadPdfTextCoreAsync(
+        string filePath,
         PdfEngine engine,
         bool addPdfPageHeader,
         bool autoReflow,
-        bool compactText,
-        IProgress<string>? progress,
-        CancellationToken token)
+        bool compact,
+        Action<string>? statusCallback,
+        CancellationToken cancellationToken)
     {
-        // Provide a guaranteed non-null delegate
-        Action<string> report = progress != null
-            ? progress.Report
-            : static _ => { };
-
+        // 1) Extract
         string text;
+        int pageCount = 0; // 如果你拿不到页数，先填 0 也行
 
         switch (engine)
         {
-            case PdfEngine.PdfPig:
-                text = await PdfHelper.LoadPdfTextAsync(
-                    path,
-                    addPdfPageHeader,
-                    report,
-                    token);
-                break;
-
             case PdfEngine.Pdfium:
+                statusCallback?.Invoke("📄 Extracting PDF text (Pdfium)...");
+                // 你的原逻辑：PdfiumModel.LoadPdfTextAsync(...)
                 text = await PdfiumModel.ExtractTextAsync(
-                    path,
+                    filePath,
                     addPdfPageHeader,
-                    report,
-                    token);
+                    statusCallback,
+                    cancellationToken);
+                // 如果 Pdfium 那边能拿页数就填；不能就留 0
                 break;
 
+            case PdfEngine.PdfPig:
             default:
-                throw new NotSupportedException($"Unsupported PDF engine: {engine}");
+                statusCallback?.Invoke("📄 Extracting PDF text (PdfPig)...");
+                text = await PdfHelper.LoadPdfTextAsync(
+                    filePath,
+                    addPdfPageHeader,
+                    statusCallback,
+                    cancellationToken);
+                break;
         }
 
-        if (autoReflow)
+        // 2) Auto reflow (保持原样)
+        var reflowApplied = false;
+        if (autoReflow && !string.IsNullOrWhiteSpace(text))
         {
-            text = ReflowModel.ReflowCjkParagraphs(text, addPdfPageHeader, compactText, ShortHeading);
+            statusCallback?.Invoke("🧹 Reflowing CJK paragraphs...");
+            text = ReflowModel.ReflowCjkParagraphs(
+                text,
+                addPdfPageHeader: addPdfPageHeader,
+                compact: compact,
+                shortHeading: ShortHeading);
+
+            reflowApplied = true;
         }
 
-        return text;
+        // 3) Return record
+        return new PdfLoadResult(
+            Text: text,
+            EngineUsed: engine,
+            AutoReflowApplied: reflowApplied,
+            PageCount: pageCount
+        );
     }
 
     private void ReflowCjkParagraphs()
@@ -460,11 +447,11 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        bool hasSelection = TbSourceSelectionLength > 0;
+        var hasSelection = TbSourceSelectionLength > 0;
 
         string sourceText;
-        int start = TbSourceSelectionStart;
-        int length = TbSourceSelectionLength;
+        var start = TbSourceSelectionStart;
+        var length = TbSourceSelectionLength;
 
         if (hasSelection)
         {
@@ -746,14 +733,24 @@ public class MainWindowViewModel : ViewModelBase
                 try
                 {
                     // No progress / CTS here, simple batch usage
-                    pdfText = await LoadPdfTextCoreAsync(
+                    // pdfText = await LoadPdfTextCoreAsync(
+                    //     sourceFilePath,
+                    //     _pdfEngine,
+                    //     _addPdfPageHeader,
+                    //     _autoReflow,
+                    //     _compactPdfText,
+                    //     progress: null,
+                    //     token: CancellationToken.None);
+                    var r = await LoadPdfTextCoreAsync(
                         sourceFilePath,
                         _pdfEngine,
                         _addPdfPageHeader,
                         _autoReflow,
                         _compactPdfText,
-                        progress: null,
-                        token: CancellationToken.None);
+                        statusCallback: null,
+                        cancellationToken: CancellationToken.None);
+
+                    pdfText = r.Text;
                 }
                 catch (Exception ex)
                 {
