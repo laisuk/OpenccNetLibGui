@@ -37,18 +37,18 @@ namespace OpenccNetLibGui.ViewModels
 
         public Task<PdfLoadResult> LoadPdfAsync(
             string filePath,
-            Action<string>? statusCallback,
+            Action<int>? progressCallback,
             CancellationToken cancellationToken)
         {
             return LoadPdfTextCoreAsync(
                 filePath,
-                statusCallback,
+                progressCallback,
                 cancellationToken);
         }
 
         private async Task<PdfLoadResult> LoadPdfTextCoreAsync(
             string filePath,
-            Action<string>? statusCallback,
+            Action<int>? progressCallback,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -64,7 +64,7 @@ namespace OpenccNetLibGui.ViewModels
                     extract = await PdfiumModel.ExtractTextAsync(
                         filePath,
                         IsAddPdfPageHeader,
-                        statusCallback,
+                        progressCallback,
                         cancellationToken);
                     // 如果 Pdfium 那边能拿页数就填；不能就留 0
                     break;
@@ -75,7 +75,7 @@ namespace OpenccNetLibGui.ViewModels
                     extract = await PdfHelper.LoadPdfTextAsync(
                         filePath,
                         IsAddPdfPageHeader,
-                        statusCallback,
+                        progressCallback,
                         cancellationToken);
                     break;
             }
@@ -87,7 +87,6 @@ namespace OpenccNetLibGui.ViewModels
             var reflowApplied = false;
             if (IsAutoReflow && !string.IsNullOrWhiteSpace(text))
             {
-                statusCallback?.Invoke("🧹 Reflowing CJK paragraphs...");
                 text = ReflowModel.ReflowCjkParagraphs(
                     text,
                     addPdfPageHeader: IsAddPdfPageHeader,
@@ -99,7 +98,7 @@ namespace OpenccNetLibGui.ViewModels
 
             // 3) Return record
             return new PdfLoadResult(
-                Text: text ?? string.Empty,
+                Text: text,
                 EngineUsed: PdfEngine,
                 AutoReflowApplied: reflowApplied,
                 PageCount: pageCount

@@ -12,7 +12,7 @@ public partial class ShortHeadingDialog : Window
     private const int MinValue = 3;
     private const int MaxValue = 30;
 
-    // Required by Avalonia XAML loader
+    // Required by Avalonia XAML loader (must be public)
     public ShortHeadingDialog()
     {
         InitializeComponent();
@@ -62,7 +62,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
 
     public ShortHeadingDialogViewModel(ShortHeadingSettings s) => LoadFrom(s);
 
-    public int MaxLen
+    private int MaxLen
     {
         get => _maxLen;
         set

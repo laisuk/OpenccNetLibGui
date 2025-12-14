@@ -81,9 +81,8 @@ namespace OpenccNetLibGui.Models
         /// form <c>=== [Page X/Y] ===</c>, which is useful for debugging or for
         /// downstream paragraph-reflow heuristics that rely on page boundaries.
         /// </param>
-        /// <param name="statusCallback">
-        /// Optional callback invoked periodically with human-readable progress
-        /// messages (e.g. <c>"Loading PDF [#####-----] 45%"</c>).  
+        /// <param name="progressCallback">
+        /// Optional callback invoked periodically progress as percent.  
         ///  
         /// The callback is triggered:
         /// <list type="bullet">
@@ -125,7 +124,7 @@ namespace OpenccNetLibGui.Models
         internal static Task<PdfExtractResult> LoadPdfTextAsync(
             string filename,
             bool addPdfPageHeader,
-            Action<string>? statusCallback = null,
+            Action<int>? progressCallback = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(filename))
@@ -140,7 +139,7 @@ namespace OpenccNetLibGui.Models
 
                 if (total <= 0)
                 {
-                    statusCallback?.Invoke("PDF has no pages.");
+                    progressCallback?.Invoke(0);
                     // return string.Empty;
                     return new PdfExtractResult(
                         string.Empty,
@@ -169,12 +168,12 @@ namespace OpenccNetLibGui.Models
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Progress callback
-                    if (i % block == 0 || i == 1 || i == total)
+                    if (progressCallback != null && (i % block == 0 || i == 1 || i == total))
                     {
                         var percent = (int)((double)i / total * 100);
-                        statusCallback?.Invoke(
-                            $"Loading PDF {BuildProgressBar(percent)}  {percent}%");
+                        progressCallback(percent);
                     }
+
 
                     var page = document.GetPage(i);
                     var text = ContentOrderTextExtractor.GetText(page);
@@ -203,24 +202,6 @@ namespace OpenccNetLibGui.Models
                    total
                 );
             }, cancellationToken);
-        }
-
-        // ---------------------------------------------------------
-        // change BuildProgressBar to use percent, not current/total
-        // ---------------------------------------------------------
-        private static string BuildProgressBar(int percent, int width = 10)
-        {
-            percent = Math.Clamp(percent, 0, 100);
-            var filled = (int)((long)percent * width / 100);
-
-            var sb = new StringBuilder(width * 4 + 2);
-            sb.Append('[');
-
-            for (var i = 0; i < filled; i++) sb.Append("🟩");
-            for (var i = filled; i < width; i++) sb.Append("🟨");
-
-            sb.Append(']');
-            return sb.ToString();
         }
     }
 }

@@ -17,16 +17,16 @@ public class LanguageSettings
     public int ConvertFilename { get; set; }
 
     // -------------------- NEW preferred shape --------------------
-    public PdfOptions? PdfOptions { get; set; } = new PdfOptions();
+    public PdfOptions? PdfOptions { get; set; } = new();
 
     // -------------------- LEGACY fields (keep for old JSON) --------------------
-    // (These match your current flat JSON keys.)
+    // (These match current flat JSON keys.)
     public int AddPdfPageHeader { get; set; }
     public int CompactPdfText { get; set; }
     public int AutoReflowPdfText { get; set; }
     public int PdfEngine { get; set; }
 
-    // NEW (but currently top-level in your existing file)
+    // NEW (but currently top-level in existing JSON file)
     public ShortHeadingSettings ShortHeadingSettings { get; set; } = ShortHeadingSettings.Default;
 
     // LEGACY: keep for loading older JSON
@@ -54,7 +54,7 @@ public class LanguageSettings
             PdfOptions.PdfEngine = PdfEngine == 0 ? 1 : PdfEngine;
 
             // Prefer new ShortHeadingSettings if present, otherwise legacy maxLen
-            var sh = ShortHeadingSettings ?? ShortHeadingSettings.Default;
+            var sh = ShortHeadingSettings;
             if (ShortHeadingMaxLen > 0)
                 sh.MaxLen = ShortHeadingMaxLen;
 
@@ -70,7 +70,7 @@ public class LanguageSettings
         AutoReflowPdfText = PdfOptions.AutoReflowPdfText;
         PdfEngine = PdfOptions.PdfEngine;
 
-        ShortHeadingSettings = PdfOptions.ShortHeadingSettings ?? ShortHeadingSettings.Default;
+        ShortHeadingSettings = PdfOptions.ShortHeadingSettings;
         ShortHeadingMaxLen = ShortHeadingSettings.MaxLen;
     }
 }
@@ -78,19 +78,18 @@ public class LanguageSettings
 [Serializable]
 public sealed class PdfOptions
 {
-    public int AddPdfPageHeader { get; set; } = 0;
-    public int CompactPdfText { get; set; } = 0;
+    public int AddPdfPageHeader { get; set; }
+    public int CompactPdfText { get; set; }
     public int AutoReflowPdfText { get; set; } = 1;
 
     /// <summary>1 = PdfPig, 2 = Pdfium</summary>
-    public int PdfEngine { get; set; } = 0; // 0 = "unset" marker for migration
+    public int PdfEngine { get; set; } // 0 = "unset" marker for migration
 
     public ShortHeadingSettings ShortHeadingSettings { get; set; } = ShortHeadingSettings.Default;
 
     public void Normalize()
     {
         // clamp maxLen
-        ShortHeadingSettings ??= ShortHeadingSettings.Default;
         ShortHeadingSettings.MaxLen = Math.Clamp(ShortHeadingSettings.MaxLen, 3, 30);
 
         // ensure engine is sane
@@ -125,7 +124,7 @@ public sealed class ShortHeadingSettings
     public int AllCjk { get; set; } = 1;
     public int AllAscii { get; set; } = 1;
     public int AllAsciiDigits { get; set; } = 1;
-    public int MixedCjkAscii { get; set; } = 0;
+    public int MixedCjkAscii { get; set; }
 
     // Convenience bool views (optional, but makes call-sites nice)
     public bool AllCjkEnabled => AllCjk > 0;

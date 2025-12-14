@@ -73,9 +73,9 @@ internal static class PdfiumModel
         }
     }
 
-// --------------------------------------------------------------
-//  ExtractTextAsync (with optional progress callback, consistent with PdfPig)
-// --------------------------------------------------------------
+    // --------------------------------------------------------------
+    //  ExtractTextAsync (with optional progress callback, consistent with PdfPig)
+    // --------------------------------------------------------------
 
     /// <summary>
     /// Asynchronously extracts plain text from a PDF file using PDFium,
@@ -89,12 +89,10 @@ internal static class PdfiumModel
     /// <c>=== [Page X/Y] ===</c>, matching the behavior of the PdfPig-based
     /// extractor and aiding downstream reflow or debugging.
     /// </param>
-    /// <param name="statusCallback">
-    /// Optional callback invoked periodically with human-readable progress
-    /// messages such as <c>"Loading PDF [#####-----] 45%"</c>.  
+    /// <param name="progressCallback">
+    /// Optional callback invoked periodically with progress as percent.  
     /// The callback is driven by an internal <c>Progress(pageIndex, percent)</c>
-    /// delegate, which is converted into a text status string using
-    /// <see cref="BuildProgressBar(int,int)"/>.
+    /// delegate.
     /// </param>
     /// <param name="cancellationToken">
     /// Token that can be used to cancel the operation.  
@@ -121,7 +119,7 @@ internal static class PdfiumModel
     internal static Task<PdfExtractResult> ExtractTextAsync(
         string pdfPath,
         bool addPdfPageHeader,
-        Action<string>? statusCallback = null,
+        Action<int>? progressCallback = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(pdfPath))
@@ -140,15 +138,12 @@ internal static class PdfiumModel
 
                 try
                 {
-                    // Wrap your old status string into a simple progress callback (pageIndex, percent)
+                    // Simple progress callback as percent (1-100)
                     void Progress(int pageIndex, int percent)
                     {
-                        if (statusCallback == null)
-                            return;
-
-                        var bar = BuildProgressBar(percent);
-                        statusCallback($"Loading PDF {bar}  {percent}%");
+                        progressCallback?.Invoke(percent);
                     }
+
 
                     return ExtractPages(
                         doc,
@@ -169,8 +164,8 @@ internal static class PdfiumModel
     }
 
     // -------------------------------
-//  Shared core: page loop
-// -------------------------------
+    //  Shared core: page loop
+    // -------------------------------
 
     /// <summary>
     /// Shared PDFium-based page loop used by both synchronous and asynchronous
@@ -214,7 +209,7 @@ internal static class PdfiumModel
     /// <remarks>
     /// <para>
     /// This method is the core engine behind <see cref="ExtractText(string)"/>
-    /// and <see cref="ExtractTextAsync(string, bool, Action{string}?, CancellationToken)"/>.
+    /// and <see cref="ExtractTextAsync(string, bool, Action{int}?, CancellationToken)"/>.
     /// It allocates a reusable UTF-16 buffer once and passes it by reference to
     /// <c>ExtractPageText</c> to minimize per-page allocations.
     /// </para>
@@ -319,7 +314,7 @@ internal static class PdfiumModel
                     PdfiumNative.FPDF_ClosePage(page);
             }
         }
-        
+
         statusCallback?.Invoke(pageCount - 1, 100);
 
         // return sb.ToString();
@@ -330,8 +325,8 @@ internal static class PdfiumModel
     }
 
     // -------------------------------
-//  Per-page text extraction
-// -------------------------------
+    //  Per-page text extraction
+    // -------------------------------
 
     /// <summary>
     /// Extracts raw UTF-16 text from a PDFium text page and returns it as a
@@ -501,18 +496,19 @@ internal static class PdfiumModel
     // -------------------------------
     //  ProgressBar builder (unchanged)
     // -------------------------------
-    private static string BuildProgressBar(int percent, int width = 10)
-    {
-        percent = Math.Clamp(percent, 0, 100);
-        var filled = (int)((long)percent * width / 100);
 
-        var sb = new StringBuilder(width * 4 + 2);
-        sb.Append('[');
-
-        for (var i = 0; i < filled; i++) sb.Append("🟩");
-        for (var i = filled; i < width; i++) sb.Append("🟨");
-
-        sb.Append(']');
-        return sb.ToString();
-    }
+    // private static string BuildProgressBar(int percent, int width = 10)
+    // {
+    //     percent = Math.Clamp(percent, 0, 100);
+    //     var filled = (int)((long)percent * width / 100);
+    //
+    //     var sb = new StringBuilder(width * 4 + 2);
+    //     sb.Append('[');
+    //
+    //     for (var i = 0; i < filled; i++) sb.Append("🟩");
+    //     for (var i = filled; i < width; i++) sb.Append("🟨");
+    //
+    //     sb.Append(']');
+    //     return sb.ToString();
+    // }
 }

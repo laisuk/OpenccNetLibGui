@@ -19,6 +19,7 @@ using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using OpenccNetLibGui.Models;
+using Avalonia.Threading;
 
 namespace OpenccNetLibGui.ViewModels;
 
@@ -80,14 +81,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _selectedItem;
 
     private readonly Opencc? _opencc;
-
     private readonly int _locale;
-    // private bool _addPdfPageHeader;
-    // private bool _compactPdfText;
-    // private bool _autoReflow;
-    // private PdfEngine _pdfEngine;
-    // private int _shortHeadingMaxLen = 8;
-    // private ShortHeadingSettings? _shortHeadingSettings;
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -133,7 +127,6 @@ public class MainWindowViewModel : ViewModelBase
     {
         _topLevelService = topLevelService;
         _languageSettings = languageSettingsService.LanguageSettings;
-        // _languagesInfo = languageSettings?.Languages;
         _locale = _languageSettings.Locale == 1 ? _languageSettings.Locale : 2;
         _selectedLanguage = _languageSettings.Languages![_locale];
         _rbT2SContent = _selectedLanguage.T2SContent ?? "zh-Hant to zh-Hans";
@@ -165,7 +158,7 @@ public class MainWindowViewModel : ViewModelBase
         IsCompactPdfText = po.CompactPdfText > 0;
         IsAutoReflow = po.AutoReflowPdfText > 0;
 
-        ShortHeading = po.ShortHeadingSettings ?? ShortHeadingSettings.Default;
+        ShortHeading = po.ShortHeadingSettings;
         ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
 
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
@@ -354,9 +347,16 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            // LblStatusBarContent = "📄 Loading PDF...";
+            LblStatusBarContent = $"📄 Loading PDF ({Pdf.PdfEngine.ToDisplayName()})...";
+
+            void Progress(int percent)
+            {
+                var msg = $"Loading PDF {BuildProgressBar(percent)}  {percent}%";
+                Dispatcher.UIThread.Post(() => LblStatusBarContent = msg);
+            }
+
             var result = await Pdf.LoadPdfAsync(path,
-                status => LblStatusBarContent = status,
+                Progress,
                 ct);
 
             // stale request guard
@@ -461,7 +461,7 @@ public class MainWindowViewModel : ViewModelBase
             TbSourceSelectionLength = 0;
         }
 
-        LblStatusBarContent = "Reflow complete (CJK-aware)";
+        LblStatusBarContent = "✅ Reflow complete (CJK-aware)";
     }
 
     #endregion
@@ -684,7 +684,7 @@ public class MainWindowViewModel : ViewModelBase
                 try
                 {
                     var r = await Pdf.LoadPdfAsync(
-                        sourceFilePath, statusCallback: null,
+                        sourceFilePath, progressCallback: null,
                         cancellationToken: CancellationToken.None);
 
                     pdfText = r.Text;
@@ -1081,12 +1081,24 @@ public class MainWindowViewModel : ViewModelBase
         ShortHeadingMaxLen = newLen;
 
         // write back to LanguageSettings
-        _languageSettings!.ShortHeadingMaxLen = newLen; // legacy compat (optional)
-        _languageSettings!.ShortHeadingSettings = result; // ✅ new preferred field
+        // _languageSettings!.ShortHeadingMaxLen = newLen; // legacy compat (optional)
+        _languageSettings!.PdfOptions!.ShortHeadingSettings = result; // ✅ new preferred field
 
         // LanguageSettingsHelper.Save(_languageSettings);
     }
 
+    private static string BuildProgressBar(int percent, int width = 10)
+    {
+        percent = Math.Clamp(percent, 0, 100);
+        var filled = (int)((long)percent * width / 100);
+
+        var sb = new StringBuilder(width * 4 + 2);
+        sb.Append('[');
+        for (var i = 0; i < filled; i++) sb.Append("🟩");
+        for (var i = filled; i < width; i++) sb.Append("🟨");
+        sb.Append(']');
+        return sb.ToString();
+    }
 
     #region Control Binding fields Region
 
@@ -1438,7 +1450,12 @@ public class MainWindowViewModel : ViewModelBase
     public bool IsCbConvertFilename
     {
         get => _isCbConvertFilename;
-        set => this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
+        set
+        {
+            if (IsCbConvertFilename == value) return;
+            _languageSettings!.ConvertFilename = value ? 1 : 0;
+            this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
+        }
     }
 
     public bool IsAddPdfPageHeader
