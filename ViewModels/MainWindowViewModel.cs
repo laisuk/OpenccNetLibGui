@@ -308,8 +308,11 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            if ((_textFileTypes == null || !_textFileTypes!.Contains(fileExt)) && !OpenXmlHelper.IsDocx(path) &&
-                !OpenXmlHelper.IsOdt(path))
+            var isTxt = _textFileTypes != null && _textFileTypes.Contains(fileExt);
+
+            if (!isTxt
+                && !OpenXmlHelper.IsDocx(path)
+                && !OpenXmlHelper.IsOdt(path))
             {
                 LblStatusBarContent = $"Error: File type ({fileExt}) not support";
                 return;
@@ -330,15 +333,7 @@ public class MainWindowViewModel : ViewModelBase
 
     #region PDF Handling Region
 
-    // private CancellationTokenSource? _pdfCts;
-    // private int _pdfRequestId;
-
     // Public/simple entry point used by UI / DnD / menu etc.
-    // internal Task UpdateTbSourcePdfAsync(string path)
-    // {
-    //     // Delegate to the core method, using VM-level settings
-    //     return UpdateTbSourcePdfAsync(path, PdfEngine, IsAddPdfPageHeader);
-    // }
 
     internal async Task UpdateTbSourcePdfAsync(string path)
     {
@@ -375,13 +370,13 @@ public class MainWindowViewModel : ViewModelBase
         }
         catch (OperationCanceledException)
         {
-            // optional: keep your existing behavior
+            // optional: keep existing behavior
             LblStatusBarContent = $"⏹ PDF loading cancelled: {Path.GetFileName(path)}";
         }
         catch (Exception ex)
         {
             LblStatusBarContent = $"❌ PDF load failed: {ex.Message}";
-            throw;
+            // throw;
         }
     }
 
@@ -434,15 +429,15 @@ public class MainWindowViewModel : ViewModelBase
         if (hasSelection)
         {
             // Avoid double newline if already present
-            if (!result.EndsWith("\n"))
+            if (!result.EndsWith('\n'))
                 result += "\n";
         }
 
         if (hasSelection)
         {
             // Replace only the selected region
-            var before = fullText.Substring(0, start);
-            var after = fullText.Substring(start + length);
+            var before = fullText[..start];
+            var after = fullText[(start + length)..];
 
             var newFull = before + result + after;
             document.Text = newFull;
@@ -629,9 +624,9 @@ public class MainWindowViewModel : ViewModelBase
                 continue;
             }
 
-            bool isText = _textFileTypes!.Contains(fileExt);
-            bool isOffice = _officeFileTypes!.Contains(fileExt);
-            bool isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
+            var isText = _textFileTypes!.Contains(fileExt);
+            var isOffice = _officeFileTypes!.Contains(fileExt);
+            var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
 
             if (!isText && !isOffice && !isPdf)
             {
@@ -710,7 +705,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 await File.WriteAllTextAsync(pdfOutputPath, convertedText);
 
-                LbxDestinationItems.Add($"({count}) {pdfOutputPath} ({pageCount:N0} Pages) -> ✅ Done");
+                LbxDestinationItems.Add($"({count}) {pdfOutputPath} ({pageCount:N0} pages) -> ✅ Done");
             }
             else
             {
@@ -811,7 +806,6 @@ public class MainWindowViewModel : ViewModelBase
         foreach (var item in pdfList)
             LbxSourceItems.Add(item);
     }
-
 
     private void BtnRemove()
     {
@@ -994,9 +988,10 @@ public class MainWindowViewModel : ViewModelBase
             else
             {
                 var fileInfo = new FileInfo(filename);
-                if (fileInfo.Length > int.MaxValue)
+                var isTxt = _textFileTypes != null && _textFileTypes.Contains(fileInfo.Extension);
+                if (!isTxt)
                 {
-                    LblStatusBarContent = "Error: File too large";
+                    LblStatusBarContent = $"Error: Unsupported file type. ({fileInfo.Extension})";
                     return;
                 }
 
@@ -1026,7 +1021,6 @@ public class MainWindowViewModel : ViewModelBase
             Console.WriteLine($"Exception in UpdateTbSourceFileContentsAsync: {ex}");
         }
     }
-
 
     private string GetCurrentConfig()
     {
