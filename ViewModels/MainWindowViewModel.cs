@@ -294,7 +294,7 @@ public class MainWindowViewModel : ViewModelBase
             var path = file.Path.LocalPath;
             var fileExt = Path.GetExtension(path);
 
-            if (fileExt == ".pdf")
+            if (fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
@@ -308,7 +308,7 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            var isTxt = _textFileTypes != null && _textFileTypes.Contains(fileExt);
+            var isTxt = _textFileTypes != null && _textFileTypes.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
 
             if (!isTxt
                 && !OpenXmlHelper.IsDocx(path)
@@ -615,7 +615,7 @@ public class MainWindowViewModel : ViewModelBase
         foreach (var sourceFilePath in LbxSourceItems)
         {
             count++;
-            var fileExt = Path.GetExtension(sourceFilePath);
+            var fileExt = Path.GetExtension(sourceFilePath).ToLower();
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
@@ -624,8 +624,8 @@ public class MainWindowViewModel : ViewModelBase
                 continue;
             }
 
-            var isText = _textFileTypes!.Contains(fileExt);
-            var isOffice = _officeFileTypes!.Contains(fileExt);
+            var isText = _textFileTypes != null && _textFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
+            var isOffice = _officeFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
             var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
 
             if (!isText && !isOffice && !isPdf)
@@ -832,7 +832,7 @@ public class MainWindowViewModel : ViewModelBase
         var filename = LbxSourceSelectedItem;
         var extension = Path.GetExtension(filename);
 
-        if (extension.Length > 1 && !_textFileTypes!.Contains(extension))
+        if (extension.Length > 1 && !_textFileTypes!.Contains(extension, StringComparer.OrdinalIgnoreCase))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + extension + "] ❌ Preview not supported");
@@ -874,7 +874,7 @@ public class MainWindowViewModel : ViewModelBase
 
             var fileExt = Path.GetExtension(item);
 
-            if (fileExt.Length == 0 || _textFileTypes!.Contains(fileExt))
+            if (_textFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase))
             {
                 string inputText;
                 try
@@ -987,11 +987,12 @@ public class MainWindowViewModel : ViewModelBase
             // ---- Plain text ----
             else
             {
-                var fileInfo = new FileInfo(filename);
-                var isTxt = _textFileTypes != null && _textFileTypes.Contains(fileInfo.Extension);
+                var fileExt = new FileInfo(filename).Extension;
+                var isTxt = _textFileTypes != null &&
+                            _textFileTypes.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
                 if (!isTxt)
                 {
-                    LblStatusBarContent = $"Error: Unsupported file type. ({fileInfo.Extension})";
+                    LblStatusBarContent = $"Error: Unsupported file type. ({fileExt})";
                     return;
                 }
 
