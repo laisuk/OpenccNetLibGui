@@ -58,7 +58,7 @@ namespace OpenccNetLibGui.Models
             '・' // full-width ideographic dot (U+3000)
         };
 
-        // Metadata heading title noames
+        // Metadata heading title names
         private static readonly HashSet<string> MetadataKeys = new(StringComparer.Ordinal)
         {
             // ===== 1. Title / Author / Publishing =====
@@ -292,15 +292,32 @@ namespace OpenccNetLibGui.Models
                 var stripped = rawLine.TrimEnd();
                 stripped = StripHalfWidthIndentKeepFullWidth(stripped);
 
+                // 2) Probe form (for structural / heading detection): remove all indentation
+                var probe = stripped.TrimStart(' ', '\u3000');
+
+                // 🧱 ABSOLUTE STRUCTURAL RULE — must be first (run on probe, output stripped)
+                if (IsBoxDrawingLine(probe))
+                {
+                    if (buffer.Length > 0)
+                    {
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
+
+                    segments.Add(stripped);
+                    continue;
+                }
+
                 // 🔹 NEW: collapse style-layer repeated segments *before* heading detection
                 stripped = CollapseRepeatedSegments(stripped);
 
-                // 2) Logical form for heading detection: no indent at all
+                // 3) Logical form for heading detection: no indent at all
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
                 var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
                 var isShortHeading = IsHeadingLike(stripped, shortHeading);
-                var isMetadata = IsMetadataLine(stripped); // 〈── 新增
+                var isMetadata = IsMetadataLine(stripped); // 〈── New
 
                 // Collapse style-layer repeated titles
                 // if (isTitleHeading)
@@ -372,10 +389,12 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // 3c) 弱 heading-like：只在「上一段安全」且「上一段尾部像一句話的結束」時才生效
+                // 3c) Weak heading-like:
+                //     Only takes effect when the “previous paragraph is safe”
+                //     AND “the previous paragraph’s ending looks like a sentence boundary”.
                 if (isShortHeading)
                 {
-                    // 判斷當前行是否「全 CJK」（忽略空白）
+                    // Determine whether the current line is “all CJK” (ignoring whitespace)
                     var isAllCjk = true;
                     foreach (var ch in stripped)
                     {
@@ -391,10 +410,11 @@ namespace OpenccNetLibGui.Models
                     {
                         var bufText = buffer.ToString();
 
-                        // 🔐 1) 若上一段仍有未配對括號／書名號 → 必定是續行，不能當 heading
+                        // 🔐 1) If the previous paragraph still has unclosed brackets / book-title marks,
+                        //        it must be a continuation line and must NOT be treated as a heading.
                         if (HasUnclosedBracket(bufText))
                         {
-                            // fall through → 當普通行，由後面的 merge 邏輯處理
+                            // fall through → treat as a normal line, handled by the merge logic below
                         }
                         else
                         {
@@ -403,23 +423,28 @@ namespace OpenccNetLibGui.Models
                             {
                                 var last = bt[^1];
 
-                                // 🔸 2) 上一行逗號結尾 → 視作續句，不當 heading
-                                if (last is '，' or ',')
+                                // 🔸 2) Previous line ends with a comma →
+                                //        treat as a continuing sentence, not a heading.
+                                if (last is '，' or ',' or '、')
                                 {
-                                    // fall through → default merge
+                                    // fall through → default merge behavior
                                 }
-                                // 🔸 3) 對於「全 CJK 的短 heading-like」，
-                                //     如果上一行 *不是* 以 CJK 句末符號結束，也當續句，不切段。
+                                // 🔸 3) For “all-CJK short heading-like” lines:
+                                //        if the previous line does NOT end with a CJK sentence-ending
+                                //        punctuation, treat it as a continuation and do not split.
                                 else if (isAllCjk && Array.IndexOf(CjkPunctEndChars, last) < 0)
                                 {
                                     // e.g.:
                                     //   内容简介： 《盗
-                                    //   墓笔记:吴邪的盗墓笔   ← 雖然像短 heading，但上一行未「句號收尾」
-                                    // fall through → 當續行
+                                    //   墓笔记:吴邪的盗墓笔   ← Although it looks like a short heading,
+                                    //                         the previous line did not end with a sentence terminator
+                                    // fall through → treat as continuation
                                 }
                                 else
                                 {
-                                    // ✅ 真 heading-like → flush 舊段，再把當前行當作獨立 heading
+                                    // ✅ True heading-like:
+                                    //    flush the previous paragraph, then treat the current line
+                                    //    as an independent heading.
                                     segments.Add(bufText);
                                     buffer.Clear();
                                     dialogState.Reset();
@@ -429,7 +454,8 @@ namespace OpenccNetLibGui.Models
                             }
                             else
                             {
-                                // buffer 有長度但全空白，其實等同無 → 直接當 heading
+                                // Buffer has length but contains only whitespace;
+                                // effectively equivalent to empty → treat directly as a heading.
                                 segments.Add(stripped);
                                 continue;
                             }
@@ -437,7 +463,8 @@ namespace OpenccNetLibGui.Models
                     }
                     else
                     {
-                        // buffer 空（文件開頭／上一段剛 flush 完）→ 允許短 heading 單獨出現
+                        // Buffer is empty (start of document / just flushed a paragraph) →
+                        // allow a short heading to stand alone.
                         segments.Add(stripped);
                         continue;
                     }
@@ -493,7 +520,6 @@ namespace OpenccNetLibGui.Models
                         continue;
                     }
                 }
-
 
                 // NEW RULE: colon + dialog continuation
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
@@ -585,15 +611,20 @@ namespace OpenccNetLibGui.Models
                 if (s.StartsWith("=== ") && s.EndsWith("==="))
                     return false;
 
-                // If ends with CJK punctuation → not heading
-                var last = s[^1];
-                if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
-                    return false;
-
                 // Reject headings with unclosed brackets
                 if (HasUnclosedBracket(s))
                     return false;
 
+                // If ends with CJK punctuation → not heading
+                var last = s[^1];
+
+                // Short circuit for item title-like: "物品准备："
+                if ((last is ':' or '：') && s.Length <= sh.MaxLen && IsAllCjk(s[..^1]))
+                    return true;
+                
+                if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
+                    return false;
+                
                 // Reject any short line containing comma-like separators
                 if (s.Contains('，') || s.Contains(',') || s.Contains('、'))
                     return false;
@@ -605,7 +636,8 @@ namespace OpenccNetLibGui.Models
                 // ASCII headings can be longer
                 var effectiveMax = baseMax;
 
-                if (sh.AllAsciiEnabled && IsAllAscii(s))
+                if ((sh.AllAsciiEnabled && IsAllAscii(s)) ||
+                    (sh.MixedCjkAsciiEnabled && IsMixedCjkAscii(s)))
                 {
                     effectiveMax = Math.Clamp(baseMax * 2, 10, 30);
                 }
@@ -614,6 +646,7 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // Reject any CJK end punctuation inside the string (strong heuristic)
+                // Intentionally not using LINQ here for performance (hot path)
                 foreach (var p in CjkPunctEndChars)
                 {
                     if (s.Contains(p))
@@ -911,6 +944,50 @@ namespace OpenccNetLibGui.Models
                 i++;
 
             return s.Substring(i);
+        }
+
+        /// <summary>
+        /// Detects visual separator / divider lines such as:
+        /// ──────
+        /// ======
+        /// ------
+        /// or mixed variants (e.g. ───===───).
+        /// 
+        /// This method is intended to run on a *probe* string
+        /// (indentation already removed). Whitespace is ignored.
+        /// 
+        /// These lines represent layout boundaries and must always
+        /// force paragraph breaks during reflow.
+        /// </summary>
+        private static bool IsBoxDrawingLine(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                return false;
+
+            var total = 0;
+
+            foreach (var ch in s)
+            {
+                // Ignore whitespace completely (probe may still contain gaps)
+                if (char.IsWhiteSpace(ch))
+                    continue;
+
+                total++;
+
+                // Unicode box drawing block (U+2500–U+257F)
+                if (ch >= '\u2500' && ch <= '\u257F')
+                    continue;
+
+                // ASCII visual separators (common in TXT / OCR)
+                if (ch is '-' or '=' or '_' or '~')
+                    continue;
+
+                // Any real text → not a pure visual divider
+                return false;
+            }
+
+            // Require minimal visual length to avoid accidental triggers
+            return total >= 3;
         }
 
         // ------------------------------------------------------------
