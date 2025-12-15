@@ -29,9 +29,9 @@ namespace OpenccNetLibGui.Models
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
         private static readonly Regex TitleHeadingRegex =
             new(
-                @"^(?=.{0,60}$)
+                @"^(?=.{0,50}$)
                   (前言|序章|终章|尾声|后记|尾聲|後記|番外.{0,15}
-                  |.{0,20}?第.{0,10}?([章节部卷節回][^分合]).{0,20}?
+                  |.{0,10}?第.{0,5}?([章节部卷節回][^分合]).{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
