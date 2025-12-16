@@ -50,7 +50,6 @@ public class LanguageSettingsService
                 var settings = JsonConvert.DeserializeObject<LanguageSettings>(json);
                 if (settings is not null)
                 {
-                  settings.Normalize();
                   return settings;
                 }
             }
@@ -189,7 +188,6 @@ public class LanguageSettingsService
       ""mixedCjkAscii"": 0
     }
   },
-  ""ShortHeadingMaxLen"": 8,
   ""punctuation"": 1,
   ""convertFilename"": 0,
   ""dictionary"": ""zstd"",
@@ -199,7 +197,6 @@ public class LanguageSettingsService
 
         File.WriteAllText(filePath, languageSettingsText);
         var defaultSettings = JsonConvert.DeserializeObject<LanguageSettings>(languageSettingsText)!;
-        defaultSettings.Normalize();
         return defaultSettings;
     }
 }

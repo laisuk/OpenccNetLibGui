@@ -52,10 +52,11 @@ namespace OpenccNetLibGui.Models
         // Metadata key-value separators
         private static readonly char[] MetadataSeparators =
         {
-            '：', // full-width colon
-            ':', // ASCII colon
-            '　', // full-width ideographic space (U+3000)
-            '・' // full-width ideographic dot (U+3000)
+            '：', // FULLWIDTH COLON (U+FF1A)
+            ':',  // COLON (ASCII) (U+003A)
+            '·',  // MIDDLE DOT (U+00B7)
+            '・', // KATAKANA MIDDLE DOT (U+30FB)
+            '　'  // IDEOGRAPHIC SPACE (U+3000)
         };
 
         // Metadata heading title names
@@ -335,14 +336,15 @@ namespace OpenccNetLibGui.Models
                             continue;
                     }
 
-                    // End of paragraph → flush buffer, do not add ""
+                    // End of paragraph → flush buffer (do NOT emit "")
                     if (buffer.Length > 0)
                     {
                         segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
-
+                    // IMPORTANT: Emitting empty segments would introduce
+                    // hard paragraph boundaries and break cross-line reflow
                     continue;
                 }
 

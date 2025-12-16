@@ -1462,7 +1462,7 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             Pdf.IsAddPdfPageHeader = value;
-            _languageSettings!.AddPdfPageHeader = value ? 1 : 0;
+            // _languageSettings!.AddPdfPageHeader = value ? 1 : 0;
 
             this.RaisePropertyChanged();
         }
@@ -1477,7 +1477,7 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             Pdf.IsCompactPdfText = value;
-            _languageSettings!.CompactPdfText = value ? 1 : 0;
+            // _languageSettings!.CompactPdfText = value ? 1 : 0;
 
             this.RaisePropertyChanged();
         }
@@ -1492,7 +1492,7 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             Pdf.IsAutoReflow = value;
-            _languageSettings!.AutoReflowPdfText = value ? 1 : 0;
+            // _languageSettings!.AutoReflowPdfText = value ? 1 : 0;
 
             this.RaisePropertyChanged();
         }
@@ -1610,7 +1610,7 @@ public class MainWindowViewModel : ViewModelBase
             po.ShortHeadingSettings.MaxLen = clamped;
 
             // Optional: keep legacy in sync during transition
-            _languageSettings.ShortHeadingMaxLen = clamped;
+            // _languageSettings.ShortHeadingMaxLen = clamped;
 
             this.RaisePropertyChanged(); // ShortHeadingMaxLen
         }

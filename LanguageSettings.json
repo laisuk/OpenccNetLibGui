@@ -125,9 +125,8 @@
       "mixedCjkAscii": 0
     }
   },
-  "ShortHeadingMaxLen": 8,
   "punctuation": 1,
   "convertFilename": 0,
   "dictionary": "zstd",
-  "locale": 1
+  "locale": 2
 }

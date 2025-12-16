@@ -98,6 +98,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
     {
         get
         {
+            if (!AllAsciiDigits && AllAscii) return null;
             if (AllAscii) return true;
             if (AllAsciiDigits) return null;
             return false;
@@ -151,13 +152,10 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         get => _allAsciiDigits;
         set
         {
+            if (_allAsciiDigits == value) return;
             this.RaiseAndSetIfChanged(ref _allAsciiDigits, value);
-
-            // If user selects digits-only, parent becomes indeterminate (not auto-check).
-            // But if you prefer "digits implies ascii", uncomment:
-            // if (value && !AllAscii) AllAscii = true;
-            if (!value && AllAscii) AllAscii = false;
-
+            // if (!value && AllAscii) AllAscii = false;
+            
             RaiseAsciiStateChanged();
         }
     }
@@ -176,15 +174,35 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
 
     public void LoadFrom(ShortHeadingSettings s)
     {
-        MaxLen = s.MaxLen;
-        AllCjk = s.AllCjkEnabled;
-        _allAscii = s.AllAsciiEnabled;
-        _allAsciiDigits = s.AllAsciiDigitsEnabled;
-        this.RaisePropertyChanged(nameof(AllAscii));
-        this.RaisePropertyChanged(nameof(AllAsciiDigits));
+        _syncingAsciiState = true;
+        try
+        {
+            MaxLen = s.MaxLen;
+            AllCjk = s.AllCjkEnabled;
+            MixedCjkAscii = s.MixedCjkAsciiEnabled;
+
+            // ✅ 直接套 backing 值，避免 setter 互相干擾
+            if (_allAscii != s.AllAsciiEnabled)
+            {
+                _allAscii = s.AllAsciiEnabled;
+                this.RaisePropertyChanged(nameof(AllAscii));
+            }
+
+            if (_allAsciiDigits != s.AllAsciiDigitsEnabled)
+            {
+                _allAsciiDigits = s.AllAsciiDigitsEnabled;
+                this.RaisePropertyChanged(nameof(AllAsciiDigits));
+            }
+        }
+        finally
+        {
+            _syncingAsciiState = false;
+        }
+
+        // ✅ 最後再一次性通知 tri-state parent
         this.RaisePropertyChanged(nameof(AsciiState));
-        MixedCjkAscii = s.MixedCjkAsciiEnabled;
     }
+
 
     public ShortHeadingSettings ToSettings() => new()
     {

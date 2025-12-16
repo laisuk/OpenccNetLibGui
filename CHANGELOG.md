@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] – 2025-12-13
+## [1.4.0] – 2025-12-16
 
 ### Added
 
@@ -47,6 +47,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Better handling of dialog continuation, punctuation-based joins,
       metadata lines, and mixed CJK/ASCII content.
     - More robust collapse of layout-level repeated titles and headings.
+    - Detect drawing box line pattern as paragraph separator.
 - **Main text import pipeline unified**
     - Drag-and-drop and Open File now share the same document-loading logic.
     - DOCX, ODT, and plain text files are consistently routed through the same
@@ -58,6 +59,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
         - Text reflow logic (ReflowModel)
         - User configuration (LanguageSettings / ShortHeadingSettings)
 - Update `OpenccNetLib` to v1.4.0
+- Update `OpenccNetLibGui` runtimes to `.Net 10`
 
 ### Notes
 
