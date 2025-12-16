@@ -57,6 +57,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
         - Office document parsing (DOCX / ODT)
         - Text reflow logic (ReflowModel)
         - User configuration (LanguageSettings / ShortHeadingSettings)
+- Update `OpenccNetLib` to v1.4.0
 
 ### Notes
 
