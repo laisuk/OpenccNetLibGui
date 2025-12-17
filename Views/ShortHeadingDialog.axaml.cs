@@ -137,6 +137,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         get => _allAscii;
         set
         {
+            if (_allAscii == value) return;
             this.RaiseAndSetIfChanged(ref _allAscii, value);
 
             // If user turns off ASCII, digits-only cannot remain enabled.
@@ -181,7 +182,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
             AllCjk = s.AllCjkEnabled;
             MixedCjkAscii = s.MixedCjkAsciiEnabled;
 
-            // ✅ 直接套 backing 值，避免 setter 互相干擾
+            // ✅ Set backing fields directly，avoid setter interference
             if (_allAscii != s.AllAsciiEnabled)
             {
                 _allAscii = s.AllAsciiEnabled;
@@ -199,7 +200,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
             _syncingAsciiState = false;
         }
 
-        // ✅ 最後再一次性通知 tri-state parent
+        // ✅ Lastly, inform tri-state parent 
         this.RaisePropertyChanged(nameof(AsciiState));
     }
 

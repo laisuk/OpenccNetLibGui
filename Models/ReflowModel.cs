@@ -53,10 +53,10 @@ namespace OpenccNetLibGui.Models
         private static readonly char[] MetadataSeparators =
         {
             '：', // FULLWIDTH COLON (U+FF1A)
-            ':',  // COLON (ASCII) (U+003A)
-            '·',  // MIDDLE DOT (U+00B7)
+            ':', // COLON (ASCII) (U+003A)
+            '·', // MIDDLE DOT (U+00B7)
             '・', // KATAKANA MIDDLE DOT (U+30FB)
-            '　'  // IDEOGRAPHIC SPACE (U+3000)
+            '　' // IDEOGRAPHIC SPACE (U+3000)
         };
 
         // Metadata heading title names
@@ -343,6 +343,7 @@ namespace OpenccNetLibGui.Models
                         buffer.Clear();
                         dialogState.Reset();
                     }
+
                     // IMPORTANT: Emitting empty segments would introduce
                     // hard paragraph boundaries and break cross-line reflow
                     continue;
@@ -623,10 +624,10 @@ namespace OpenccNetLibGui.Models
                 // Short circuit for item title-like: "物品准备："
                 if ((last is ':' or '：') && s.Length <= sh.MaxLen && IsAllCjk(s[..^1]))
                     return true;
-                
+
                 if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
                     return false;
-                
+
                 // Reject any short line containing comma-like separators
                 if (s.Contains('，') || s.Contains(',') || s.Contains('、'))
                     return false;
@@ -976,16 +977,25 @@ namespace OpenccNetLibGui.Models
 
                 total++;
 
-                // Unicode box drawing block (U+2500–U+257F)
-                if (ch >= '\u2500' && ch <= '\u257F')
-                    continue;
+                switch (ch)
+                {
+                    // Unicode box drawing block (U+2500–U+257F)
+                    case >= '\u2500' and <= '\u257F':
 
-                // ASCII visual separators (common in TXT / OCR)
-                if (ch is '-' or '=' or '_' or '~')
-                    continue;
+                    // ASCII visual separators (common in TXT / OCR)
+                    case '-' or '=' or '_' or '~' or '～':
 
-                // Any real text → not a pure visual divider
-                return false;
+                    // Star / asterisk-based visual dividers
+                    case '*' // ASTERISK (U+002A)
+                        or '＊' // FULLWIDTH ASTERISK (U+FF0A)
+                        or '★' // BLACK STAR (U+2605)
+                        or '☆': // WHITE STAR (U+2606):
+                        continue;
+
+                    default:
+                        // Any real text → not a pure visual divider
+                        return false;
+                }
             }
 
             // Require minimal visual length to avoid accidental triggers

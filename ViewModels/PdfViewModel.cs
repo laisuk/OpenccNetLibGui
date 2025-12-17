@@ -15,8 +15,6 @@ namespace OpenccNetLibGui.ViewModels
         public bool IsAddPdfPageHeader { get; set; }
         public bool IsCompactPdfText { get; set; }
         public bool IsAutoReflow { get; set; }
-
-        public int ShortHeadingMaxLen { get; set; }
         public ShortHeadingSettings? ShortHeading { get; set; }
 
         public void Cancel()
@@ -60,13 +58,13 @@ namespace OpenccNetLibGui.ViewModels
             {
                 case PdfEngine.Pdfium:
                     // statusCallback?.Invoke("📄 Extracting PDF text (Pdfium)...");
-                    // 你的原逻辑：PdfiumModel.LoadPdfTextAsync(...)
+                    // Original logic：PdfiumModel.LoadPdfTextAsync(...)
                     extract = await PdfiumModel.ExtractTextAsync(
                         filePath,
                         IsAddPdfPageHeader,
                         progressCallback,
                         cancellationToken);
-                    // 如果 Pdfium 那边能拿页数就填；不能就留 0
+                    // If Pdfium can get total page: otherwise 0
                     break;
 
                 case PdfEngine.PdfPig:
@@ -83,18 +81,22 @@ namespace OpenccNetLibGui.ViewModels
             var text = extract.Text;
             var pageCount = extract.PageCount;
 
-            // 2) Auto reflow (保持原样)
+            // 2) Auto reflow (keep)
             var reflowApplied = false;
-            if (IsAutoReflow && !string.IsNullOrWhiteSpace(text))
-            {
-                text = ReflowModel.ReflowCjkParagraphs(
-                    text,
-                    addPdfPageHeader: IsAddPdfPageHeader,
-                    compact: IsCompactPdfText,
-                    shortHeading: ShortHeading);
+            if (!IsAutoReflow || string.IsNullOrWhiteSpace(text))
+                return new PdfLoadResult(
+                    Text: text,
+                    EngineUsed: PdfEngine,
+                    AutoReflowApplied: reflowApplied,
+                    PageCount: pageCount
+                );
+            text = ReflowModel.ReflowCjkParagraphs(
+                text,
+                addPdfPageHeader: IsAddPdfPageHeader,
+                compact: IsCompactPdfText,
+                shortHeading: ShortHeading);
 
-                reflowApplied = true;
-            }
+            reflowApplied = true;
 
             // 3) Return record
             return new PdfLoadResult(

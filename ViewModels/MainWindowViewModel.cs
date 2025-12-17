@@ -38,7 +38,6 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbPunctuation = true;
     private bool _isCbZhtw;
     private bool _isCbZhtwEnabled;
-    private bool _isCbConvertFilename;
     private bool _isLblFileNameVisible = true;
     private bool _isRbHk;
     private bool _isRbS2T;
@@ -70,7 +69,6 @@ public class MainWindowViewModel : ViewModelBase
     private string? _cbPunctuationContent = "Punctuation (标点)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
-
     private string? _tbOutFolderText = "./output/";
 
     // private string? _tbPreviewText = string.Empty;
@@ -81,7 +79,9 @@ public class MainWindowViewModel : ViewModelBase
     private string? _selectedItem;
 
     private readonly Opencc? _opencc;
+    private bool _isCbConvertFilename;
     private readonly int _locale;
+    private PdfViewModel Pdf { get; }
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -90,8 +90,6 @@ public class MainWindowViewModel : ViewModelBase
         get => _selectedItem;
         set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
     }
-
-    private PdfViewModel Pdf { get; }
 
     public MainWindowViewModel()
     {
@@ -152,14 +150,14 @@ public class MainWindowViewModel : ViewModelBase
         IsCbConvertFilename = _languageSettings.ConvertFilename > 0;
 
         // PDF Options (from pdfOptions)
-        var po = _languageSettings.PdfOptions!;
+        var po = _languageSettings.PdfOptions;
 
         IsAddPdfPageHeader = po.AddPdfPageHeader > 0;
         IsCompactPdfText = po.CompactPdfText > 0;
         IsAutoReflow = po.AutoReflowPdfText > 0;
 
         ShortHeading = po.ShortHeadingSettings;
-        ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
+        // ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
 
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
         var engine = PdfEngineHelper.InitPdfEngine(po.PdfEngine);
@@ -179,7 +177,6 @@ public class MainWindowViewModel : ViewModelBase
             IsAddPdfPageHeader = IsAddPdfPageHeader,
             IsCompactPdfText = IsCompactPdfText,
             IsAutoReflow = IsAutoReflow,
-            ShortHeadingMaxLen = ShortHeadingMaxLen,
             ShortHeading = ShortHeading,
         };
 
@@ -334,7 +331,6 @@ public class MainWindowViewModel : ViewModelBase
     #region PDF Handling Region
 
     // Public/simple entry point used by UI / DnD / menu etc.
-
     internal async Task UpdateTbSourcePdfAsync(string path)
     {
         var requestId = Pdf.NewRequestId();
@@ -358,7 +354,7 @@ public class MainWindowViewModel : ViewModelBase
             if (requestId != Pdf.CurrentRequestId)
                 return;
 
-            // Apply to UI (MWVM responsibility)
+            // Apply to UI (MainWindowVM responsibility)
             TbSourceTextDocument!.Text = result.Text;
             CurrentOpenFilename = path;
             var displayName = Path.GetFileName(path);
@@ -1068,16 +1064,11 @@ public class MainWindowViewModel : ViewModelBase
         if (result is null)
             return;
 
-        // optional clamp (dialog already clamps, but safe)
-        var newLen = Math.Clamp(result.MaxLen, 3, 30);
-
-        // update your in-memory state
+        // update in-memory state
         ShortHeading = result;
-        ShortHeadingMaxLen = newLen;
 
         // write back to LanguageSettings
-        // _languageSettings!.ShortHeadingMaxLen = newLen; // legacy compat (optional)
-        _languageSettings!.PdfOptions!.ShortHeadingSettings = result; // ✅ new preferred field
+        _languageSettings!.PdfOptions.ShortHeadingSettings = result; // ✅ new preferred field
 
         // LanguageSettingsHelper.Save(_languageSettings);
     }
@@ -1287,7 +1278,6 @@ public class MainWindowViewModel : ViewModelBase
             // IsRbSegment = false;
             // IsRbTag = false;
             LblSourceCodeContent = _selectedLanguage!.Name![2];
-            // LblDestinationCodeContent = _languagesInfo[1].Name;
         }
     }
 
@@ -1300,7 +1290,6 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbS2T = false;
             LblSourceCodeContent = _selectedLanguage!.Name![1];
-            // LblDestinationCodeContent = _languagesInfo[2].Name;
         }
     }
 
@@ -1462,7 +1451,6 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             Pdf.IsAddPdfPageHeader = value;
-            // _languageSettings!.AddPdfPageHeader = value ? 1 : 0;
 
             this.RaisePropertyChanged();
         }
@@ -1477,7 +1465,6 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             Pdf.IsCompactPdfText = value;
-            // _languageSettings!.CompactPdfText = value ? 1 : 0;
 
             this.RaisePropertyChanged();
         }
@@ -1492,7 +1479,6 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             Pdf.IsAutoReflow = value;
-            // _languageSettings!.AutoReflowPdfText = value ? 1 : 0;
 
             this.RaisePropertyChanged();
         }
@@ -1562,7 +1548,7 @@ public class MainWindowViewModel : ViewModelBase
 
             Pdf.PdfEngine = value;
             // Sync settings object (no magic numbers)
-            _languageSettings!.PdfOptions!.PdfEngine = (int)value;
+            _languageSettings!.PdfOptions.PdfEngine = (int)value;
 
             // PdfEngine changed → notify RadioButtons
             this.RaisePropertyChanged(); // ✅ add this for self-changed
@@ -1593,29 +1579,6 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public int ShortHeadingMaxLen
-    {
-        get => Pdf.ShortHeadingMaxLen;
-        set
-        {
-            var clamped = Math.Clamp(value, 3, 30);
-            if (Pdf.ShortHeadingMaxLen == clamped)
-                return;
-
-            // Update PdfViewModel (single source of truth)
-            Pdf.ShortHeadingMaxLen = clamped;
-
-            // Sync to pdfOptions (NEW canonical storage)
-            var po = _languageSettings!.PdfOptions!;
-            po.ShortHeadingSettings.MaxLen = clamped;
-
-            // Optional: keep legacy in sync during transition
-            // _languageSettings.ShortHeadingMaxLen = clamped;
-
-            this.RaisePropertyChanged(); // ShortHeadingMaxLen
-        }
-    }
-
     public ShortHeadingSettings? ShortHeading
     {
         get => Pdf.ShortHeading;
@@ -1626,7 +1589,7 @@ public class MainWindowViewModel : ViewModelBase
 
             if (_languageSettings is not null)
             {
-                _languageSettings.PdfOptions!.ShortHeadingSettings =
+                _languageSettings.PdfOptions.ShortHeadingSettings =
                     value ?? ShortHeadingSettings.Default;
             }
 
