@@ -397,80 +397,67 @@ namespace OpenccNetLibGui.Models
                 //     AND “the previous paragraph’s ending looks like a sentence boundary”.
                 if (isShortHeading)
                 {
-                    // Determine whether the current line is “all CJK” (ignoring whitespace)
-                    var isAllCjk = true;
-                    foreach (var ch in stripped)
+                    var isAllCjk = IsAllCjkIgnoringWhitespace(stripped);
+
+                    bool splitAsHeading;
+                    if (buffer.Length == 0)
                     {
-                        if (char.IsWhiteSpace(ch))
-                            continue;
-
-                        if (ch > 0x7F) continue;
-                        isAllCjk = false;
-                        break;
+                        // Start of document / just flushed
+                        splitAsHeading = true;
                     }
-
-                    if (buffer.Length > 0)
+                    else
                     {
                         var bufText = buffer.ToString();
 
-                        // 🔐 1) If the previous paragraph still has unclosed brackets / book-title marks,
-                        //        it must be a continuation line and must NOT be treated as a heading.
                         if (HasUnclosedBracket(bufText))
                         {
-                            // fall through → treat as a normal line, handled by the merge logic below
+                            // Unsafe previous paragraph → must be continuation
+                            splitAsHeading = false;
                         }
                         else
                         {
                             var bt = bufText.TrimEnd();
-                            if (bt.Length > 0)
-                            {
-                                var last = bt[^1];
 
-                                // 🔸 2) Previous line ends with a comma →
-                                //        treat as a continuing sentence, not a heading.
-                                if (last is '，' or ',' or '、')
-                                {
-                                    // fall through → default merge behavior
-                                }
-                                // 🔸 3) For “all-CJK short heading-like” lines:
-                                //        if the previous line does NOT end with a CJK sentence-ending
-                                //        punctuation, treat it as a continuation and do not split.
-                                else if (isAllCjk && Array.IndexOf(CjkPunctEndChars, last) < 0)
-                                {
-                                    // e.g.:
-                                    //   内容简介： 《盗
-                                    //   墓笔记:吴邪的盗墓笔   ← Although it looks like a short heading,
-                                    //                         the previous line did not end with a sentence terminator
-                                    // fall through → treat as continuation
-                                }
-                                else
-                                {
-                                    // ✅ True heading-like:
-                                    //    flush the previous paragraph, then treat the current line
-                                    //    as an independent heading.
-                                    segments.Add(bufText);
-                                    buffer.Clear();
-                                    dialogState.Reset();
-                                    segments.Add(stripped);
-                                    continue;
-                                }
+                            if (bt.Length == 0)
+                            {
+                                // Buffer is whitespace-only → treat like empty
+                                splitAsHeading = true;
                             }
                             else
                             {
-                                // Buffer has length but contains only whitespace;
-                                // effectively equivalent to empty → treat directly as a heading.
-                                segments.Add(stripped);
-                                continue;
+                                var last = bt[^1];
+
+                                var prevEndsWithCommaLike = last is '，' or ',' or '、';
+                                var prevEndsWithSentencePunct = Array.IndexOf(CjkPunctEndChars, last) >= 0;
+
+                                // Comma-ending → continuation
+                                if (prevEndsWithCommaLike)
+                                    splitAsHeading = false;
+                                // All-CJK short heading-like + previous not ended → continuation
+                                else if (isAllCjk && !prevEndsWithSentencePunct)
+                                    splitAsHeading = false;
+                                else
+                                    splitAsHeading = true;
                             }
                         }
                     }
-                    else
+
+                    if (splitAsHeading)
                     {
-                        // Buffer is empty (start of document / just flushed a paragraph) →
-                        // allow a short heading to stand alone.
+                        // If we have a real previous paragraph, flush it first
+                        if (buffer.Length > 0)
+                        {
+                            segments.Add(buffer.ToString());
+                            buffer.Clear();
+                            dialogState.Reset();
+                        }
+
+                        // Current line becomes a standalone heading
                         segments.Add(stripped);
                         continue;
                     }
+
+                    // else: fall through → normal merge logic below
                 }
 
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
@@ -491,37 +478,32 @@ namespace OpenccNetLibGui.Models
                 // 🔸 NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
                 //     (comma-ending means the sentence is not finished)
-                if (bufferText.Length > 0)
+                if (currentIsDialogStart)
                 {
-                    var trimmed = bufferText.TrimEnd();
-                    var last = trimmed.Length > 0 ? trimmed[^1] : '\0';
-                    if (last is '，' or ',')
+                    var shouldFlushPrev = bufferText.Length > 0;
+
+                    if (shouldFlushPrev)
                     {
-                        // fall through → treat as continuation
-                        // do NOT flush here
+                        var trimmed = bufferText.TrimEnd();
+                        var last = trimmed.Length > 0 ? trimmed[^1] : '\0';
+
+                        shouldFlushPrev =
+                            last is not ('，' or ',' or '、') &&
+                            !dialogState.IsUnclosed &&
+                            !HasUnclosedBracket(bufferText);
                     }
-                    else if (currentIsDialogStart)
+
+                    if (shouldFlushPrev)
                     {
-                        // *** DIALOG: if this line starts a dialog, 
-                        //     flush previous paragraph (only if safe)
                         segments.Add(bufferText);
                         buffer.Clear();
-                        buffer.Append(stripped);
-                        dialogState.Reset();
-                        dialogState.Update(stripped);
-                        continue;
                     }
-                }
-                else
-                {
-                    // buffer empty, just add new dialog line
-                    if (currentIsDialogStart)
-                    {
-                        buffer.Append(stripped);
-                        dialogState.Reset();
-                        dialogState.Update(stripped);
-                        continue;
-                    }
+
+                    // Start (or continue) the dialog paragraph
+                    buffer.Append(stripped);
+                    dialogState.Reset();
+                    dialogState.Update(stripped);
+                    continue;
                 }
 
                 // NEW RULE: colon + dialog continuation
@@ -795,6 +777,17 @@ namespace OpenccNetLibGui.Models
                 }
 
                 return false;
+            }
+
+            static bool IsAllCjkIgnoringWhitespace(string s)
+            {
+                foreach (var ch in s)
+                {
+                    if (char.IsWhiteSpace(ch)) continue;
+                    if (ch <= 0x7F) return false; // ASCII => not all-CJK
+                }
+
+                return true;
             }
         }
 
