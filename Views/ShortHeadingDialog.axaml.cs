@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
@@ -171,9 +172,32 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
     public string? CustomTitleHeadingRegex
     {
         get => _customTitleHeadingRegex;
-        set => this.RaiseAndSetIfChanged(ref _customTitleHeadingRegex, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _customTitleHeadingRegex, value);
+            this.RaisePropertyChanged(nameof(IsCustomTitleHeadingRegexValid));
+        }
     }
 
+    public bool IsCustomTitleHeadingRegexValid
+    {
+        get
+        {
+            var s = _customTitleHeadingRegex;
+            if (string.IsNullOrWhiteSpace(s))
+                return true; // empty = disabled = valid
+
+            try
+            {
+                _ = new Regex(s);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
 
     private void RaiseAsciiStateChanged()
     {
