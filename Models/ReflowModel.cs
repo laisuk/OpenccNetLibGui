@@ -33,7 +33,7 @@ namespace OpenccNetLibGui.Models
         private static readonly Regex TitleHeadingRegex =
             new(
                 @"^(?=.{0,50}$)
-                  (前言|序章|楔子|终章|尾声|后记|尾聲|後記|楔子|番外.{0,15}
+                  (前言|序章|楔子|终章|尾声|后记|尾聲|後記|番外.{0,15}
                   |.{0,10}?第.{0,5}?([章节部卷節回][^分合]).{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
@@ -49,8 +49,8 @@ namespace OpenccNetLibGui.Models
             => DialogOpeners.Contains(ch);
 
         // Bracket punctuations (open-close)
-        private const string OpenBrackets = "（([【《｛〈";
-        private const string CloseBrackets = "）)]】》｝〉";
+        private const string OpenBrackets = "（([【《〔〖｛〈";
+        private const string CloseBrackets = "）)]】》〕〗｝〉";
 
         // Metadata key-value separators
         private static readonly char[] MetadataSeparators =
@@ -463,6 +463,23 @@ namespace OpenccNetLibGui.Models
                     // else: fall through → normal merge logic below
                 }
 
+                // 3d) Bracket-wrapped standalone structural line
+                //     (e.g. 《书名》 / 【组成】 / （附录）)
+                if (EndsWithCjkBracketBoundary(stripped))
+                {
+                    // Flush previous paragraph if any
+                    if (buffer.Length > 0)
+                    {
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
+
+                    // This line itself is a standalone segment
+                    segments.Add(stripped);
+                    continue;
+                }
+
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
                 var currentIsDialogStart = IsDialogStarter(stripped);
 
@@ -526,35 +543,11 @@ namespace OpenccNetLibGui.Models
                 // closed, CJK punctuation may end the paragraph as usual.
 
                 // 5) Ends with CJK punctuation → new paragraph
+                // NOTE: Dialog safety gate has the highest priority.
+                // If dialog quotes/brackets are not closed, never split the paragraph.
                 // if (Array.IndexOf(CjkPunctEndChars, bufferText[^1]) >= 0 &&
                 //     !dialogState.IsUnclosed)
-                if (!dialogState.IsUnclosed)
-                {
-                    // 5a) Bracket-wrapped line / bracket list is a structural boundary
-                    if (EndsWithCjkBracketBoundary(bufferText))
-                    {
-                        segments.Add(bufferText);
-                        buffer.Clear();
-                        buffer.Append(stripped);
-                        dialogState.Reset();
-                        dialogState.Update(stripped);
-                        continue;
-                    }
-
-                    // 5b) Ends with sentence boundary → new paragraph
-                    if (EndsWithSentenceBoundary(bufferText, level: 2))
-                    {
-                        segments.Add(bufferText);
-                        buffer.Clear();
-                        buffer.Append(stripped);
-                        dialogState.Reset();
-                        dialogState.Update(stripped);
-                        continue;
-                    }
-                }
-
-                // 7) Indentation → new paragraph
-                if (IndentRegex.IsMatch(rawLine))
+                if (!dialogState.IsUnclosed && EndsWithSentenceBoundary(bufferText, level: 2))
                 {
                     segments.Add(bufferText);
                     buffer.Clear();
@@ -564,9 +557,21 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
+                // 7) Indentation → new paragraph
+                // Pre-append: indentation indicates a new paragraph starts here
+                if (!dialogState.IsUnclosed && buffer.Length > 0 && IndentRegex.IsMatch(rawLine))
+                {
+                    segments.Add(buffer.ToString());
+                    buffer.Clear();
+                    dialogState.Reset();
+                }
+
                 // 8) Chapter-like endings: 章 / 节 / 部 / 卷 (with trailing brackets)
-                if (bufferText.Length <= 12 &&
-                    Regex.IsMatch(bufferText, @"(章|节|部|卷|節|回)[】》〗〕〉」』）]*$"))
+                if (!dialogState.IsUnclosed &&
+                    bufferText.Length <= 12 &&
+                    IsMostlyCjk(bufferText) &&
+                    Regex.IsMatch(bufferText, @"(章|节|部|卷|節|回)[】》〗〕〉」』）]*$") &&
+                    !ContainsAny(bufferText, '，', ',', '、', '。', '！', '？', '：', ':', ';'))
                 {
                     segments.Add(bufferText);
                     buffer.Clear();
@@ -599,7 +604,7 @@ namespace OpenccNetLibGui.Models
             static bool IsDialogStarter(string s)
             {
                 s = s.TrimStart(' ', '\u3000'); // ignore indent
-                return s.Length > 0 && DialogOpeners.Contains(s[0]);
+                return s.Length > 0 && IsDialogOpener(s[0]);
             }
 
             static bool IsHeadingLike(string? s, ShortHeadingSettings sh)
@@ -623,7 +628,7 @@ namespace OpenccNetLibGui.Models
                 var last = s[^1];
 
                 // Short circuit for item title-like: "物品准备："
-                if (last is ':' or '：' && s.Length <= sh.MaxLen && IsAllCjk(s[..^1]))
+                if (last is ':' or '：' && s.Length <= sh.MaxLen && IsAllCjkNoWhiteSpace(s[..^1]))
                     return true;
 
                 if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
@@ -650,16 +655,12 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // Reject any CJK end punctuation inside the string (strong heuristic)
-                // Intentionally not using LINQ here for performance (hot path)
-                foreach (var p in CjkPunctEndChars)
-                {
-                    if (s.Contains(p))
-                        return false;
-                }
+                if (ContainsAny(s, CjkPunctEndChars))
+                    return false;
 
                 // ---- Pattern checks (your requested style) ----
                 return (sh.AllAsciiEnabled && IsAllAscii(s))
-                       || (sh.AllCjkEnabled && IsAllCjk(s))
+                       || (sh.AllCjkEnabled && IsAllCjkNoWhiteSpace(s))
                        || (sh.AllAsciiDigitsEnabled && IsAllAsciiDigits(s))
                        || (sh.MixedCjkAsciiEnabled && IsMixedCjkAscii(s));
             }
@@ -716,6 +717,14 @@ namespace OpenccNetLibGui.Models
                 return hasOpen && !hasClose;
             }
 
+            static bool ContainsAny(string s, params char[] chars)
+            {
+                foreach (var ch in chars)
+                    if (s.IndexOf(ch) >= 0)
+                        return true;
+                return false;
+            }
+
             static bool IsAllAscii(string s)
             {
                 for (var i = 0; i < s.Length; i++)
@@ -752,7 +761,7 @@ namespace OpenccNetLibGui.Models
                 return hasDigit;
             }
 
-            static bool IsAllCjk(string s)
+            static bool IsAllCjkNoWhiteSpace(string s)
             {
                 for (var i = 0; i < s.Length; i++)
                 {
@@ -784,15 +793,15 @@ namespace OpenccNetLibGui.Models
 
             static bool IsMixedCjkAscii(string s)
             {
-                bool hasCjk = false;
-                bool hasAscii = false;
+                var hasCjk = false;
+                var hasAscii = false;
 
-                for (int i = 0; i < s.Length; i++)
+                for (var i = 0; i < s.Length; i++)
                 {
-                    char ch = s[i];
+                    var ch = s[i];
 
                     // Neutral ASCII (allowed, but doesn't count as ASCII content)
-                    if (ch == ' ' || ch == '-' || ch == '/' || ch == ':' || ch == '.')
+                    if (ch is ' ' or '-' or '/' or ':' or '.')
                         continue;
 
                     if (ch <= 0x7F)
@@ -806,7 +815,7 @@ namespace OpenccNetLibGui.Models
                             return false;
                         }
                     }
-                    else if (ch >= '０' && ch <= '９')
+                    else if (ch is >= '０' and <= '９')
                     {
                         hasAscii = true;
                     }
