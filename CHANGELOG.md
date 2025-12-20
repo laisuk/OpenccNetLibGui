@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] – 2025-12-16
+## [1.4.0] – 2025-12-20
 
 ### Added
 
@@ -58,6 +58,21 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
         - Office document parsing (DOCX / ODT)
         - Text reflow logic (ReflowModel)
         - User configuration (LanguageSettings / ShortHeadingSettings)
+- **Paragraph end detection and reflow logic significantly improved**
+    - Main-body paragraph splitting now strictly follows **standard CJK sentence rules**
+      (`。！？` with proper closer handling), prioritizing correctness over aggressiveness.
+    - Ellipsis-based endings (`……`, OCR `"..."`) are supported as **weak paragraph boundaries**
+      only when the line is predominantly CJK, preventing false splits in English or technical text.
+    - Structural lines (e.g. bracket-wrapped titles, book lists, metadata-like lines, dates, signatures)
+      are handled separately from sentence punctuation, avoiding interference with normal prose.
+    - Robust handling of common OCR artifacts:
+        - ASCII `.` and `:` may be conditionally interpreted as CJK punctuation
+          **only in strongly CJK contexts**.
+    - Dialog continuity is strictly preserved:
+        - Paragraph splits are always blocked while quotes or brackets remain unclosed,
+          ensuring multi-line dialog stays intact.
+    - Overall reflow behavior is now closer to **human-edited Chinese text layout**,
+      especially for novels, essays, and scanned PDFs.
 - Update `OpenccNetLib` to v1.4.0
 - Update `OpenccNetLibGui` runtimes to `.Net 10`
 

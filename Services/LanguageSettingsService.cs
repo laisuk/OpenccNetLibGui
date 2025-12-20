@@ -185,7 +185,7 @@ public class LanguageSettingsService
       ""allCjk"": 1,
       ""allAscii"": 1,
       ""allAsciiDigits"": 1,
-      ""mixedCjkAscii"": 0
+      ""mixedCjkAscii"": 1
     }
   },
   ""punctuation"": 1,
