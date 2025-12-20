@@ -97,10 +97,18 @@ public sealed class ShortHeadingSettings
             if (string.IsNullOrWhiteSpace(s))
                 return null;
 
-            return _customTitleHeadingRegexCompiled ??= new Regex(
-                s,
-                RegexOptions.Compiled | RegexOptions.CultureInvariant
-            );
+            try
+            {
+                return _customTitleHeadingRegexCompiled ??= new Regex(
+                    s,
+                    RegexOptions.Compiled | RegexOptions.CultureInvariant
+                );
+            }
+            catch (ArgumentException)
+            {
+                // Invalid regex -> treat as disabled
+                return null;
+            }
         }
     }
 
