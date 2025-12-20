@@ -73,6 +73,6 @@ public sealed class ShortHeadingSettings
         AllCjk = 1,
         AllAscii = 1,
         AllAsciiDigits = 1,
-        MixedCjkAscii = 0
+        MixedCjkAscii = 1
     };
 }

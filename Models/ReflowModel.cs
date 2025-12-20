@@ -20,10 +20,13 @@ namespace OpenccNetLibGui.Models
         private static readonly char[] CjkPunctEndChars =
         {
             // Standard CJK sentence-ending punctuation
-            '。', '！', '？', '；', '：', '…', '—', '”', '」', '’', '』', '.',
+            '。', '！', '？', '；', '：', '…', '—', '”', '」', '’', '』',
 
             // Chinese closing brackets / quotes
-            '）', '】', '》', '〗', '〕', '〉', '」', '』', '］', '｝', ')', ':', '!'
+            '）', '】', '》', '〗', '〕', '〉', '］', '｝',
+
+            // Allowed ASCII-like ending and bracket
+            '.', ')', ':', '!'
         };
 
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
@@ -523,15 +526,31 @@ namespace OpenccNetLibGui.Models
                 // closed, CJK punctuation may end the paragraph as usual.
 
                 // 5) Ends with CJK punctuation → new paragraph
-                if (Array.IndexOf(CjkPunctEndChars, bufferText[^1]) >= 0 &&
-                    !dialogState.IsUnclosed)
+                // if (Array.IndexOf(CjkPunctEndChars, bufferText[^1]) >= 0 &&
+                //     !dialogState.IsUnclosed)
+                if (!dialogState.IsUnclosed)
                 {
-                    segments.Add(bufferText);
-                    buffer.Clear();
-                    buffer.Append(stripped);
-                    dialogState.Reset();
-                    dialogState.Update(stripped);
-                    continue;
+                    // 5a) Bracket-wrapped line / bracket list is a structural boundary
+                    if (EndsWithCjkBracketBoundary(bufferText))
+                    {
+                        segments.Add(bufferText);
+                        buffer.Clear();
+                        buffer.Append(stripped);
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
+                    }
+
+                    // 5b) Ends with sentence boundary → new paragraph
+                    if (EndsWithSentenceBoundary(bufferText, level: 2))
+                    {
+                        segments.Add(bufferText);
+                        buffer.Clear();
+                        buffer.Append(stripped);
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
+                    }
                 }
 
                 // 7) Indentation → new paragraph
@@ -604,7 +623,7 @@ namespace OpenccNetLibGui.Models
                 var last = s[^1];
 
                 // Short circuit for item title-like: "物品准备："
-                if ((last is ':' or '：') && s.Length <= sh.MaxLen && IsAllCjk(s[..^1]))
+                if (last is ':' or '：' && s.Length <= sh.MaxLen && IsAllCjk(s[..^1]))
                     return true;
 
                 if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
@@ -707,14 +726,30 @@ namespace OpenccNetLibGui.Models
 
             static bool IsAllAsciiDigits(string s)
             {
+                var hasDigit = false;
+
                 for (var i = 0; i < s.Length; i++)
                 {
                     var ch = s[i];
-                    if (ch > 0x7F || ch < '0' || ch > '9')
-                        return false;
+
+                    switch (ch)
+                    {
+                        // ASCII space is neutral
+                        case ' ':
+                            continue;
+                        // ASCII digits
+                        case >= '0' and <= '9':
+                        // FULLWIDTH digits
+                        case >= '０' and <= '９':
+                            hasDigit = true;
+                            continue;
+                        default:
+                            // anything else -> reject
+                            return false;
+                    }
                 }
 
-                return s.Length > 0;
+                return hasDigit;
             }
 
             static bool IsAllCjk(string s)
@@ -749,27 +784,39 @@ namespace OpenccNetLibGui.Models
 
             static bool IsMixedCjkAscii(string s)
             {
-                var hasCjk = false;
-                var hasAscii = false;
+                bool hasCjk = false;
+                bool hasAscii = false;
 
-                for (var i = 0; i < s.Length; i++)
+                for (int i = 0; i < s.Length; i++)
                 {
-                    var ch = s[i];
+                    char ch = s[i];
+
+                    // Neutral ASCII (allowed, but doesn't count as ASCII content)
+                    if (ch == ' ' || ch == '-' || ch == '/' || ch == ':' || ch == '.')
+                        continue;
 
                     if (ch <= 0x7F)
                     {
-                        // ASCII letter/digit only (you can decide if punctuation counts)
                         if (char.IsLetterOrDigit(ch))
+                        {
                             hasAscii = true;
+                        }
                         else
-                            return false; // reject ASCII punctuation in headings
+                        {
+                            return false;
+                        }
+                    }
+                    else if (ch >= '０' && ch <= '９')
+                    {
+                        hasAscii = true;
+                    }
+                    else if (IsCjk(ch))
+                    {
+                        hasCjk = true;
                     }
                     else
                     {
-                        if (IsCjk(ch))
-                            hasCjk = true;
-                        else
-                            return false; // reject other scripts/symbols
+                        return false;
                     }
 
                     if (hasCjk && hasAscii)
@@ -789,7 +836,195 @@ namespace OpenccNetLibGui.Models
 
                 return true;
             }
+
+            static bool EndsWithSentenceBoundary(string s, int level = 2)
+            {
+                if (string.IsNullOrWhiteSpace(s))
+                    return false;
+
+                var i = s.Length - 1;
+                while (i >= 0 && char.IsWhiteSpace(s[i])) i--;
+                if (i < 0) return false;
+
+                var last = s[i];
+
+                // 1) Strong sentence end
+                if (last is '。' or '！' or '？' or '!')
+                    return true;
+
+                // 2) OCR '.' as '。'
+                if (last == '.' && level >= 3 && IsOcrCjkDot(s, i))
+                    return true;
+
+                // 3) OCR ':' as '：'
+                if (last == ':' && level >= 3 && IsOcrCjkColon(s, i))
+                    return true;
+
+                if (level >= 3)
+                    return false;
+
+                // 4) Closers after strong end
+                if (IsCjkCloser(last) && i > 0)
+                {
+                    var prev = s[i - 1];
+                    if (prev is '。' or '！' or '？' or '!' ||
+                        (prev == '.' && IsOcrCjkDot(s, i - 1)))
+                        return true;
+                }
+
+                // Level 2 (lenient): allow ellipsis as weak boundary
+                if (EndsWithEllipsis(s))
+                    return true;
+
+                if (level >= 2)
+                    return false;
+
+                // 5) Weak (optional)
+                return last is '；' or '：';
+            }
+
+            static bool IsBracketCloser(char ch) =>
+                ch is '）' or '】' or '》' or '〗' or '〕' or '〉' or '］' or '｝'
+                    or ')';
+
+            static bool IsQuoteCloser(char ch) =>
+                ch is '”' or '’' or '」' or '』';
+
+            static bool IsCjkCloser(char ch) => IsBracketCloser(ch) || IsQuoteCloser(ch);
+
+            static bool IsOcrCjkDot(string s, int dotIndex)
+            {
+                // dot 必須在結尾（或結尾前只係空白）
+                for (var i = dotIndex + 1; i < s.Length; i++)
+                    if (!char.IsWhiteSpace(s[i]))
+                        return false;
+
+                // dot 前一個字符必須係 CJK
+                if (dotIndex == 0)
+                    return false;
+
+                if (!IsCjk(s[dotIndex - 1]))
+                    return false;
+
+                // 行內整體必須偏向 CJK
+                return IsMostlyCjk(s);
+            }
+
+            static bool IsOcrCjkColon(string s, int index)
+            {
+                // must be at line end (ignore trailing spaces)
+                for (var i = index + 1; i < s.Length; i++)
+                    if (!char.IsWhiteSpace(s[i]))
+                        return false;
+
+                // must have a CJK char before
+                if (index == 0 || !IsCjk(s[index - 1]))
+                    return false;
+
+                // line must be mostly CJK
+                return IsMostlyCjk(s);
+            }
+
+            static bool IsMostlyCjk(string s)
+            {
+                int cjk = 0, ascii = 0;
+
+                foreach (var ch in s)
+                {
+                    if (char.IsWhiteSpace(ch))
+                        continue;
+
+                    if (IsCjk(ch))
+                        cjk++;
+                    else if (ch <= 0x7F)
+                        ascii++;
+                }
+
+                return cjk > 0 && cjk >= ascii;
+            }
+
+            static bool EndsWithCjkBracketBoundary(string s)
+            {
+                if (string.IsNullOrWhiteSpace(s))
+                    return false;
+
+                s = s.Trim();
+                if (s.Length < 2)
+                    return false;
+
+                var open = s[0];
+                var close = s[^1];
+
+                // 1) Must be one of our known pairs
+                if (!IsMatchingBracket(open, close))
+                    return false;
+
+                // 2) Must be mostly CJK to avoid "(test)" "[1.2]" etc.
+                if (!IsMostlyCjk(s))
+                    return false;
+
+                // 3) Ensure this bracket type is balanced inside the line
+                //    (prevents premature close / malformed OCR)
+                if (!IsBracketTypeBalanced(s, open, close))
+                    return false;
+
+                return true;
+            }
+
+            static bool IsBracketTypeBalanced(string s, char open, char close)
+            {
+                var depth = 0;
+
+                foreach (var ch in s)
+                {
+                    if (ch == open) depth++;
+                    else if (ch == close)
+                    {
+                        depth--;
+                        if (depth < 0) return false; // closing before opening
+                    }
+                }
+
+                return depth == 0;
+            }
+
+            static bool IsMatchingBracket(char open, char close) => open switch
+            {
+                '（' => close == '）',
+                '(' => close == ')',
+                '[' => close == ']',
+                '【' => close == '】',
+                '《' => close == '》',
+                '｛' => close == '｝',
+                '〈' => close == '〉',
+                '〔' => close == '〕',
+                '〖' => close == '〗',
+                _ => false
+            };
+
+            static bool EndsWithEllipsis(string s)
+            {
+                if (string.IsNullOrWhiteSpace(s))
+                    return false;
+
+                // Strong CJK gate: ellipsis only meaningful in CJK context
+                if (!IsMostlyCjk(s))
+                    return false;
+
+                var i = s.Length - 1;
+                while (i >= 0 && char.IsWhiteSpace(s[i])) i--;
+                if (i < 0)
+                    return false;
+
+                // Single Unicode ellipsis
+                if (s[i] == '…')
+                    return true;
+
+                // OCR case: ASCII "..."
+                return i >= 2 && s[i] == '.' && s[i - 1] == '.' && s[i - 2] == '.';
+            }
         }
+
 
         // =========================================================
         //  Dialog state tracking
