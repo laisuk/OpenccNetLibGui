@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace OpenccNetLibGui.Services;
 
@@ -18,6 +20,7 @@ public class LanguageSettings
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
+
 }
 
 [Serializable]
@@ -59,13 +62,54 @@ public sealed class ShortHeadingSettings
     public int AllCjk { get; set; } = 1;
     public int AllAscii { get; set; } = 1;
     public int AllAsciiDigits { get; set; } = 1;
-    public int MixedCjkAscii { get; set; }
+    public int MixedCjkAscii { get; set; } = 1;
 
-    // Convenience bool views (optional, but makes call-sites nice)
-    public bool AllCjkEnabled => AllCjk > 0;
-    public bool AllAsciiEnabled => AllAscii > 0;
-    public bool AllAsciiDigitsEnabled => AllAsciiDigits > 0;
-    public bool MixedCjkAsciiEnabled => MixedCjkAscii > 0;
+    /// <summary>
+    /// Optional custom regex to treat a line as a title/heading.
+    /// Leave blank to disable.
+    /// </summary>
+    public string? CustomTitleHeadingRegex
+    {
+        get => _customTitleHeadingRegex;
+        set
+        {
+            _customTitleHeadingRegex = value ?? string.Empty;
+            _customTitleHeadingRegexCompiled = null; // invalidate cache
+        }
+    }
+
+    // Convenience bool views (not serialized)
+    [JsonIgnore] public bool AllCjkEnabled => AllCjk > 0;
+    [JsonIgnore] public bool AllAsciiEnabled => AllAscii > 0;
+    [JsonIgnore] public bool AllAsciiDigitsEnabled => AllAsciiDigits > 0;
+    [JsonIgnore] public bool MixedCjkAsciiEnabled => MixedCjkAscii > 0;
+
+    /// <summary>
+    /// Lazily compiled regex for <see cref="CustomTitleHeadingRegex"/>.
+    /// Null when the regex string is empty or whitespace.
+    /// </summary>
+    [JsonIgnore]
+    public Regex? CustomTitleHeadingRegexCompiled
+    {
+        get
+        {
+            var s = _customTitleHeadingRegex;
+            if (string.IsNullOrWhiteSpace(s))
+                return null;
+
+            return _customTitleHeadingRegexCompiled ??= new Regex(
+                s,
+                RegexOptions.Compiled | RegexOptions.CultureInvariant
+            );
+        }
+    }
+
+    /// <summary>
+    /// Returns a safe MaxLen within [3, 30].
+    /// Guards against invalid or user-edited JSON.
+    /// </summary>
+    [JsonIgnore]
+    public int MaxLenClamped => Math.Clamp(MaxLen, 3, 30);
 
     public static ShortHeadingSettings Default => new()
     {
@@ -73,6 +117,10 @@ public sealed class ShortHeadingSettings
         AllCjk = 1,
         AllAscii = 1,
         AllAsciiDigits = 1,
-        MixedCjkAscii = 1
+        MixedCjkAscii = 1,
+        CustomTitleHeadingRegex = ""
     };
+
+    private string _customTitleHeadingRegex = string.Empty;
+    private Regex? _customTitleHeadingRegexCompiled;
 }

@@ -16,17 +16,32 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Fine-grained pattern controls:
         - All CJK characters
         - All ASCII characters
-        - ASCII digits only (auto-enabled when ASCII is selected)
+        - ASCII digits only (automatically enabled when ASCII is selected)
         - Mixed CJK + ASCII
-    - Visual hierarchical layout (parent/child options) inspired by Visual Studio feature selection.
-- **User-configurable short heading detection** integrated into the PDF reflow pipeline.
-- **Design-time preview support** for the Short Heading dialog using `Design.DataContext`.
+    - Clear visual hierarchy with parent/child options, inspired by Visual Studio feature selection.
+
+- **User-configurable short heading detection**
+    - Introduces an advanced, regex-based override mechanism for heading detection.
+    - Custom title patterns are evaluated **immediately after built-in title detection** and before other reflow
+      heuristics.
+    - Enables precise identification of book-structured headings, such as:
+        - Front-matter titles (e.g. *序章*, *前言*, *楔子*)
+        - Chapter banners (e.g. `第十二章 夜雨初歇`)
+        - Decorated or stylized headings commonly found in novels and scanned PDFs
+    - Supports unlimited pattern combinations via regular expressions (e.g. `xxx|yyy|zzz`), allowing users to fully
+      adapt heading detection to diverse content styles.
+
+- **Design-time preview support**
+    - Added `Design.DataContext` for the Short Heading dialog, improving layout iteration and visual consistency during
+      development.
+
 - **DOCX (.docx) plain-text import support**
-    - Extracts human-readable text from Word documents into the source editor.
-    - Handles paragraphs, lists (numbered and bulleted), tables (flattened as TSV),
+    - Extracts human-readable text from Microsoft Word documents into the source editor.
+    - Handles paragraphs, numbered and bulleted lists, tables (flattened as TSV),
       headers/footers, footnotes, and comments.
-    - Formatting is intentionally stripped to provide clean, editable plain text
-      suitable for reflow and Opencc conversion.
+    - Formatting is intentionally stripped to produce clean, editable plain text
+      suitable for reflow processing and OpenCC conversion.
+
 - **ODT (.odt) plain-text import support**
     - Extracts text from OpenDocument Text files via `content.xml`.
     - Supports paragraphs, headings, lists, and tables.

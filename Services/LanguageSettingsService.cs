@@ -50,7 +50,7 @@ public class LanguageSettingsService
                 var settings = JsonConvert.DeserializeObject<LanguageSettings>(json);
                 if (settings is not null)
                 {
-                  return settings;
+                    return settings;
                 }
             }
             catch
@@ -185,7 +185,8 @@ public class LanguageSettingsService
       ""allCjk"": 1,
       ""allAscii"": 1,
       ""allAsciiDigits"": 1,
-      ""mixedCjkAscii"": 1
+      ""mixedCjkAscii"": 1,
+      ""customTitleHeadingRegex"": """"
     }
   },
   ""punctuation"": 1,

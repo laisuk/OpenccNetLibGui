@@ -320,6 +320,11 @@ namespace OpenccNetLibGui.Models
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
                 var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
+
+                // NEW: user-defined title heading regex (runs right after built-in title check)
+                var customTitleRx = shortHeading.CustomTitleHeadingRegexCompiled;
+                var isCustomTitleHeading = customTitleRx != null && customTitleRx.IsMatch(headingProbe);
+
                 var isShortHeading = IsHeadingLike(stripped, shortHeading);
                 var isMetadata = IsMetadataLine(stripped); // 〈── New
 
@@ -368,6 +373,20 @@ namespace OpenccNetLibGui.Models
 
                 // 3) Titles
                 if (isTitleHeading)
+                {
+                    if (buffer.Length > 0)
+                    {
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
+
+                    segments.Add(stripped);
+                    continue;
+                }
+
+                // 3a) New: Custom title heading regex (Advanced)
+                if (isCustomTitleHeading)
                 {
                     if (buffer.Length > 0)
                     {

@@ -51,6 +51,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
     private bool _allAscii;
     private bool _allAsciiDigits;
     private bool _mixedCjkAscii;
+    private string? _customTitleHeadingRegex;
 
     private bool _syncingAsciiState;
 
@@ -166,6 +167,13 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         get => _mixedCjkAscii;
         set => this.RaiseAndSetIfChanged(ref _mixedCjkAscii, value);
     }
+    
+    public string? CustomTitleHeadingRegex
+    {
+        get => _customTitleHeadingRegex;
+        set => this.RaiseAndSetIfChanged(ref _customTitleHeadingRegex, value);
+    }
+
 
     private void RaiseAsciiStateChanged()
     {
@@ -181,6 +189,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
             MaxLen = s.MaxLen;
             AllCjk = s.AllCjkEnabled;
             MixedCjkAscii = s.MixedCjkAsciiEnabled;
+            CustomTitleHeadingRegex = s.CustomTitleHeadingRegex;
 
             // ✅ Set backing fields directly，avoid setter interference
             if (_allAscii != s.AllAsciiEnabled)
@@ -204,13 +213,13 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(AsciiState));
     }
 
-
     public ShortHeadingSettings ToSettings() => new()
     {
         MaxLen = MaxLen,
         AllCjk = AllCjk ? 1 : 0,
         AllAscii = AllAscii ? 1 : 0,
         AllAsciiDigits = AllAsciiDigits ? 1 : 0,
-        MixedCjkAscii = MixedCjkAscii ? 1 : 0
+        MixedCjkAscii = MixedCjkAscii ? 1 : 0,
+        CustomTitleHeadingRegex = CustomTitleHeadingRegex ?? string.Empty,
     };
 }

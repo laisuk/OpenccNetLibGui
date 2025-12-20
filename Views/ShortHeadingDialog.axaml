@@ -4,8 +4,8 @@
         xmlns:vm="clr-namespace:OpenccNetLibGui.Views"
         x:DataType="vm:ShortHeadingDialogViewModel"
         x:Class="OpenccNetLibGui.Views.ShortHeadingDialog"
-        Width="420"
-        Height="420"
+        Width="450"
+        Height="550"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Title="Short heading settings">
@@ -14,7 +14,7 @@
         <vm:ShortHeadingDialogViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
           Margin="18">
 
         <!-- Header -->
@@ -93,8 +93,36 @@
             </StackPanel>
         </Border>
 
+        <!-- Advanced -->
+        <Border Grid.Row="3"
+                Margin="0,14,0,0"
+                Padding="12"
+                CornerRadius="10"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource ThemeBorderLowBrush}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Advanced"
+                           FontSize="13"
+                           FontWeight="SemiBold" />
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Custom Title Heading Regex"
+                               FontSize="12"
+                               Foreground="{DynamicResource ThemeForegroundLowBrush}" />
+
+                    <TextBox MinHeight="30"
+                             Watermark="(Optional) Leave blank to disable"
+                             Text="{Binding CustomTitleHeadingRegex, Mode=TwoWay}" />
+
+                    <TextBlock Text="Applied immediately after built-in title detection (before other heuristics)."
+                               FontSize="11"
+                               Foreground="{DynamicResource ThemeForegroundLowBrush}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
         <!-- Buttons -->
-        <StackPanel Grid.Row="3"
+        <StackPanel Grid.Row="4"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,18,0,0"
@@ -104,7 +132,8 @@
                     HorizontalContentAlignment="Center"
                     Click="Cancel_Click" />
             <Button Content="OK"
-                    Width="90" HorizontalContentAlignment="Center"
+                    Width="90"
+                    HorizontalContentAlignment="Center"
                     IsDefault="True"
                     Click="Ok_Click" />
         </StackPanel>

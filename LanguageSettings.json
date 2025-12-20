@@ -122,9 +122,10 @@
       "allCjk": 1,
       "allAscii": 1,
       "allAsciiDigits": 1,
-      "mixedCjkAscii": 1
+      "mixedCjkAscii": 1,
+      "customTitleHeadingRegex": ""
     }
-  },
+  },  
   "punctuation": 1,
   "convertFilename": 0,
   "dictionary": "zstd",
