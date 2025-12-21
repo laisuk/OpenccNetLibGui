@@ -49,8 +49,8 @@ namespace OpenccNetLibGui.Models
             => DialogOpeners.Contains(ch);
 
         // Bracket punctuations (open-close)
-        private const string OpenBrackets = "（([【《〔〖｛〈";
-        private const string CloseBrackets = "）)]】》〕〗｝〉";
+        private const string OpenBrackets = "（([【《〔〖｛〈［";
+        private const string CloseBrackets = "）)]】》〕〗｝〉］";
 
         // Metadata key-value separators
         private static readonly char[] MetadataSeparators =
@@ -409,7 +409,7 @@ namespace OpenccNetLibGui.Models
                         dialogState.Reset();
                     }
 
-                    // Metadata 每行獨立存放（之後你可以決定係 skip、折疊、顯示）
+                    // Metadata 每行獨立存放（之後可以決定係 skip、折疊、顯示）
                     segments.Add(stripped);
                     continue;
                 }
