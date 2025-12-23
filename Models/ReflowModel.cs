@@ -34,7 +34,7 @@ namespace OpenccNetLibGui.Models
             new(
                 @"^(?=.{0,50}$)
                   (前言|序章|楔子|终章|尾声|后记|尾聲|後記|番外.{0,15}
-                  |.{0,10}?第.{0,5}?([章节部卷節回][^分合]).{0,20}?
+                  |.{0,10}?第.{0,5}?([章节部卷節回][^分合])|[卷章][一二三四五六七八九十].{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
@@ -337,7 +337,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (!addPdfPageHeader && buffer.Length > 0)
                     {
-                        var lastChar = buffer[^1];
+                        var lastChar = buffer[buffer.Length - 1];
 
                         // Page-break-like blank line, skip it
                         if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
@@ -561,28 +561,29 @@ namespace OpenccNetLibGui.Models
                 // so multi-line dialog stays together. Once all quotes are
                 // closed, CJK punctuation may end the paragraph as usual.
 
-                // 5) Ends with CJK punctuation → new paragraph
-                // NOTE: Dialog safety gate has the highest priority.
-                // If dialog quotes/brackets are not closed, never split the paragraph.
-                // if (Array.IndexOf(CjkPunctEndChars, bufferText[^1]) >= 0 &&
-                //     !dialogState.IsUnclosed)
-                if (!dialogState.IsUnclosed && EndsWithSentenceBoundary(bufferText, level: 2))
+                switch (dialogState.IsUnclosed)
                 {
-                    segments.Add(bufferText);
-                    buffer.Clear();
-                    buffer.Append(stripped);
-                    dialogState.Reset();
-                    dialogState.Update(stripped);
-                    continue;
-                }
-
-                // 7) Indentation → new paragraph
-                // Pre-append: indentation indicates a new paragraph starts here
-                if (!dialogState.IsUnclosed && buffer.Length > 0 && IndentRegex.IsMatch(rawLine))
-                {
-                    segments.Add(buffer.ToString());
-                    buffer.Clear();
-                    dialogState.Reset();
+                    // 5a) Bracket-ended structural line with prefix
+                    case false when IsBracketCloser(bufferText[^1]) && IsMostlyCjk(bufferText):
+                    // 5b) Ends with CJK punctuation → new paragraph
+                    // NOTE: Dialog safety gate has the highest priority.
+                    // If dialog quotes/brackets are not closed, never split the paragraph.
+                    // if (Array.IndexOf(CjkPunctEndChars, bufferText[^1]) >= 0 &&
+                    //     !dialogState.IsUnclosed)
+                    case false when EndsWithSentenceBoundary(bufferText, level: 2):
+                        segments.Add(bufferText);
+                        buffer.Clear();
+                        buffer.Append(stripped);
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
+                    // 7) Indentation → new paragraph
+                    // Pre-append: indentation indicates a new paragraph starts here
+                    case false when buffer.Length > 0 && IndentRegex.IsMatch(rawLine):
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                        break;
                 }
 
                 // 8) Chapter-like endings: 章 / 节 / 部 / 卷 (with trailing brackets)
