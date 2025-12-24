@@ -1,11 +1,22 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace OpenccNetLibGui.Services;
 
 public class LanguageSettingsService
 {
+    private static readonly JsonSerializerSettings JsonSaveSettings =
+        new()
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+            Formatting = Formatting.None
+        };
+
     private readonly string _defaultSettingsPath;
     private string _lastSavedSnapshot;
 
@@ -56,6 +67,83 @@ public class LanguageSettingsService
 
         // 🔑 Reset dirty state
         _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
+    }
+
+    // ------ Save Diff settings only------
+    static readonly string[] DiffRootPaths =
+    {
+        "pdfOptions",
+        "sentenceBoundaryMode",
+        "punctuation",
+        "convertFilename",
+        "dictionary",
+        "locale",
+        "charCheck"
+    };
+
+    private static JObject Pick(JObject src, IEnumerable<string> rootPaths)
+    {
+        var dst = new JObject();
+        foreach (var p in rootPaths)
+        {
+            if (src.TryGetValue(p, out var token))
+                dst[p] = token.DeepClone();
+        }
+
+        return dst;
+    }
+
+    private static JToken? DiffToken(JToken? defTok, JToken? curTok)
+    {
+        if (curTok is null) return null;
+        if (defTok is null) return curTok.DeepClone();
+        if (JToken.DeepEquals(defTok, curTok)) return null;
+
+        if (defTok is JObject dObj && curTok is JObject cObj)
+        {
+            var diff = new JObject();
+            foreach (var prop in cObj.Properties())
+            {
+                var dChild = dObj[prop.Name];
+                var cChild = prop.Value;
+
+                var childDiff = DiffToken(dChild, cChild);
+                if (childDiff != null)
+                    diff[prop.Name] = childDiff;
+            }
+
+            return diff.HasValues ? diff : null;
+        }
+
+        // Arrays (and values): treat as atomic
+        return curTok.DeepClone();
+    }
+
+    public void SaveDiffOnly()
+    {
+        // default JSON (shipped)
+        var defaultObj = JObject.Parse(File.ReadAllText(_defaultSettingsPath));
+
+        // IMPORTANT: use the SAME serializer settings (camelCase) as your JSON
+        var serializer = JsonSerializer.Create(JsonSaveSettings);
+        var currentObj = JObject.FromObject(LanguageSettings, serializer);
+
+        // current effective settings in memory
+        // var currentObj = JObject.FromObject(LanguageSettings);
+
+        // Optional: drop meta "info" so it never pollutes user file
+        if (currentObj["sentenceBoundaryMode"] is JObject sbm)
+            sbm.Remove("info");
+
+        var defaultPick = Pick(defaultObj, DiffRootPaths);
+        var currentPick = Pick(currentObj, DiffRootPaths);
+
+        var diff = (JObject?)DiffToken(defaultPick, currentPick) ?? new JObject();
+
+        Directory.CreateDirectory(Path.GetDirectoryName(UserSettingsPath)!);
+        File.WriteAllText(UserSettingsPath, diff.ToString(Formatting.Indented), new UTF8Encoding(false));
+
+        _lastSavedSnapshot = JsonConvert.SerializeObject(LanguageSettings, Formatting.None);
     }
 
     private static string CreateSnapshot(LanguageSettings settings)

@@ -1095,7 +1095,8 @@ public class MainWindowViewModel : ViewModelBase
     private void SaveLanguageSettings()
     {
         // Ensure VM → LanguageSettings object is already updated before calling this
-        _languageSettingsService!.Save();
+        // _languageSettingsService!.Save();
+        _languageSettingsService!.SaveDiffOnly();
         
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
 
