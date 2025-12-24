@@ -271,6 +271,20 @@
                                             </MenuItem.Header>
                                         </MenuItem>
 
+                                        <Separator />
+
+                                        <!-- 💾 Save advanced settings -->
+                                        <MenuItem Command="{Binding SaveLanguageSettingsCommand}"
+                                                  IsEnabled="{Binding IsSettingsDirty}"
+                                                  ToolTip.Tip="Writes UserLanguageSettings.json (advanced users only)">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <controls:SymbolIcon Symbol="Save" FontSize="20" />
+                                                    <TextBlock Text="Save advanced settings…" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
                                     </ContextMenu>
                                 </avaloniaEdit:TextEditor.ContextMenu>
                             </avaloniaEdit:TextEditor>
@@ -502,6 +516,20 @@
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="✏️" />
                                                 <TextBlock Text="Short heading settings..." />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <Separator />
+
+                                    <!-- 💾 Save advanced settings -->
+                                    <MenuItem Command="{Binding SaveLanguageSettingsCommand}"
+                                              IsEnabled="{Binding IsSettingsDirty}"
+                                              ToolTip.Tip="Writes UserLanguageSettings.json (advanced users only)">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <controls:SymbolIcon Symbol="Save" FontSize="20" />
+                                                <TextBlock Text="Save advanced settings…" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>

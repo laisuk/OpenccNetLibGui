@@ -1,16 +1,31 @@
 ﻿using System.IO;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace OpenccNetLibGui.Services;
 
 public class LanguageSettingsService
 {
-    private readonly string _settingsFilePath;
+    private readonly string _defaultSettingsPath;
+    private string _lastSavedSnapshot;
 
-    public LanguageSettingsService(string settingsFilePath)
+    public string UserSettingsPath { get; }
+
+    public bool IsDirty =>
+        CreateSnapshot(LanguageSettings) != _lastSavedSnapshot;
+
+    public LanguageSettingsService(
+        string defaultSettingsPath,
+        string userSettingsPath)
     {
-        _settingsFilePath = settingsFilePath;
-        LanguageSettings = ReadOrCreateLanguageSettings(settingsFilePath);
+        _defaultSettingsPath = defaultSettingsPath;
+        UserSettingsPath = userSettingsPath;
+
+        LanguageSettings = ReadMergedLanguageSettings(
+            _defaultSettingsPath,
+            UserSettingsPath);
+
+        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
     }
 
     /// <summary>
@@ -21,13 +36,34 @@ public class LanguageSettingsService
     public LanguageSettings LanguageSettings { get; private set; }
 
     /// <summary>
-    /// Persists the current <see cref="LanguageSettings"/> to the JSON file.
-    /// You can call this from a Settings dialog when the user clicks OK.
+    /// Saves current settings to UserLanguageSettings.json
+    /// (does NOT touch default LanguageSettings.json)
     /// </summary>
     public void Save()
     {
-        var json = JsonConvert.SerializeObject(LanguageSettings, Formatting.Indented);
-        File.WriteAllText(_settingsFilePath, json);
+        Directory.CreateDirectory(Path.GetDirectoryName(UserSettingsPath)!);
+
+        var json = JsonConvert.SerializeObject(
+            LanguageSettings,
+            Formatting.Indented
+        );
+
+        File.WriteAllText(
+            UserSettingsPath,
+            json,
+            new UTF8Encoding(false) // 🔑 preserve CJK, no BOM
+        );
+
+        // 🔑 Reset dirty state
+        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
+    }
+
+    private static string CreateSnapshot(LanguageSettings settings)
+    {
+        return JsonConvert.SerializeObject(
+            settings,
+            Formatting.None
+        );
     }
 
     /// <summary>
@@ -36,7 +72,42 @@ public class LanguageSettingsService
     /// </summary>
     public void Reload()
     {
-        LanguageSettings = ReadOrCreateLanguageSettings(_settingsFilePath);
+        LanguageSettings = ReadOrCreateLanguageSettings(_defaultSettingsPath);
+    }
+
+    private static LanguageSettings ReadMergedLanguageSettings(
+        string defaultPath,
+        string userPath)
+    {
+        var defaultJson = File.ReadAllText(defaultPath);
+        var defaultSettings =
+            JsonConvert.DeserializeObject<LanguageSettings>(defaultJson)!;
+
+        if (!File.Exists(userPath))
+            return defaultSettings;
+
+        try
+        {
+            var userJson = File.ReadAllText(userPath);
+            var userSettings =
+                JsonConvert.DeserializeObject<LanguageSettings>(userJson);
+
+            if (userSettings is null)
+                return defaultSettings;
+
+            // 🔑 Merge user → default
+            JsonConvert.PopulateObject(
+                userJson,
+                defaultSettings
+            );
+
+            return defaultSettings;
+        }
+        catch
+        {
+            // Corrupted user file → ignore
+            return defaultSettings;
+        }
     }
 
     private static LanguageSettings ReadOrCreateLanguageSettings(string filePath)
@@ -188,6 +259,10 @@ public class LanguageSettingsService
       ""mixedCjkAscii"": 1,
       ""customTitleHeadingRegex"": """"
     }
+  },
+  ""sentenceBoundaryMode"": {
+    ""info"": ""1 = lenient, 2 = balanced (default), 3 = strict"",
+    ""value"": 2
   },
   ""punctuation"": 1,
   ""convertFilename"": 0,

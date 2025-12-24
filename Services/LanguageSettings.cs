@@ -20,7 +20,7 @@ public class LanguageSettings
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
-
+    public SentenceBoundaryModeSetting? SentenceBoundaryMode { get; set; } = new();
 }
 
 [Serializable]
@@ -131,4 +131,10 @@ public sealed class ShortHeadingSettings
 
     private string _customTitleHeadingRegex = string.Empty;
     private Regex? _customTitleHeadingRegexCompiled;
+}
+
+[Serializable]
+public sealed class SentenceBoundaryModeSetting
+{
+    public int Value { get; set; } = 2;
 }

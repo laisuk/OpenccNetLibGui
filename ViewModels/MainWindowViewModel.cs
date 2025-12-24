@@ -26,6 +26,7 @@ namespace OpenccNetLibGui.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly LanguageSettings? _languageSettings;
+    private readonly LanguageSettingsService? _languageSettingsService;
     private readonly Language? _selectedLanguage;
     private readonly List<string>? _textFileTypes;
     private readonly List<string>? _officeFileTypes;
@@ -82,6 +83,10 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbConvertFilename;
     private readonly int _locale;
     private PdfViewModel Pdf { get; }
+    private readonly int _sentenceBoundaryLevel;
+    public bool IsSettingsDirty =>
+        _languageSettingsService!.IsDirty;
+
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
@@ -117,6 +122,7 @@ public class MainWindowViewModel : ViewModelBase
         CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
         BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
+        SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
@@ -124,6 +130,7 @@ public class MainWindowViewModel : ViewModelBase
         this()
     {
         _topLevelService = topLevelService;
+        _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
         _locale = _languageSettings.Locale == 1 ? _languageSettings.Locale : 2;
         _selectedLanguage = _languageSettings.Languages![_locale];
@@ -169,6 +176,13 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         PdfEngine = engine;
+        
+        // 1 = lenient, 2 = balanced (default), 3 = strict
+        _sentenceBoundaryLevel = Math.Clamp(
+            _languageSettings!.SentenceBoundaryMode!.Value,
+            1,
+            3
+        );
 
         // Create PDF VM (single source of truth)
         Pdf = new PdfViewModel
@@ -178,6 +192,7 @@ public class MainWindowViewModel : ViewModelBase
             IsCompactPdfText = IsCompactPdfText,
             IsAutoReflow = IsAutoReflow,
             ShortHeading = ShortHeading,
+            SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
 
         // Show the .NET runtime version and current dictionary in the status bar
@@ -225,6 +240,8 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
+    
 
     #endregion
 
@@ -419,7 +436,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var result =
-            ReflowModel.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading);
+            ReflowModel.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading, _sentenceBoundaryLevel);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
         if (hasSelection)
@@ -1069,8 +1086,21 @@ public class MainWindowViewModel : ViewModelBase
 
         // write back to LanguageSettings
         _languageSettings!.PdfOptions.ShortHeadingSettings = result; // ✅ new preferred field
+        
+        this.RaisePropertyChanged(nameof(IsSettingsDirty));
 
         // LanguageSettingsHelper.Save(_languageSettings);
+    }
+    
+    private void SaveLanguageSettings()
+    {
+        // Ensure VM → LanguageSettings object is already updated before calling this
+        _languageSettingsService!.Save();
+        
+        this.RaisePropertyChanged(nameof(IsSettingsDirty));
+
+        // optional: toast/statusbar message
+        LblStatusBarContent = $"✅ Saved: {_languageSettingsService.UserSettingsPath}";
     }
 
     private static string BuildProgressBar(int percent, int width = 10)

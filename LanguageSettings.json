@@ -125,7 +125,11 @@
       "mixedCjkAscii": 1,
       "customTitleHeadingRegex": ""
     }
-  },  
+  },
+  "sentenceBoundaryMode": {
+    "info": "1 = lenient, 2 = balanced (default), 3 = strict",
+    "value": 2
+  },
   "punctuation": 1,
   "convertFilename": 0,
   "dictionary": "zstd",

@@ -16,6 +16,7 @@ namespace OpenccNetLibGui.ViewModels
         public bool IsCompactPdfText { get; set; }
         public bool IsAutoReflow { get; set; }
         public ShortHeadingSettings? ShortHeading { get; set; }
+        public int SentenceBoundaryLevel { get; init; } = 2;
 
         public void Cancel()
         {
@@ -94,7 +95,9 @@ namespace OpenccNetLibGui.ViewModels
                 text,
                 addPdfPageHeader: IsAddPdfPageHeader,
                 compact: IsCompactPdfText,
-                shortHeading: ShortHeading);
+                shortHeading: ShortHeading,
+                sentenceBoundaryLevel: SentenceBoundaryLevel
+                );
 
             reflowApplied = true;
 

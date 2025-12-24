@@ -23,7 +23,7 @@ namespace OpenccNetLibGui.Models
             '。', '！', '？', '；', '：', '…', '—', '”', '」', '’', '』',
 
             // Chinese closing brackets / quotes
-            '）', '】', '》', '〗', '〕', '〉', '］', '｝',
+            '）', '】', '》', '〗', '〕', '〉', '］', '｝', '＞',
 
             // Allowed ASCII-like ending and bracket
             '.', ')', ':', '!'
@@ -32,9 +32,9 @@ namespace OpenccNetLibGui.Models
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
         private static readonly Regex TitleHeadingRegex =
             new(
-                @"^(?=.{0,50}$)
+                @"^(?!.*[,，])(?=.{0,50}$)
                   (前言|序章|楔子|终章|尾声|后记|尾聲|後記|番外.{0,15}
-                  |.{0,10}?第.{0,5}?([章节部卷節回][^分合])|[卷章][一二三四五六七八九十].{0,20}?
+                  |.{0,10}?第.{0,5}?([章节部卷節回][^分合的])|[卷章][一二三四五六七八九十].{0,20}?
                   )",
                 RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
@@ -49,8 +49,8 @@ namespace OpenccNetLibGui.Models
             => DialogOpeners.Contains(ch);
 
         // Bracket punctuations (open-close)
-        private const string OpenBrackets = "（([【《〔〖｛〈［";
-        private const string CloseBrackets = "）)]】》〕〗｝〉］";
+        private const string OpenBrackets = "（([【《〔〖｛〈［＜";
+        private const string CloseBrackets = "）)]】》〕〗｝〉］＞";
 
         // Metadata key-value separators
         private static readonly char[] MetadataSeparators =
@@ -129,7 +129,7 @@ namespace OpenccNetLibGui.Models
         /// <summary>
         /// Reflows CJK (Chinese/Japanese/Korean) text extracted from a PDF into clean,
         /// human-readable paragraphs.
-        ///
+        /// 
         /// <para>
         /// PDF text extraction often produces broken lines, incorrect paragraph boundaries,
         /// missing or excessive newlines, and split words across lines or pages.
@@ -138,82 +138,78 @@ namespace OpenccNetLibGui.Models
         /// metadata blocks, and page markers.
         /// </para>
         /// </summary>
-        ///
         /// <param name="text">
-        /// Raw text extracted from a PDF (via PdfPig, Pdfium, or any other engine).
-        /// The input is expected to be line-based with newline separators.
+        ///     Raw text extracted from a PDF (via PdfPig, Pdfium, or any other engine).
+        ///     The input is expected to be line-based with newline separators.
         /// </param>
-        ///
         /// <param name="addPdfPageHeader">
-        /// If <c>true</c>, PDF page headers of the form <c>"=== [Page X/Y] ==="</c>
-        /// are preserved during reflow.  
-        /// If <c>false</c>, page markers (including markers inserted during extraction)
-        /// are removed during reconstruction.
+        ///     If <c>true</c>, PDF page headers of the form <c>"=== [Page X/Y] ==="</c>
+        ///     are preserved during reflow.  
+        ///     If <c>false</c>, page markers (including markers inserted during extraction)
+        ///     are removed during reconstruction.
         /// </param>
-        ///
         /// <param name="compact">
-        /// Determines output formatting style:
-        /// <list type="bullet">
-        ///   <item>
-        ///     <description>
-        ///     <c>true</c> — Compact mode:  
-        ///     Produces one line per paragraph with no blank lines in between.
-        ///     Ideal for dictionary building, NLP preprocessing, and plain text exports.
-        ///     </description>
-        ///   </item>
-        ///   <item>
-        ///     <description>
-        ///     <c>false</c> — Novel mode:  
-        ///     Inserts a blank line between paragraphs, matching book-style formatting.
-        ///     </description>
-        ///   </item>
-        /// </list>
+        ///     Determines output formatting style:
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 <c>true</c> — Compact mode:  
+        ///                 Produces one line per paragraph with no blank lines in between.
+        ///                 Ideal for dictionary building, NLP preprocessing, and plain text exports.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <c>false</c> — Novel mode:  
+        ///                 Inserts a blank line between paragraphs, matching book-style formatting.
+        ///             </description>
+        ///         </item>
+        ///     </list>
         /// </param>
-        ///
         /// <param name="shortHeading">
-        /// Configuration object that controls how a line is classified as a
-        /// <em>short heading</em> during CJK paragraph reflow.
-        ///
-        /// <para>
-        /// The classification is based on a combination of:
-        /// </para>
-        /// <list type="bullet">
-        ///   <item>
-        ///     <description>
-        ///     <b>Maximum length</b> (<see cref="ShortHeadingSettings.MaxLen"/>):
-        ///     Lines longer than this value are never considered headings.
-        ///     Typical range is 5–15 characters; default is 8.
-        ///     </description>
-        ///   </item>
-        ///   <item>
-        ///     <description>
-        ///     <b>Allowed character patterns</b>, such as:
-        ///     all CJK characters, all ASCII characters, ASCII digits only,
-        ///     or mixed CJK + ASCII (controlled by the corresponding flags
-        ///     in <see cref="ShortHeadingSettings"/>).
-        ///     </description>
-        ///   </item>
-        /// </list>
-        ///
-        /// <para>
-        /// Before pattern matching, several <b>absolute rejection rules</b> are applied:
-        /// lines containing sentence-ending punctuation, commas or list separators,
-        /// unclosed brackets, or PDF page markers are never treated as headings,
-        /// even if they satisfy length and pattern constraints.
-        /// </para>
-        ///
-        /// <para>
-        /// This rule-based approach avoids hard-coded language assumptions and allows
-        /// users to fine-tune heading detection behavior for different document styles,
-        /// including novels, technical documents, and bilingual (CJK + English) texts.
-        /// </para>
+        ///     Configuration object that controls how a line is classified as a
+        ///     <em>short heading</em> during CJK paragraph reflow.
+        /// 
+        ///     <para>
+        ///         The classification is based on a combination of:
+        ///     </para>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 <b>Maximum length</b> (<see cref="ShortHeadingSettings.MaxLen"/>):
+        ///                 Lines longer than this value are never considered headings.
+        ///                 Typical range is 5–15 characters; default is 8.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <b>Allowed character patterns</b>, such as:
+        ///                 all CJK characters, all ASCII characters, ASCII digits only,
+        ///                 or mixed CJK + ASCII (controlled by the corresponding flags
+        ///                 in <see cref="ShortHeadingSettings"/>).
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// 
+        ///     <para>
+        ///         Before pattern matching, several <b>absolute rejection rules</b> are applied:
+        ///         lines containing sentence-ending punctuation, commas or list separators,
+        ///         unclosed brackets, or PDF page markers are never treated as headings,
+        ///         even if they satisfy length and pattern constraints.
+        ///     </para>
+        /// 
+        ///     <para>
+        ///         This rule-based approach avoids hard-coded language assumptions and allows
+        ///         users to fine-tune heading detection behavior for different document styles,
+        ///         including novels, technical documents, and bilingual (CJK + English) texts.
+        ///     </para>
         /// </param>
-        ///
+        /// <param name="sentenceBoundaryLevel"></param>
         /// <returns>
         /// A fully reflowed, cleanly segmented text string with consistent paragraph breaks,
         /// preserved headings, correctly grouped dialog blocks, and normalized whitespace.
         /// </returns>
-        ///
+        /// 
         /// <remarks>
         /// <para>
         /// The reflow engine performs several processing stages:
@@ -224,13 +220,13 @@ namespace OpenccNetLibGui.Models
         ///     Identifies lines representing page headers or separators.
         ///     </description>
         ///   </item>
-        ///
+        /// 
         ///   <item>
         ///     <description><b>Metadata block handling</b>  
         ///     Recognizes copyright/ISBN/publishing information and keeps them intact.
         ///     </description>
         ///   </item>
-        ///
+        /// 
         ///   <item>
         ///     <description><b>Heading detection</b>  
         ///     Includes:
@@ -244,20 +240,20 @@ namespace OpenccNetLibGui.Models
         ///     </list>
         ///     </description>
         ///   </item>
-        ///
+        /// 
         ///   <item>
         ///     <description><b>Dialog grouping</b>  
         ///     Tracks brackets (“「」”, “『』”, '“”', etc.) to keep dialog paragraphs together.
         ///     </description>
         ///   </item>
-        ///
+        /// 
         ///   <item>
         ///     <description><b>Paragraph join/reject heuristics</b>  
         ///     Uses punctuation, indentation, heading signals, CJK rules, and colon-continuation
         ///     logic to determine whether a line should join the previous paragraph or start a new one.
         ///     </description>
         ///   </item>
-        ///
+        /// 
         ///   <item>
         ///     <description><b>Output formatting</b>  
         ///     Normalizes whitespace, enforces compact or novel layout, removes or preserves
@@ -265,7 +261,7 @@ namespace OpenccNetLibGui.Models
         ///     </description>
         ///   </item>
         /// </list>
-        ///
+        /// 
         /// <para>
         /// This reflow pipeline is designed specifically for CJK text but also handles
         /// mixed CJK/Latin PDFs reliably.  
@@ -275,7 +271,8 @@ namespace OpenccNetLibGui.Models
             string text,
             bool addPdfPageHeader,
             bool compact = false,
-            ShortHeadingSettings? shortHeading = null)
+            ShortHeadingSettings? shortHeading = null,
+            int sentenceBoundaryLevel = 2)
         {
             shortHeading ??= ShortHeadingSettings.Default;
 
@@ -482,7 +479,7 @@ namespace OpenccNetLibGui.Models
                     // else: fall through → normal merge logic below
                 }
 
-                // 3d) Bracket-wrapped standalone structural line
+                // 4) Bracket-wrapped standalone structural line
                 //     (e.g. 《书名》 / 【组成】 / （附录）)
                 if (EndsWithCjkBracketBoundary(stripped))
                 {
@@ -549,7 +546,7 @@ namespace OpenccNetLibGui.Models
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
                 if (bufferText.EndsWith('：') || bufferText.EndsWith(':'))
                 {
-                    if (stripped.Length > 0 && DialogOpeners.Contains(stripped[0]))
+                    if (stripped.Length > 0 && IsDialogOpener(stripped[0]))
                     {
                         buffer.Append(stripped);
                         dialogState.Update(stripped);
@@ -563,21 +560,17 @@ namespace OpenccNetLibGui.Models
 
                 switch (dialogState.IsUnclosed)
                 {
-                    // 5a) Bracket-ended structural line with prefix
-                    case false when IsBracketCloser(bufferText[^1]) && IsMostlyCjk(bufferText):
-                    // 5b) Ends with CJK punctuation → new paragraph
+                    // 5) Ends with CJK punctuation → new paragraph
                     // NOTE: Dialog safety gate has the highest priority.
                     // If dialog quotes/brackets are not closed, never split the paragraph.
-                    // if (Array.IndexOf(CjkPunctEndChars, bufferText[^1]) >= 0 &&
-                    //     !dialogState.IsUnclosed)
-                    case false when EndsWithSentenceBoundary(bufferText, level: 2):
+                    case false when EndsWithSentenceBoundary(bufferText, level: sentenceBoundaryLevel):
                         segments.Add(bufferText);
                         buffer.Clear();
                         buffer.Append(stripped);
                         dialogState.Reset();
                         dialogState.Update(stripped);
                         continue;
-                    // 7) Indentation → new paragraph
+                    // 6) Indentation → new paragraph
                     // Pre-append: indentation indicates a new paragraph starts here
                     case false when buffer.Length > 0 && IndentRegex.IsMatch(rawLine):
                         segments.Add(buffer.ToString());
@@ -586,20 +579,21 @@ namespace OpenccNetLibGui.Models
                         break;
                 }
 
+                // Removed legacy chapter-ending safety check; behavior covered by sentence-boundary logi
                 // 8) Chapter-like endings: 章 / 节 / 部 / 卷 (with trailing brackets)
-                if (!dialogState.IsUnclosed &&
-                    bufferText.Length <= 12 &&
-                    IsMostlyCjk(bufferText) &&
-                    Regex.IsMatch(bufferText, @"(章|节|部|卷|節|回)[】》〗〕〉」』）]*$") &&
-                    !ContainsAny(bufferText, '，', ',', '、', '。', '！', '？', '：', ':', ';'))
-                {
-                    segments.Add(bufferText);
-                    buffer.Clear();
-                    buffer.Append(stripped);
-                    dialogState.Reset();
-                    dialogState.Update(stripped);
-                    continue;
-                }
+                // if (!dialogState.IsUnclosed &&
+                //     bufferText.Length <= 12 &&
+                //     IsMostlyCjk(bufferText) &&
+                //     Regex.IsMatch(bufferText, @"(章|节|部|卷|節|回)[】》〗〕〉」』）]*$") &&
+                //     !ContainsAny(bufferText, '，', ',', '、', '。', '！', '？', '：', ':', ';'))
+                // {
+                //     segments.Add(bufferText);
+                //     buffer.Clear();
+                //     buffer.Append(stripped);
+                //     dialogState.Reset();
+                //     dialogState.Update(stripped);
+                //     continue;
+                // }
 
                 // 9) Default merge (soft line break)
                 buffer.Append(stripped);
@@ -740,7 +734,7 @@ namespace OpenccNetLibGui.Models
             static bool ContainsAny(string s, params char[] chars)
             {
                 foreach (var ch in chars)
-                    if (s.IndexOf(ch) >= 0)
+                    if (s.Contains(ch))
                         return true;
                 return false;
             }
@@ -875,25 +869,22 @@ namespace OpenccNetLibGui.Models
                 while (i >= 0 && char.IsWhiteSpace(s[i])) i--;
                 if (i < 0) return false;
 
+                // Level 3 rules (strict)
                 var last = s[i];
 
-                // 1) Strong sentence end
-                if (last is '。' or '！' or '？' or '!')
-                    return true;
-
-                // 2) OCR '.' as '。'
-                if (last == '.' && level >= 3 && IsOcrCjkDot(s, i))
-                    return true;
-
-                // 3) OCR ':' as '：'
-                if (last == ':' && level >= 3 && IsOcrCjkColon(s, i))
-                    return true;
-
-                if (level >= 3)
-                    return false;
-
-                // 4) Closers after strong end
-                if (IsCjkCloser(last) && i > 0)
+                switch (last)
+                {
+                    // 1) Strong sentence end
+                    case '。' or '！' or '？' or '!':
+                    // 2) OCR '.' as '。'
+                    case '.' when level >= 3 && IsOcrCjkDot(s, i):
+                    // 3) OCR ':' as '：'
+                    case ':' when level >= 3 && IsOcrCjkColon(s, i):
+                        return true;
+                }
+                
+                // 4a) Quote closers after strong end
+                if (IsQuoteCloser(last) && i > 0)
                 {
                     var prev = s[i - 1];
                     if (prev is '。' or '！' or '？' or '!' ||
@@ -901,10 +892,19 @@ namespace OpenccNetLibGui.Models
                         return true;
                 }
 
+                // Level 2 rules (lenient)
+                if (level >= 3)
+                    return false;
+
+                // 4b) Bracket closers with most CJK
+                if (IsBracketCloser(last) && i > 0 && IsMostlyCjk(s))
+                    return true;
+
                 // Level 2 (lenient): allow ellipsis as weak boundary
                 if (EndsWithEllipsis(s))
                     return true;
 
+                // Level 1 rules (very lenient)
                 if (level >= 2)
                     return false;
 
@@ -914,12 +914,12 @@ namespace OpenccNetLibGui.Models
 
             static bool IsBracketCloser(char ch) =>
                 ch is '）' or '】' or '》' or '〗' or '〕' or '〉' or '］' or '｝'
-                    or ')';
+                    or ')' or '＞' or ']' or '}';
 
             static bool IsQuoteCloser(char ch) =>
                 ch is '”' or '’' or '」' or '』';
 
-            static bool IsCjkCloser(char ch) => IsBracketCloser(ch) || IsQuoteCloser(ch);
+            // static bool IsCjkCloser(char ch) => IsBracketCloser(ch) || IsQuoteCloser(ch);
 
             static bool IsOcrCjkDot(string s, int dotIndex)
             {
@@ -932,11 +932,9 @@ namespace OpenccNetLibGui.Models
                 if (dotIndex == 0)
                     return false;
 
-                if (!IsCjk(s[dotIndex - 1]))
-                    return false;
-
-                // 行內整體必須偏向 CJK
-                return IsMostlyCjk(s);
+                return IsCjk(s[dotIndex - 1]) &&
+                       // 行內整體必須偏向 CJK
+                       IsMostlyCjk(s);
             }
 
             static bool IsOcrCjkColon(string s, int index)
@@ -989,15 +987,10 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // 2) Must be mostly CJK to avoid "(test)" "[1.2]" etc.
-                if (!IsMostlyCjk(s))
-                    return false;
-
-                // 3) Ensure this bracket type is balanced inside the line
-                //    (prevents premature close / malformed OCR)
-                if (!IsBracketTypeBalanced(s, open, close))
-                    return false;
-
-                return true;
+                return IsMostlyCjk(s) &&
+                       // 3) Ensure this bracket type is balanced inside the line
+                       //    (prevents premature close / malformed OCR)
+                       IsBracketTypeBalanced(s, open, close);
             }
 
             static bool IsBracketTypeBalanced(string s, char open, char close)
@@ -1028,6 +1021,8 @@ namespace OpenccNetLibGui.Models
                 '〈' => close == '〉',
                 '〔' => close == '〕',
                 '〖' => close == '〗',
+                '［' => close == '］',
+                '＜' => close == '＞',
                 _ => false
             };
 
@@ -1299,9 +1294,9 @@ namespace OpenccNetLibGui.Models
 
             // 2) Token-level collapse:
             //    As a fallback, if an individual token itself is made of
-            //    a repeated substring (e.g. "abcdabcdabcd"), collapse it:
+            //    a repeated substring (e.g. "AbcdAbcdAbcd"), collapse it:
             //
-            //      "abcdabcdabcd" → "abcd"
+            //      "AbcdAbcdAbcd" → "Abcd"
             //
             //    This is carefully tuned so we do *not* destroy natural
             //    short repeats such as "哈哈哈哈哈哈".
@@ -1401,7 +1396,7 @@ namespace OpenccNetLibGui.Models
         /// appears at least 3 times.
         ///
         /// Examples:
-        ///   "abcdabcdabcd"      → "abcd"
+        ///   "AbcdAbcdAbcd"      → "Abcd"
         ///   "第一季大结局第一季大结局第一季大结局" → "第一季大结局"
         ///
         /// Very short units (length &lt; 4) are ignored on purpose to avoid
