@@ -99,24 +99,21 @@ public class LanguageSettingsService
         if (defTok is null) return curTok.DeepClone();
         if (JToken.DeepEquals(defTok, curTok)) return null;
 
-        if (defTok is JObject dObj && curTok is JObject cObj)
+        if (defTok is not JObject dObj || curTok is not JObject cObj) return curTok.DeepClone();
+        var diff = new JObject();
+        foreach (var prop in cObj.Properties())
         {
-            var diff = new JObject();
-            foreach (var prop in cObj.Properties())
-            {
-                var dChild = dObj[prop.Name];
-                var cChild = prop.Value;
+            var dChild = dObj[prop.Name];
+            var cChild = prop.Value;
 
-                var childDiff = DiffToken(dChild, cChild);
-                if (childDiff != null)
-                    diff[prop.Name] = childDiff;
-            }
-
-            return diff.HasValues ? diff : null;
+            var childDiff = DiffToken(dChild, cChild);
+            if (childDiff != null)
+                diff[prop.Name] = childDiff;
         }
 
+        return diff.HasValues ? diff : null;
+
         // Arrays (and values): treat as atomic
-        return curTok.DeepClone();
     }
 
     public void SaveDiffOnly()

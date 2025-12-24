@@ -84,6 +84,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly int _locale;
     private PdfViewModel Pdf { get; }
     private readonly int _sentenceBoundaryLevel;
+
     public bool IsSettingsDirty =>
         _languageSettingsService!.IsDirty;
 
@@ -176,7 +177,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         PdfEngine = engine;
-        
+
         // 1 = lenient, 2 = balanced (default), 3 = strict
         _sentenceBoundaryLevel = Math.Clamp(
             _languageSettings!.SentenceBoundaryMode!.Value,
@@ -241,7 +242,6 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
-    
 
     #endregion
 
@@ -436,7 +436,8 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var result =
-            ReflowModel.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading, _sentenceBoundaryLevel);
+            ReflowModel.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading,
+                _sentenceBoundaryLevel);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
         if (hasSelection)
@@ -1086,18 +1087,16 @@ public class MainWindowViewModel : ViewModelBase
 
         // write back to LanguageSettings
         _languageSettings!.PdfOptions.ShortHeadingSettings = result; // ✅ new preferred field
-        
-        this.RaisePropertyChanged(nameof(IsSettingsDirty));
 
-        // LanguageSettingsHelper.Save(_languageSettings);
+        this.RaisePropertyChanged(nameof(IsSettingsDirty));
     }
-    
+
     private void SaveLanguageSettings()
     {
         // Ensure VM → LanguageSettings object is already updated before calling this
         // _languageSettingsService!.Save();
         _languageSettingsService!.SaveDiffOnly();
-        
+
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
 
         // optional: toast/statusbar message
@@ -1456,65 +1455,6 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isCbZhtwEnabled, value);
     }
 
-    public bool IsCbPunctuation
-    {
-        get => _isCbPunctuation;
-        set => this.RaiseAndSetIfChanged(ref _isCbPunctuation, value);
-    }
-
-    public bool IsCbConvertFilename
-    {
-        get => _isCbConvertFilename;
-        set
-        {
-            if (IsCbConvertFilename == value) return;
-            _languageSettings!.ConvertFilename = value ? 1 : 0;
-            this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
-        }
-    }
-
-    public bool IsAddPdfPageHeader
-    {
-        get => Pdf.IsAddPdfPageHeader;
-        set
-        {
-            if (Pdf.IsAddPdfPageHeader == value)
-                return;
-
-            Pdf.IsAddPdfPageHeader = value;
-
-            this.RaisePropertyChanged();
-        }
-    }
-
-    public bool IsCompactPdfText
-    {
-        get => Pdf.IsCompactPdfText;
-        set
-        {
-            if (Pdf.IsCompactPdfText == value)
-                return;
-
-            Pdf.IsCompactPdfText = value;
-
-            this.RaisePropertyChanged();
-        }
-    }
-
-    public bool IsAutoReflow
-    {
-        get => Pdf.IsAutoReflow;
-        set
-        {
-            if (Pdf.IsAutoReflow == value)
-                return;
-
-            Pdf.IsAutoReflow = value;
-
-            this.RaisePropertyChanged();
-        }
-    }
-
     public bool IsTbOutFolderFocus
     {
         get => _isTbOutFolderFocus;
@@ -1569,6 +1509,82 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tabBatchFontWeight, value);
     }
 
+    #endregion
+
+    #region User Customizable Properties Region
+
+    public bool IsCbPunctuation
+    {
+        get => _isCbPunctuation;
+        set
+        {
+            if (IsCbPunctuation == value) return;
+            this.RaiseAndSetIfChanged(ref _isCbPunctuation, value);
+            _languageSettings!.Punctuation = value ? 1 : 0;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    public bool IsCbConvertFilename
+    {
+        get => _isCbConvertFilename;
+        set
+        {
+            if (IsCbConvertFilename == value) return;
+            _languageSettings!.ConvertFilename = value ? 1 : 0;
+            this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    public bool IsAddPdfPageHeader
+    {
+        get => Pdf.IsAddPdfPageHeader;
+        set
+        {
+            if (Pdf.IsAddPdfPageHeader == value)
+                return;
+
+            Pdf.IsAddPdfPageHeader = value;
+            _languageSettings!.PdfOptions.AddPdfPageHeader = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    public bool IsCompactPdfText
+    {
+        get => Pdf.IsCompactPdfText;
+        set
+        {
+            if (Pdf.IsCompactPdfText == value)
+                return;
+
+            Pdf.IsCompactPdfText = value;
+            _languageSettings!.PdfOptions.CompactPdfText = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    public bool IsAutoReflow
+    {
+        get => Pdf.IsAutoReflow;
+        set
+        {
+            if (Pdf.IsAutoReflow == value)
+                return;
+
+            Pdf.IsAutoReflow = value;
+            _languageSettings!.PdfOptions.AutoReflowPdfText = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
     public PdfEngine PdfEngine
     {
         get => Pdf.PdfEngine;
@@ -1585,6 +1601,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaisePropertyChanged(); // ✅ add this for self-changed
             this.RaisePropertyChanged(nameof(IsPdfPigEngine));
             this.RaisePropertyChanged(nameof(IsPdfiumEngine));
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
     }
 
