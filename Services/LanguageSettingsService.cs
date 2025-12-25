@@ -52,7 +52,9 @@ public class LanguageSettingsService
     /// </summary>
     public void Save()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(UserSettingsPath)!);
+        var dir = Path.GetDirectoryName(UserSettingsPath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
 
         var json = JsonConvert.SerializeObject(
             LanguageSettings,
@@ -70,7 +72,7 @@ public class LanguageSettingsService
     }
 
     // ------ Save Diff settings only------
-    static readonly string[] DiffRootPaths =
+    private static readonly string[] DiffRootPaths =
     {
         "pdfOptions",
         "sentenceBoundaryMode",
@@ -137,7 +139,10 @@ public class LanguageSettingsService
 
         var diff = (JObject?)DiffToken(defaultPick, currentPick) ?? new JObject();
 
-        Directory.CreateDirectory(Path.GetDirectoryName(UserSettingsPath)!);
+        var dir = Path.GetDirectoryName(UserSettingsPath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
+
         File.WriteAllText(UserSettingsPath, diff.ToString(Formatting.Indented), new UTF8Encoding(false));
 
         _lastSavedSnapshot = JsonConvert.SerializeObject(LanguageSettings, Formatting.None);
@@ -152,21 +157,27 @@ public class LanguageSettingsService
     }
 
     /// <summary>
-    /// Reloads settings from disk, falling back to defaults if the file
-    /// is missing or invalid. Useful if you ever add a "Reload" action.
+    /// Reloads settings from disk (default + user overrides).
+    /// Restores the shipped default file if it is missing/corrupt.
+    /// Never creates user files/folders.
     /// </summary>
     public void Reload()
     {
-        LanguageSettings = ReadOrCreateLanguageSettings(_defaultSettingsPath);
+        // Re-merge user overrides onto defaults (no file writes)
+        LanguageSettings = ReadMergedLanguageSettings(
+            _defaultSettingsPath,
+            UserSettingsPath
+        );
+
+        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
     }
 
     private static LanguageSettings ReadMergedLanguageSettings(
         string defaultPath,
         string userPath)
     {
-        var defaultJson = File.ReadAllText(defaultPath);
-        var defaultSettings =
-            JsonConvert.DeserializeObject<LanguageSettings>(defaultJson)!;
+        // 🔑 Ensure shipped default exists (restore if missing/corrupt)
+        var defaultSettings = ReadOrCreateLanguageSettings(defaultPath);
 
         if (!File.Exists(userPath))
             return defaultSettings;

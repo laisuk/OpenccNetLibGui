@@ -52,7 +52,7 @@ public class App : Application
 
             const string appName = "OpenccNetLibGui";
             var userDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 appName
             );
             var userPath = Path.Combine(userDir, "UserLanguageSettings.json");
