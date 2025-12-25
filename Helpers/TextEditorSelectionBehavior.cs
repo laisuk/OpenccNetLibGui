@@ -38,15 +38,25 @@ public class TextEditorSelectionBehavior : Behavior<TextEditor>
         set => SetValue(SelectionLengthProperty, value);
     }
 
+    // ✅ NEW: caret offset (captures forward/backward selection correctly)
+    public static readonly StyledProperty<int> CaretOffsetProperty =
+        AvaloniaProperty.Register<TextEditorSelectionBehavior, int>(
+            nameof(CaretOffset),
+            defaultBindingMode: BindingMode.TwoWay);
+
+    public int CaretOffset
+    {
+        get => GetValue(CaretOffsetProperty);
+        set => SetValue(CaretOffsetProperty, value);
+    }
+
     protected override void OnAttached()
     {
         base.OnAttached();
 
-        if (AssociatedObject != null)
-        {
-            AssociatedObject.TextArea.SelectionChanged += OnSelectionChanged;
-            PropertyChanged += OnViewModelPropertyChanged;
-        }
+        if (AssociatedObject == null) return;
+        AssociatedObject.TextArea.SelectionChanged += OnSelectionChanged;
+        PropertyChanged += OnViewModelPropertyChanged;
     }
 
     protected override void OnDetaching()
@@ -72,24 +82,27 @@ public class TextEditorSelectionBehavior : Behavior<TextEditor>
         if (_isUpdatingFromViewModel)
             return;
 
-        var sel = editor.TextArea.Selection;
+        var area = editor.TextArea;
+
+        _isUpdatingFromEditor = true;
+
+        // ✅ Always sync caret (works for backward selection too)
+        CaretOffset = area.Caret.Offset;
+
+        var sel = area.Selection;
         if (sel == null || sel.IsEmpty)
         {
-            _isUpdatingFromEditor = true;
             SelectionStart = 0;
             SelectionLength = 0;
             _isUpdatingFromEditor = false;
             return;
         }
 
-        // ✅ 用 SurroundingSegment，方向無關
-        var segment = sel.SurroundingSegment;
-        var startOffset = segment.Offset;
-        var length = segment.Length;
+        // Normalized segment for selection range (direction-free)
+        var seg = sel.SurroundingSegment;
+        SelectionStart = seg.Offset;
+        SelectionLength = seg.Length;
 
-        _isUpdatingFromEditor = true;
-        SelectionStart = startOffset;
-        SelectionLength = length;
         _isUpdatingFromEditor = false;
     }
 
@@ -102,14 +115,17 @@ public class TextEditorSelectionBehavior : Behavior<TextEditor>
         if (editor?.Document is null)
             return;
 
-        if (e.Property != SelectionStartProperty && e.Property != SelectionLengthProperty)
+        if (e.Property != SelectionStartProperty &&
+            e.Property != SelectionLengthProperty &&
+            e.Property != CaretOffsetProperty)
             return;
 
-        // 呢次 PropertyChanged 係因為 editor 自己 SetValue 觸發 → 唔好再反寫返去 editor
         if (_isUpdatingFromEditor)
             return;
 
         var doc = editor.Document;
+        var area = editor.TextArea;
+
         var start = SelectionStart;
         var length = SelectionLength;
         var end = start + length;
@@ -117,21 +133,28 @@ public class TextEditorSelectionBehavior : Behavior<TextEditor>
         if (start < 0 || length < 0 || end > doc.TextLength)
             return;
 
-        var area = editor.TextArea;
-
         _isUpdatingFromViewModel = true;
 
         if (length == 0)
         {
-            // 清除選區，只移動 caret
+            // ✅ Clear selection, restore caret using CaretOffset (not SelectionStart)
             area.ClearSelection();
-            area.Caret.Offset = start;
+
+            var caret = CaretOffset;
+            if (caret < 0) caret = 0;
+            if (caret > doc.TextLength) caret = doc.TextLength;
+
+            area.Caret.Offset = caret;
         }
         else
         {
-            // 正常設置 forward selection
             area.Selection = Selection.Create(area, start, end);
-            area.Caret.Offset = end;
+
+            // (optional) keep caret where VM says
+            var caret = CaretOffset;
+            if (caret < 0) caret = start;
+            if (caret > doc.TextLength) caret = end;
+            area.Caret.Offset = caret;
         }
 
         _isUpdatingFromViewModel = false;

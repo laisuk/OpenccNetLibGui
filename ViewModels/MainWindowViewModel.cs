@@ -459,6 +459,7 @@ public class MainWindowViewModel : ViewModelBase
             // Update selection to cover the new reflowed range
             TbSourceSelectionStart = start;
             TbSourceSelectionLength = result.Length;
+            TbSourceCaretOffset = start + result.Length;
         }
         else
         {
@@ -468,6 +469,7 @@ public class MainWindowViewModel : ViewModelBase
             // Clear selection
             TbSourceSelectionStart = 0;
             TbSourceSelectionLength = 0;
+            TbSourceCaretOffset = 0;
         }
 
         LblStatusBarContent = "✅ Reflow complete (CJK-aware)";
@@ -531,21 +533,60 @@ public class MainWindowViewModel : ViewModelBase
             UpdateEncodeInfo(Opencc.ZhoCheck(TbSourceTextDocument.Text));
         }
 
-        var config = GetCurrentConfig();
+        // Check if any selected text
+        var document = TbSourceTextDocument;
+        var fullText = document!.Text ?? string.Empty;
 
-        // Preload text before timing to exclude Avalonia's first-access cost
-        var inputText = TbSourceTextDocument.Text;
+        var hasSelection = TbSourceSelectionLength > 0;
+
+        string sourceText;
+        var start = TbSourceSelectionStart;
+        var length = TbSourceSelectionLength;
+
+        if (hasSelection)
+        {
+            // Boundaries guard
+            if (start < 0 || length <= 0 || start + length > fullText.Length)
+            {
+                // Fallback to whole document if selection is invalid
+                sourceText = fullText;
+                hasSelection = false;
+            }
+            else
+            {
+                sourceText = fullText.Substring(start, length);
+            }
+        }
+        else
+        {
+            sourceText = fullText;
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceText))
+        {
+            LblStatusBarContent = "Nothing to process";
+            return;
+        }
+
+        var config = GetCurrentConfig();
 
         if (!IsRbS2T && !IsRbT2S && !IsRbCustom) return;
         _opencc!.Config = config;
 
         var stopwatch = Stopwatch.StartNew();
-        var convertedText = _opencc.Convert(inputText, IsCbPunctuation);
+        var convertedText = _opencc.Convert(sourceText, IsCbPunctuation);
         stopwatch.Stop();
 
         // Set result and clear undo history to reduce memory usage
         TbDestinationTextDocument!.Text = convertedText;
         TbDestinationTextDocument.UndoStack.ClearAll();
+
+        if (hasSelection)
+        {
+            // clear selection, keep caret exactly where user left it (forward/backward ok)
+            TbSourceSelectionStart = TbSourceCaretOffset; // optional, can keep range consistent
+            TbSourceSelectionLength = 0;
+        }
 
         // Set destination label
         LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
@@ -1154,6 +1195,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tbSourceTextDocument, value);
     }
 
+    public string? LblTotalCharsContent
+    {
+        get => _lblTotalCharsContent;
+        set => this.RaiseAndSetIfChanged(ref _lblTotalCharsContent, value);
+    }
+
     private int _tbSourceSelectionStart;
 
     public int TbSourceSelectionStart
@@ -1170,6 +1217,14 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _tbSourceSelectionLength, value);
     }
 
+    private int _tbSourceCaretOffset;
+
+    public int TbSourceCaretOffset
+    {
+        get => _tbSourceCaretOffset;
+        set => this.RaiseAndSetIfChanged(ref _tbSourceCaretOffset, value);
+    }
+
     public TextDocument? TbDestinationTextDocument
     {
         get => _tbDestinationTextDocument;
@@ -1180,12 +1235,6 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _tbPreviewTextDocument;
         set => this.RaiseAndSetIfChanged(ref _tbPreviewTextDocument, value);
-    }
-
-    public string? LblTotalCharsContent
-    {
-        get => _lblTotalCharsContent;
-        set => this.RaiseAndSetIfChanged(ref _lblTotalCharsContent, value);
     }
 
     public ObservableCollection<string>? LbxSourceItems
