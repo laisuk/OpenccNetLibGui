@@ -45,16 +45,11 @@ public static class OpenXmlHelper
 
             // Optional mimetype verification ( the best effort)
             var mimetype = zip.GetEntry("mimetype");
-            if (mimetype != null)
-            {
-                using var s = mimetype.Open();
-                using var r = new StreamReader(s, Encoding.ASCII, detectEncodingFromByteOrderMarks: false);
-                var mt = r.ReadToEnd().Trim();
-                if (!mt.Equals("application/vnd.oasis.opendocument.text", StringComparison.Ordinal))
-                    return false;
-            }
-
-            return true;
+            if (mimetype == null) return true;
+            using var s = mimetype.Open();
+            using var r = new StreamReader(s, Encoding.ASCII, detectEncodingFromByteOrderMarks: false);
+            var mt = r.ReadToEnd().Trim();
+            return mt.Equals("application/vnd.oasis.opendocument.text", StringComparison.Ordinal);
         }
         catch
         {
@@ -328,15 +323,11 @@ public static class OpenXmlHelper
             if (!inParagraph || paraPrefixEmitted) return;
 
             var (numId, ilvl) = ctx.ResolveNum(paraNumId, paraIlvl, paraStyleId);
-            if (numId.HasValue && ilvl.HasValue)
-            {
-                var prefix = ctx.NextPrefix(numId.Value, ilvl.Value);
-                if (!string.IsNullOrEmpty(prefix))
-                {
-                    CurrentTarget().Append(prefix);
-                    paraPrefixEmitted = true;
-                }
-            }
+            if (!numId.HasValue || !ilvl.HasValue) return;
+            var prefix = ctx.NextPrefix(numId.Value, ilvl.Value);
+            if (string.IsNullOrEmpty(prefix)) return;
+            CurrentTarget().Append(prefix);
+            paraPrefixEmitted = true;
         }
     }
 
@@ -382,14 +373,14 @@ public static class OpenXmlHelper
 
         var sb = new StringBuilder(64 * 1024);
 
-        int listLevel = 0;
+        var listLevel = 0;
 
         bool inTable = false, inRow = false, inCell = false;
         List<string>? rowCells = null;
         StringBuilder? cellBuf = null;
 
-        bool inParagraph = false;
-        bool prefixEmitted = false;
+        var inParagraph = false;
+        var prefixEmitted = false;
 
         StringBuilder Target() => (inCell && cellBuf != null) ? cellBuf : sb;
 
@@ -436,7 +427,7 @@ public static class OpenXmlHelper
                         case "s":
                             EmitListPrefixIfNeeded();
                             var cAttr = reader.GetAttribute("c", nsText) ?? reader.GetAttribute("text:c");
-                            int count = 1;
+                            var count = 1;
                             if (int.TryParse(cAttr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) &&
                                 n > 0)
                                 count = n;
@@ -473,63 +464,65 @@ public static class OpenXmlHelper
                     }
                 }
             }
-            else if (reader.NodeType == XmlNodeType.Text || reader.NodeType == XmlNodeType.SignificantWhitespace)
+            else if (reader.NodeType is XmlNodeType.Text or XmlNodeType.SignificantWhitespace)
             {
                 EmitListPrefixIfNeeded();
                 Target().Append(reader.Value);
             }
             else if (reader.NodeType == XmlNodeType.EndElement)
             {
-                if (reader.NamespaceURI == nsText)
+                switch (reader.NamespaceURI)
                 {
-                    switch (reader.LocalName)
-                    {
-                        case "list":
-                            if (listLevel > 0) listLevel--;
-                            break;
+                    case nsText:
+                        switch (reader.LocalName)
+                        {
+                            case "list":
+                                if (listLevel > 0) listLevel--;
+                                break;
 
-                        case "p":
-                        case "h":
-                            Target().Append('\n');
-                            inParagraph = false;
-                            break;
-                    }
-                }
+                            case "p":
+                            case "h":
+                                Target().Append('\n');
+                                inParagraph = false;
+                                break;
+                        }
 
-                if (reader.NamespaceURI == nsTable)
-                {
-                    switch (reader.LocalName)
-                    {
-                        case "table-cell":
-                            if (inCell && rowCells != null && cellBuf != null)
-                            {
-                                rowCells.Add(TrimTrailingNewlines(cellBuf.ToString()));
-                                cellBuf = null;
-                                inCell = false;
-                            }
+                        break;
+                    case nsTable:
+                        switch (reader.LocalName)
+                        {
+                            case "table-cell":
+                                if (inCell && rowCells != null && cellBuf != null)
+                                {
+                                    rowCells.Add(TrimTrailingNewlines(cellBuf.ToString()));
+                                    cellBuf = null;
+                                    inCell = false;
+                                }
 
-                            break;
+                                break;
 
-                        case "table-row":
-                            if (inRow && rowCells != null)
-                            {
-                                sb.Append(string.Join("\t", rowCells));
-                                sb.Append('\n');
-                                rowCells = null;
-                                inRow = false;
-                            }
+                            case "table-row":
+                                if (inRow && rowCells != null)
+                                {
+                                    sb.Append(string.Join("\t", rowCells));
+                                    sb.Append('\n');
+                                    rowCells = null;
+                                    inRow = false;
+                                }
 
-                            break;
+                                break;
 
-                        case "table":
-                            if (inTable)
-                            {
-                                if (!EndsWithNewline(sb)) sb.Append('\n');
-                                inTable = false;
-                            }
+                            case "table":
+                                if (inTable)
+                                {
+                                    if (!EndsWithNewline(sb)) sb.Append('\n');
+                                    inTable = false;
+                                }
 
-                            break;
-                    }
+                                break;
+                        }
+
+                        break;
                 }
             }
         }
@@ -561,11 +554,11 @@ public static class OpenXmlHelper
 
     private static string TrimTrailingNewlines(string s)
     {
-        int i = s.Length;
+        var i = s.Length;
         while (i > 0)
         {
-            char c = s[i - 1];
-            if (c == '\n' || c == '\r') i--;
+            var c = s[i - 1];
+            if (c is '\n' or '\r') i--;
             else break;
         }
 
@@ -605,17 +598,17 @@ public static class OpenXmlHelper
             var counters = _counters.TryGetValue(numId, out var arr) ? arr : (_counters[numId] = new int[9]);
 
             counters[ilvl]++;
-            for (int d = ilvl + 1; d < counters.Length; d++) counters[d] = 0;
+            for (var d = ilvl + 1; d < counters.Length; d++) counters[d] = 0;
 
             if (def.NumFmt.Equals("bullet", StringComparison.OrdinalIgnoreCase))
                 return "• ";
 
             var lvlText = string.IsNullOrEmpty(def.LvlText) ? "%1." : def.LvlText;
 
-            string prefix = Regex.Replace(lvlText, @"%([1-9])", m =>
+            var prefix = Regex.Replace(lvlText, @"%([1-9])", m =>
             {
-                int k = (m.Groups[1].Value[0] - '1');
-                int v = counters[k];
+                var k = (m.Groups[1].Value[0] - '1');
+                var v = counters[k];
                 if (v <= 0) v = 1;
                 return v.ToString(CultureInfo.InvariantCulture);
             });
@@ -667,7 +660,7 @@ public static class OpenXmlHelper
                             if (int.TryParse(numIdStr, NumberStyles.Integer, CultureInfo.InvariantCulture,
                                     out var numId))
                             {
-                                int thisNumId = numId;
+                                var thisNumId = numId;
 
                                 using var sub = reader.ReadSubtree();
                                 sub.Read();
@@ -740,14 +733,15 @@ public static class OpenXmlHelper
                 }
                 else if (reader.NodeType == XmlNodeType.EndElement)
                 {
-                    if (reader.LocalName == "abstractNum")
+                    switch (reader.LocalName)
                     {
-                        currentAbstractId = null;
-                        currentLevel = null;
-                    }
-                    else if (reader.LocalName == "lvl")
-                    {
-                        currentLevel = null;
+                        case "abstractNum":
+                            currentAbstractId = null;
+                            currentLevel = null;
+                            break;
+                        case "lvl":
+                            currentLevel = null;
+                            break;
                     }
                 }
             }
