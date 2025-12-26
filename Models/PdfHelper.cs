@@ -8,45 +8,113 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 namespace OpenccNetLibGui.Models
 {
     /// <summary>
-    /// Specifies which PDF text extraction engine to use.
+    /// Specifies which PDF text extraction backend is used.
     /// </summary>
+    /// <remarks>
+    /// Different engines have different trade-offs in terms of
+    /// performance, robustness, and deployment requirements.
+    /// The selected engine affects how text is extracted, but not
+    /// how the extracted text is post-processed (reflow, conversion, etc.).
+    /// </remarks>
     public enum PdfEngine
     {
         /// <summary>
         /// Uses the PdfPig backend for text extraction.
-        /// Suitable for general-purpose parsing and stable for
-        /// most text-embedded PDFs.  
-        /// Pure managed code, no native dependencies.
         /// </summary>
+        /// <remarks>
+        /// PdfPig is a pure managed (.NET) PDF parser with no native
+        /// dependencies. It is suitable for most text-embedded PDFs
+        /// and offers good stability and portability across platforms.
+        ///
+        /// This engine may struggle with PDFs that rely heavily on
+        /// complex vector layouts, rotated glyphs, or layered text overlays.
+        /// </remarks>
         PdfPig = 1,
 
         /// <summary>
         /// Uses the PDFium backend for text extraction.
-        /// Faster and more robust against complex page structures,
-        /// vector overlays, rotated text, or unusual PDF layouts.  
-        /// Requires native PDFium runtime libraries.
         /// </summary>
+        /// <remarks>
+        /// PDFium is a native PDF rendering and parsing engine that
+        /// generally provides more accurate text extraction for
+        /// complex PDFs, including those with:
+        /// <list type="bullet">
+        ///   <item><description>rotated or transformed text</description></item>
+        ///   <item><description>vector-based overlays</description></item>
+        ///   <item><description>non-standard or fragmented text layout</description></item>
+        /// </list>
+        ///
+        /// This engine requires native PDFium runtime libraries
+        /// appropriate for the current platform.
+        /// </remarks>
         Pdfium = 2
     }
 
     /// <summary>
-    /// Result of loading and optionally reflowing a PDF document.
-    /// This is a pure data record and does not depend on any UI state.
+    /// Represents the result of loading a PDF document and producing
+    /// its extracted (and optionally reflowed) plain text content.
     /// </summary>
+    /// <remarks>
+    /// This type is a pure data container and does not depend on
+    /// any UI state or threading context. It can be safely passed
+    /// between layers (e.g. model → view-model).
+    /// </remarks>
+    /// <param name="Text">
+    /// The extracted plain-text content of the PDF.
+    /// </param>
+    /// <param name="EngineUsed">
+    /// The PDF extraction engine that was actually used to produce
+    /// the text content.
+    /// </param>
+    /// <param name="AutoReflowApplied">
+    /// Indicates whether automatic CJK paragraph reflow or other
+    /// structural post-processing was applied to the extracted text.
+    /// </param>
+    /// <param name="PageCount">
+    /// Total number of pages in the source PDF document.
+    /// </param>
     public sealed record PdfLoadResult(
         string Text,
         PdfEngine EngineUsed,
         bool AutoReflowApplied,
         int PageCount
     );
-    
+
+    /// <summary>
+    /// Lightweight result produced by the low-level PDF extraction
+    /// stage before any reflow or higher-level processing is applied.
+    /// </summary>
+    /// <remarks>
+    /// This type is internal by design and used to separate raw
+    /// extraction concerns (PDFium/PdfPig) from downstream logic
+    /// such as reflow, conversion, or UI presentation.
+    /// </remarks>
+    /// <param name="Text">
+    /// Raw extracted text content.
+    /// </param>
+    /// <param name="PageCount">
+    /// Number of pages successfully processed during extraction.
+    /// </param>
     internal readonly record struct PdfExtractResult(
         string Text,
         int PageCount
     );
 
+    /// <summary>
+    /// Extension helpers for <see cref="PdfEngine"/>.
+    /// </summary>
     public static class PdfEngineExtensions
     {
+        /// <summary>
+        /// Returns a user-facing display name for the PDF engine.
+        /// </summary>
+        /// <param name="engine">
+        /// The PDF extraction engine value.
+        /// </param>
+        /// <returns>
+        /// A human-readable name suitable for UI display
+        /// (e.g. dropdowns, status bars, logs).
+        /// </returns>
         public static string ToDisplayName(this PdfEngine engine)
         {
             return engine switch
@@ -179,7 +247,7 @@ namespace OpenccNetLibGui.Models
                     var text = ContentOrderTextExtractor.GetText(page);
 
                     text = text.Trim('\r', '\n', ' ');
-                    
+
                     if (string.IsNullOrWhiteSpace(text))
                     {
                         if (addPdfPageHeader)
@@ -199,7 +267,7 @@ namespace OpenccNetLibGui.Models
                 // return sb.ToString();
                 return new PdfExtractResult(
                     sb.ToString(),
-                   total
+                    total
                 );
             }, cancellationToken);
         }

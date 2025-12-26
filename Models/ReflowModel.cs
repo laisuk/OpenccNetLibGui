@@ -882,7 +882,7 @@ namespace OpenccNetLibGui.Models
                     case ':' when level >= 3 && IsOcrCjkColon(s, i):
                         return true;
                 }
-                
+
                 // 4a) Quote closers after strong end
                 if (IsQuoteCloser(last) && i > 0)
                 {
