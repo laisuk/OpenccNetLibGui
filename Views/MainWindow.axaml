@@ -138,7 +138,7 @@
                                 <Interaction.Behaviors>
                                     <helpers:TextEditorSelectionBehavior
                                         SelectionStart="{Binding TbSourceSelectionStart, Mode=TwoWay}"
-                                        SelectionLength="{Binding TbSourceSelectionLength, Mode=TwoWay}" 
+                                        SelectionLength="{Binding TbSourceSelectionLength, Mode=TwoWay}"
                                         CaretOffset="{Binding TbSourceCaretOffset, Mode=TwoWay}" />
                                 </Interaction.Behaviors>
                                 <avaloniaEdit:TextEditor.ContextMenu>

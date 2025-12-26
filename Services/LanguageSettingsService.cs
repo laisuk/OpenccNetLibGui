@@ -9,14 +9,6 @@ namespace OpenccNetLibGui.Services;
 
 public class LanguageSettingsService
 {
-    private static readonly JsonSerializerSettings JsonSaveSettings =
-        new()
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-            Formatting = Formatting.None
-        };
-
     private readonly string _defaultSettingsPath;
     private string _lastSavedSnapshot;
 
@@ -82,6 +74,14 @@ public class LanguageSettingsService
         "locale",
         "charCheck"
     };
+    
+    private static readonly JsonSerializerSettings JsonSaveSettings =
+        new()
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+            Formatting = Formatting.None
+        };
 
     private static JObject Pick(JObject src, IEnumerable<string> rootPaths)
     {
@@ -123,7 +123,7 @@ public class LanguageSettingsService
         // default JSON (shipped)
         var defaultObj = JObject.Parse(File.ReadAllText(_defaultSettingsPath));
 
-        // IMPORTANT: use the SAME serializer settings (camelCase) as your JSON
+        // IMPORTANT: use the SAME serializer settings (camelCase) as in default JSON
         var serializer = JsonSerializer.Create(JsonSaveSettings);
         var currentObj = JObject.FromObject(LanguageSettings, serializer);
 

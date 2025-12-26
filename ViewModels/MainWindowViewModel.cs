@@ -88,7 +88,6 @@ public class MainWindowViewModel : ViewModelBase
     public bool IsSettingsDirty =>
         _languageSettingsService!.IsDirty;
 
-
     public ObservableCollection<string> CustomOptions { get; } = new();
 
     public string? SelectedItem
