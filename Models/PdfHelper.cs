@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -128,6 +129,73 @@ namespace OpenccNetLibGui.Models
 
     internal static class PdfHelper
     {
+        /// <summary>
+        /// Determines whether a file is a PDF by examining both its
+        /// extension and its file header (magic bytes).
+        /// </summary>
+        /// <param name="filePath">Path to the file to examine.</param>
+        /// <returns>
+        /// <c>true</c> if the file appears to be a valid PDF; otherwise <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        /// This method does not fully parse the PDF. It performs a lightweight
+        /// signature check by looking for the <c>%PDF-</c> header within the
+        /// first kilobyte of the file, which is required by the PDF specification.
+        ///
+        /// This approach is significantly more reliable than extension-only
+        /// checks and avoids loading native PDF libraries.
+        /// </remarks>
+        public static bool IsPdf(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                return false;
+
+            if (!File.Exists(filePath))
+                return false;
+
+            // Optional fast hint (not authoritative)
+            var ext = Path.GetExtension(filePath);
+            var extensionLooksPdf =
+                ext.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
+
+            try
+            {
+                using var fs = new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read);
+
+                if (!extensionLooksPdf && fs.Length < 5)
+                    return false;
+
+                // PDF header must appear within the first 1024 bytes
+                var readLen = (int)Math.Min(1024, fs.Length);
+                Span<byte> buffer = stackalloc byte[readLen];
+                fs.ReadExactly(buffer);
+
+                // Look for ASCII "%PDF-" marker
+                for (var i = 0; i <= readLen - 5; i++)
+                {
+                    if (buffer[i] == (byte)'%' &&
+                        buffer[i + 1] == (byte)'P' &&
+                        buffer[i + 2] == (byte)'D' &&
+                        buffer[i + 3] == (byte)'F' &&
+                        buffer[i + 4] == (byte)'-')
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                // I/O error, permission issue, etc.
+                return false;
+            }
+        }
+
         /// <summary>
         /// Asynchronously loads a PDF file and extracts plain text from all pages,
         /// with optional page headers and real-time progress reporting.

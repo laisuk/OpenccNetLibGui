@@ -680,7 +680,8 @@ public class MainWindowViewModel : ViewModelBase
 
             var isText = _textFileTypes != null && _textFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
             var isOffice = _officeFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
-            var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
+            // var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
+            var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase) && PdfHelper.IsPdf(sourceFilePath);
 
             if (!isText && !isOffice && !isPdf)
             {
