@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using OpenccNetLibGui.Services; // ShortHeadingSettings
@@ -23,10 +24,10 @@ namespace OpenccNetLibGui.Models
             '。', '！', '？', '；', '：', '…', '—', '”', '」', '’', '』',
 
             // Chinese closing brackets / quotes
-            '）', '】', '》', '〗', '〕', '〉', '］', '｝', '＞',
+            '）', '】', '》', '〗', '〕', '］', '｝', '＞', '〉', '>',
 
             // Allowed ASCII-like ending and bracket
-            '.', ')', ':', '!'
+            '.', ')', ':', '!', '?'
         };
 
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
@@ -44,13 +45,50 @@ namespace OpenccNetLibGui.Models
 
         // Dialog brackets (Simplified / Traditional / JP-style)
         private const string DialogOpeners = "“‘「『﹁﹃";
+        private const string DialogClosers = "”’」』﹂﹄";
 
         private static bool IsDialogOpener(char ch)
             => DialogOpeners.Contains(ch);
 
+        private static bool IsDialogCloser(char ch)
+            => DialogClosers.Contains(ch);
+
+
         // Bracket punctuations (open-close)
-        private const string OpenBrackets = "（([【《〔〖｛〈［＜";
-        private const string CloseBrackets = "）)]】》〕〗｝〉］＞";
+        private static readonly Dictionary<char, char> BracketPairs = new()
+        {
+            // Parentheses
+            ['（'] = '）',
+            ['('] = ')',
+
+            // Square brackets
+            ['['] = ']',
+            ['［'] = '］',
+
+            // Curly braces (ASCII + FULLWIDTH)
+            ['{'] = '}',
+            ['｛'] = '｝',
+
+            // Angle brackets
+            ['<'] = '>',
+            ['＜'] = '＞',
+            ['〈'] = '〉',
+
+            // CJK brackets
+            ['【'] = '】',
+            ['《'] = '》',
+            ['〔'] = '〕',
+            ['〖'] = '〗',
+        };
+
+        private static readonly HashSet<char> OpenBracketSet = BracketPairs.Keys.ToHashSet();
+        private static readonly HashSet<char> CloseBracketSet = BracketPairs.Values.ToHashSet();
+
+        private static bool IsBracketOpener(char ch) => OpenBracketSet.Contains(ch);
+        private static bool IsBracketCloser(char ch) => CloseBracketSet.Contains(ch);
+
+        private static bool IsMatchingBracket(char open, char close) =>
+            BracketPairs.TryGetValue(open, out var expected) && expected == close;
 
         // Metadata key-value separators
         private static readonly char[] MetadataSeparators =
@@ -334,6 +372,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (!addPdfPageHeader && buffer.Length > 0)
                     {
+                        // ReSharper disable once UseIndexFromEndExpression
                         var lastChar = buffer[buffer.Length - 1];
 
                         // Page-break-like blank line, skip it
@@ -721,8 +760,8 @@ namespace OpenccNetLibGui.Models
 
                 foreach (var ch in s)
                 {
-                    if (!hasOpen && OpenBrackets.Contains(ch)) hasOpen = true;
-                    if (!hasClose && CloseBrackets.Contains(ch)) hasClose = true;
+                    if (!hasOpen && IsBracketOpener(ch)) hasOpen = true;
+                    if (!hasClose && IsBracketCloser(ch)) hasClose = true;
 
                     if (hasOpen && hasClose)
                         break;
@@ -874,11 +913,8 @@ namespace OpenccNetLibGui.Models
 
                 switch (last)
                 {
-                    // 1) Strong sentence end
-                    case '。' or '！' or '？' or '!':
-                    // 2) OCR '.' as '。'
+                    case var _ when IsStrongSentenceEnd(last):
                     case '.' when level >= 3 && IsOcrCjkDot(s, i):
-                    // 3) OCR ':' as '：'
                     case ':' when level >= 3 && IsOcrCjkColon(s, i):
                         return true;
                 }
@@ -887,7 +923,7 @@ namespace OpenccNetLibGui.Models
                 if (IsQuoteCloser(last) && i > 0)
                 {
                     var prev = s[i - 1];
-                    if (prev is '。' or '！' or '？' or '!' ||
+                    if (IsStrongSentenceEnd(prev) ||
                         (prev == '.' && IsOcrCjkDot(s, i - 1)))
                         return true;
                 }
@@ -909,65 +945,82 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // 5) Weak (optional)
-                return last is '；' or '：';
+                return last is '；' or '：' or ';' or ':';
             }
 
-            static bool IsBracketCloser(char ch) =>
-                ch is '）' or '】' or '》' or '〗' or '〕' or '〉' or '］' or '｝'
-                    or ')' or '＞' or ']' or '}';
-
             static bool IsQuoteCloser(char ch) =>
-                ch is '”' or '’' or '」' or '』';
+                IsDialogCloser(ch);
 
-            // static bool IsCjkCloser(char ch) => IsBracketCloser(ch) || IsQuoteCloser(ch);
+            static bool IsStrongSentenceEnd(char ch) =>
+                ch is '。' or '！' or '？' or '!' or '?';
 
             static bool IsOcrCjkDot(string s, int dotIndex)
             {
-                // dot 必須在結尾（或結尾前只係空白）
-                for (var i = dotIndex + 1; i < s.Length; i++)
-                    if (!char.IsWhiteSpace(s[i]))
-                        return false;
+                if (!IsAtLineEndIgnoringWhitespace(s, dotIndex))
+                    return false;
 
-                // dot 前一個字符必須係 CJK
                 if (dotIndex == 0)
                     return false;
 
-                return IsCjk(s[dotIndex - 1]) &&
-                       // 行內整體必須偏向 CJK
-                       IsMostlyCjk(s);
+                return IsCjk(s[dotIndex - 1]) && IsMostlyCjk(s);
             }
 
             static bool IsOcrCjkColon(string s, int index)
             {
-                // must be at line end (ignore trailing spaces)
-                for (var i = index + 1; i < s.Length; i++)
-                    if (!char.IsWhiteSpace(s[i]))
-                        return false;
+                if (!IsAtLineEndIgnoringWhitespace(s, index))
+                    return false;
 
-                // must have a CJK char before
                 if (index == 0 || !IsCjk(s[index - 1]))
                     return false;
 
-                // line must be mostly CJK
                 return IsMostlyCjk(s);
+            }
+
+            static bool IsAtLineEndIgnoringWhitespace(string s, int index)
+            {
+                for (var i = index + 1; i < s.Length; i++)
+                    if (!char.IsWhiteSpace(s[i]))
+                        return false;
+                return true;
             }
 
             static bool IsMostlyCjk(string s)
             {
-                int cjk = 0, ascii = 0;
+                var cjk = 0;
+                var ascii = 0;
 
-                foreach (var ch in s)
+                for (var i = 0; i < s.Length; i++)
                 {
+                    var ch = s[i];
+
+                    // Neutral whitespace
                     if (char.IsWhiteSpace(ch))
                         continue;
 
+                    // Neutral digits (ASCII + FULLWIDTH)
+                    if (IsDigitAsciiOrFullWidth(ch))
+                        continue;
+
                     if (IsCjk(ch))
+                    {
                         cjk++;
-                    else if (ch <= 0x7F)
+                        continue;
+                    }
+
+                    // Count ASCII letters only; ASCII punctuation is neutral
+                    if (ch <= 0x7F && char.IsLetter(ch))
                         ascii++;
                 }
 
                 return cjk > 0 && cjk >= ascii;
+            }
+
+            static bool IsDigitAsciiOrFullWidth(char ch)
+            {
+                // ASCII digits
+                if ((uint)(ch - '0') <= 9) return true;
+                // FULLWIDTH digits
+                return (uint)(ch - '０') <= 9;
             }
 
             static bool EndsWithCjkBracketBoundary(string s)
@@ -1009,22 +1062,6 @@ namespace OpenccNetLibGui.Models
 
                 return depth == 0;
             }
-
-            static bool IsMatchingBracket(char open, char close) => open switch
-            {
-                '（' => close == '）',
-                '(' => close == ')',
-                '[' => close == ']',
-                '【' => close == '】',
-                '《' => close == '》',
-                '｛' => close == '｝',
-                '〈' => close == '〉',
-                '〔' => close == '〕',
-                '〖' => close == '〗',
-                '［' => close == '］',
-                '＜' => close == '＞',
-                _ => false
-            };
 
             static bool EndsWithEllipsis(string s)
             {
