@@ -31,7 +31,8 @@ internal static class PdfiumNative
     /// <summary>
     /// PDFium uses __stdcall on Windows (FPDF_CALLCONV). Keep this consistent across all imports.
     /// </summary>
-    private const CallingConvention CallConv = CallingConvention.StdCall;
+    // private const CallingConvention CallConv = CallingConvention.StdCall;
+    private const CallingConvention CallConv = CallingConvention.Cdecl;
 
     /// <summary>
     /// Initializes PDFium global state for the current process.
