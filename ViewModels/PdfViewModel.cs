@@ -34,7 +34,7 @@ namespace OpenccNetLibGui.ViewModels
 
         public CancellationToken CurrentToken => _pdfCts?.Token ?? CancellationToken.None;
 
-        public Task<PdfLoadResult> LoadPdfAsync(
+        public Task<PdfVmResult> LoadPdfAsync(
             string filePath,
             Action<int>? progressCallback,
             CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ namespace OpenccNetLibGui.ViewModels
                 cancellationToken);
         }
 
-        private async Task<PdfLoadResult> LoadPdfTextCoreAsync(
+        private async Task<PdfVmResult> LoadPdfTextCoreAsync(
             string filePath,
             Action<int>? progressCallback,
             CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ namespace OpenccNetLibGui.ViewModels
             cancellationToken.ThrowIfCancellationRequested();
 
             // 1) Extract
-            PdfExtractResult extract;
+            PdfLoadResult extract;
 
             switch (PdfEngine)
             {
@@ -71,7 +71,7 @@ namespace OpenccNetLibGui.ViewModels
                 case PdfEngine.PdfPig:
                 default:
                     // statusCallback?.Invoke("📄 Extracting PDF text (PdfPig)...");
-                    extract = await PdfHelper.LoadPdfTextAsync(
+                    extract = await PdfPigModel.LoadPdfTextAsync(
                         filePath,
                         IsAddPdfPageHeader,
                         progressCallback,
@@ -85,7 +85,7 @@ namespace OpenccNetLibGui.ViewModels
             // 2) Auto reflow (keep)
             var reflowApplied = false;
             if (!IsAutoReflow || string.IsNullOrWhiteSpace(text))
-                return new PdfLoadResult(
+                return new PdfVmResult(
                     Text: text,
                     EngineUsed: PdfEngine,
                     AutoReflowApplied: reflowApplied,
@@ -97,12 +97,12 @@ namespace OpenccNetLibGui.ViewModels
                 compact: IsCompactPdfText,
                 shortHeading: ShortHeading,
                 sentenceBoundaryLevel: SentenceBoundaryLevel
-                );
+            );
 
             reflowApplied = true;
 
             // 3) Return record
-            return new PdfLoadResult(
+            return new PdfVmResult(
                 Text: text,
                 EngineUsed: PdfEngine,
                 AutoReflowApplied: reflowApplied,

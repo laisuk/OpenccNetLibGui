@@ -42,7 +42,7 @@ internal static class PdfiumModel
     /// into selectable text.
     /// </para>
     /// </remarks>
-    public static PdfExtractResult ExtractText(string pdfPath)
+    public static PdfLoadResult ExtractText(string pdfPath)
     {
         if (string.IsNullOrWhiteSpace(pdfPath))
             throw new ArgumentException("PDF path is required.", nameof(pdfPath));
@@ -116,7 +116,7 @@ internal static class PdfiumModel
     /// text content.
     /// </para>
     /// </remarks>
-    internal static Task<PdfExtractResult> ExtractTextAsync(
+    internal static Task<PdfLoadResult> ExtractTextAsync(
         string pdfPath,
         bool addPdfPageHeader,
         Action<int>? progressCallback = null,
@@ -220,7 +220,7 @@ internal static class PdfiumModel
     /// string.
     /// </para>
     /// </remarks>
-    private static PdfExtractResult ExtractPages(
+    private static PdfLoadResult ExtractPages(
         IntPtr doc,
         bool addPdfPageHeader,
         Action<int, int>? statusCallback, // (pageIndex, percent)
@@ -231,7 +231,7 @@ internal static class PdfiumModel
         {
             statusCallback?.Invoke(0, 100);
             // return string.Empty;
-            return new PdfExtractResult(
+            return new PdfLoadResult(
                 string.Empty,
                 0
             );
@@ -280,11 +280,6 @@ internal static class PdfiumModel
                     continue;
 
                 var text = ExtractPageText(textPage, ref buffer);
-                // if (string.IsNullOrEmpty(text))
-                //     continue;
-                //
-                // if (addPdfPageHeader)
-                //     sb.AppendLine($"=== [Page {i + 1}/{pageCount}] ===");
                 // 🔹 handle empty/blank pages explicitly
                 if (string.IsNullOrWhiteSpace(text))
                 {
@@ -318,7 +313,7 @@ internal static class PdfiumModel
         statusCallback?.Invoke(pageCount - 1, 100);
 
         // return sb.ToString();
-        return new PdfExtractResult(
+        return new PdfLoadResult(
             sb.ToString(),
             pageCount
         );
