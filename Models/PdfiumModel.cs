@@ -487,23 +487,4 @@ internal static class PdfiumModel
             return new string((char*)p, 0, length);
         }
     }
-
-    // -------------------------------
-    //  ProgressBar builder (unchanged)
-    // -------------------------------
-
-    // private static string BuildProgressBar(int percent, int width = 10)
-    // {
-    //     percent = Math.Clamp(percent, 0, 100);
-    //     var filled = (int)((long)percent * width / 100);
-    //
-    //     var sb = new StringBuilder(width * 4 + 2);
-    //     sb.Append('[');
-    //
-    //     for (var i = 0; i < filled; i++) sb.Append("🟩");
-    //     for (var i = filled; i < width; i++) sb.Append("🟨");
-    //
-    //     sb.Append(']');
-    //     return sb.ToString();
-    // }
 }

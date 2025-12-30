@@ -165,13 +165,41 @@ namespace OpenccNetLibGui.Models
     );
 
     /// <summary>
-    /// ViewModel-level result representing the final PDF text
-    /// after optional reflow and UI-specific processing.
+    /// ViewModel-level result representing the final plain-text content
+    /// produced from a PDF document after all ViewModel-managed processing
+    /// steps have completed.
     /// </summary>
+    /// <remarks>
+    /// This type is owned by the ViewModel layer and is intended for
+    /// UI consumption only. It may aggregate information from multiple
+    /// stages such as:
+    /// <list type="bullet">
+    ///   <item>PDF text extraction</item>
+    ///   <item>Engine selection (Pdfium / PdfPig)</item>
+    ///   <item>Optional CJK paragraph reflow</item>
+    /// </list>
+    /// It must not be used by low-level PDF helpers or extraction libraries.
+    /// </remarks>
+    /// <param name="Text">
+    /// The final plain-text content to be displayed or further processed
+    /// by the UI.
+    /// </param>
+    /// <param name="EngineUsed">
+    /// The PDF extraction engine selected and executed by the ViewModel
+    /// for this operation.
+    /// </param>
+    /// <param name="AutoReflowApplied">
+    /// Indicates whether automatic CJK paragraph reflow was applied
+    /// by the ViewModel after text extraction.
+    /// </param>
+    /// <param name="PageCount">
+    /// The total number of pages in the source PDF document.
+    /// </param>
     public sealed record PdfVmResult(
         string Text,
         PdfEngine EngineUsed,
         bool AutoReflowApplied,
         int PageCount
     );
+
 }
