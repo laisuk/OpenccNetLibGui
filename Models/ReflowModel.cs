@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using OpenccNetLibGui.Services; // ShortHeadingSettings
@@ -29,6 +30,8 @@ namespace OpenccNetLibGui.Models
             // Allowed ASCII-like ending and bracket
             '.', ')', ':', '!', '?'
         };
+
+        private static bool IsCjkPunctEndChar(char ch) => CjkPunctEndChars.Contains(ch);
 
         // Chapter / heading patterns (短行 + 第N章/卷/节/部, 前言/序章/终章/尾声/番外)
         private static readonly Regex TitleHeadingRegex =
@@ -90,15 +93,30 @@ namespace OpenccNetLibGui.Models
         private static bool IsMatchingBracket(char open, char close) =>
             BracketPairs.TryGetValue(open, out var expected) && expected == close;
 
-        // Metadata key-value separators
-        private static readonly char[] MetadataSeparators =
+        // -----------------------------------------------------------------------------
+        // Metadata separators
+        // -----------------------------------------------------------------------------
+
+        // Raw data (never used directly outside helpers)
+        private static readonly HashSet<char> MetadataSeparators = new()
         {
-            '：', // FULLWIDTH COLON (U+FF1A)
-            ':', // COLON (ASCII) (U+003A)
-            '·', // MIDDLE DOT (U+00B7)
-            '・', // KATAKANA MIDDLE DOT (U+30FB)
-            '　' // IDEOGRAPHIC SPACE (U+3000)
+            ':', // ASCII colon
+            '：', // Full-width colon
+            '　', // Ideographic space (U+3000)
+            '·', // Middle dot (Latin)
+            '・', // Katakana middle dot
+            // '．', // Full-width dot
         };
+
+        // Semantic predicate (ONLY entry point)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsMetadataSeparator(char ch)
+            => MetadataSeparators.Contains(ch);
+
+
+        // -----------------------------------------------------------------------------
+        // Metadata heading title names
+        // -----------------------------------------------------------------------------
 
         // Metadata heading title names
         private static readonly HashSet<string> MetadataKeys = new(StringComparer.Ordinal)
@@ -159,6 +177,34 @@ namespace OpenccNetLibGui.Models
             // ===== 8. Common keys without variants =====
             "ISBN"
         };
+
+        // NOTE:
+        // MaxMetadataKeyLength is derived from MetadataKeys (single policy owner).
+        // Do NOT hardcode or duplicate this limit elsewhere.
+        private static readonly int MaxMetadataKeyLength = MetadataKeys.Max(k => k.Length);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsMetadataKey(ReadOnlySpan<char> keySpan)
+        {
+            keySpan = TrimWhitespace(keySpan);
+            if (keySpan.Length == 0 || keySpan.Length > MaxMetadataKeyLength)
+                return false;
+
+            return MetadataKeys.Contains(keySpan.ToString());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> s)
+        {
+            var start = 0;
+            while (start < s.Length && char.IsWhiteSpace(s[start])) start++;
+
+            var end = s.Length - 1;
+            while (end >= start && char.IsWhiteSpace(s[end])) end--;
+
+            return s.Slice(start, end - start + 1);
+        }
+
 
         // =========================================================
         //  Public entry point
@@ -376,7 +422,8 @@ namespace OpenccNetLibGui.Models
                         var lastChar = buffer[buffer.Length - 1];
 
                         // Page-break-like blank line, skip it
-                        if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
+                        // if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
+                        if (!IsCjkPunctEndChar(lastChar))
                             continue;
                     }
 
@@ -486,7 +533,7 @@ namespace OpenccNetLibGui.Models
                                 var last = bt[^1];
 
                                 var prevEndsWithCommaLike = last is '，' or ',' or '、';
-                                var prevEndsWithSentencePunct = Array.IndexOf(CjkPunctEndChars, last) >= 0;
+                                var prevEndsWithSentencePunct = IsCjkPunctEndChar(last);
 
                                 // Comma-ending → continuation
                                 if (prevEndsWithCommaLike)
@@ -684,7 +731,7 @@ namespace OpenccNetLibGui.Models
                 if (last is ':' or '：' && s.Length <= sh.MaxLen && IsAllCjkNoWhiteSpace(s[..^1]))
                     return true;
 
-                if (Array.IndexOf(CjkPunctEndChars, last) >= 0)
+                if (IsCjkPunctEndChar(last))
                     return false;
 
                 // Reject any short line containing comma-like separators
@@ -723,29 +770,42 @@ namespace OpenccNetLibGui.Models
                 if (string.IsNullOrWhiteSpace(line))
                     return false;
 
-                // A) length limit
                 if (line.Length > 30)
                     return false;
 
-                // B) find first separator
-                var idx = line.IndexOfAny(MetadataSeparators);
-                if (idx is <= 0 or > 10)
+                var firstNonWs = 0;
+                while (firstNonWs < line.Length && char.IsWhiteSpace(line[firstNonWs]))
+                    firstNonWs++;
+
+                var idx = -1;
+                var j = -1;
+
+                for (var i = firstNonWs; i < line.Length; i++)
+                {
+                    if (!IsMetadataSeparator(line[i]))
+                        continue;
+
+                    idx = i;
+
+                    j = i + 1;
+                    while (j < line.Length && char.IsWhiteSpace(line[j]))
+                        j++;
+
+                    break;
+                }
+
+                // structural early reject (ignore leading whitespace)
+                var rawKeyLen = idx - firstNonWs;
+                if (rawKeyLen <= 0 || rawKeyLen > MaxMetadataKeyLength)
                     return false;
 
-                // C) extract key
-                var key = line[..idx].Trim();
-                if (!MetadataKeys.Contains(key))
+                if (j < 0 || j >= line.Length)
                     return false;
 
-                // D) get next non-space character
-                var j = idx + 1;
-                while (j < line.Length && char.IsWhiteSpace(line[j]))
-                    j++;
-
-                if (j >= line.Length)
+                // semantic owner
+                if (!IsMetadataKey(line.AsSpan(firstNonWs, rawKeyLen)))
                     return false;
 
-                // E) must NOT be dialog opener
                 return !IsDialogOpener(line[j]);
             }
 
