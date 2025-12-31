@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] – 2025-12-20
+## [1.4.0] – 2026-01-01
 
 ### Added
 
@@ -46,6 +46,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Extracts text from OpenDocument Text files via `content.xml`.
     - Supports paragraphs, headings, lists, and tables.
     - Designed for lightweight, predictable text editing in the source editor.
+
+- Added `About` Dialog Box.
 
 ### Changed
 

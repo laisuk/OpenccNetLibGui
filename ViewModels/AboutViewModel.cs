@@ -12,19 +12,9 @@ public sealed class AboutViewModel : ReactiveObject
             .GetName().Version?.ToString() ?? "Unknown";
 
     public static string Description =>
-        "Chinese Simplified / Traditional Converter\nPowered by OpenccNetLib + Pdfium";
+        "Open Chinese Simplified / Traditional Converter\nPowered by OpenccNetLib + Pdfium";
 
     public static string PdfEngine => "Pdfium (native)";
-
-    // public ReactiveCommand<Unit, Unit> OpenGitHub { get; }
-    //     = ReactiveCommand.Create(() =>
-    //     {
-    //         Process.Start(new ProcessStartInfo
-    //         {
-    //             FileName = "https://github.com/laisuk/OpenccNetLibGui",
-    //             UseShellExecute = true
-    //         });
-    //     });
 
     public ReactiveCommand<Unit, Unit> Close { get; }
         = ReactiveCommand.Create(() => { });
