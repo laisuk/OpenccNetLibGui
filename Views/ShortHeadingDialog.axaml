@@ -1,9 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
-        xmlns:vm="clr-namespace:OpenccNetLibGui.Views"
         xmlns:helpers="clr-namespace:OpenccNetLibGui.Helpers"
-        x:DataType="vm:ShortHeadingDialogViewModel"
+        xmlns:viewModels="clr-namespace:OpenccNetLibGui.ViewModels"
+        x:DataType="viewModels:ShortHeadingDialogViewModel"
         x:Class="OpenccNetLibGui.Views.ShortHeadingDialog"
         Width="450"
         Height="550"
@@ -12,7 +12,7 @@
         Title="Short heading settings">
 
     <Design.DataContext>
-        <vm:ShortHeadingDialogViewModel />
+        <viewModels:ShortHeadingDialogViewModel />
     </Design.DataContext>
 
     <Window.Resources>

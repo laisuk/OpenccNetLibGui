@@ -16,8 +16,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using OpenccNetLibGui.Models;
 using Avalonia.Threading;
 
@@ -123,6 +121,7 @@ public class MainWindowViewModel : ViewModelBase
         BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
+        ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
@@ -241,6 +240,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
 
     #endregion
 
@@ -1111,13 +1111,12 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task ShowShortHeadingDialogAsync()
     {
-        var lifetime = (IClassicDesktopStyleApplicationLifetime?)Application.Current?.ApplicationLifetime;
-        if (lifetime?.MainWindow is not { } owner)
+        var owner = _topLevelService?.GetMainWindow();
+        if (owner is null)
             return;
 
         var dialog = new ShortHeadingDialog(ShortHeading!);
 
-        // ✅ dialog now returns ShortHeading? (not int?)
         var result = await dialog.ShowDialog<ShortHeadingSettings?>(owner);
 
         if (result is null)
@@ -1127,7 +1126,7 @@ public class MainWindowViewModel : ViewModelBase
         ShortHeading = result;
 
         // write back to LanguageSettings
-        _languageSettings!.PdfOptions.ShortHeadingSettings = result; // ✅ new preferred field
+        _languageSettings!.PdfOptions.ShortHeadingSettings = result;
 
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
     }
@@ -1142,6 +1141,20 @@ public class MainWindowViewModel : ViewModelBase
 
         // optional: toast/statusbar message
         LblStatusBarContent = $"✅ Saved: {_languageSettingsService.UserSettingsPath}";
+    }
+
+    private async Task ShowAbout()
+    {
+        var owner = _topLevelService?.GetMainWindow();
+        if (owner is null)
+            return; // or log
+
+        var dlg = new AboutDialog
+        {
+            DataContext = new AboutViewModel()
+        };
+
+        await dlg.ShowDialog(owner);
     }
 
     private static string BuildProgressBar(int percent, int width = 10)

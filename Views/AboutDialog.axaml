@@ -1,0 +1,45 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:OpenccNetLibGui.ViewModels"
+        mc:Ignorable="d"
+        x:Class="OpenccNetLibGui.Views.AboutDialog"
+        Width="420"
+        Height="300"
+        Title="About"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        x:DataType="vm:AboutViewModel">
+
+    <StackPanel Margin="20" Spacing="10">
+        <TextBlock Text="{Binding AppName}" FontSize="20" FontWeight="Bold" />
+        <TextBlock Text="{Binding Version}" />
+        <TextBlock Text="{Binding Description}" />
+        <TextBlock Text="https://github.com/laisuk/OpenccNetLibGui"
+                   Cursor="Hand"
+                   Foreground="{DynamicResource SystemAccentColor}"
+                   PointerPressed="OnGitHubLinkClicked">
+            <TextBlock.Styles>
+                <Style Selector="TextBlock:pointerover">
+                    <Setter Property="TextDecorations" Value="Underline" />
+                </Style>
+            </TextBlock.Styles>
+        </TextBlock>
+
+        <Separator />
+
+        <TextBlock Text="PDF Engine" FontWeight="Bold" />
+        <TextBlock Text="{Binding PdfEngine}" />
+
+        <Separator />
+
+        <Grid Margin="0,8,0,0"
+              ColumnDefinitions="*,Auto">
+            <Button Grid.Column="1"
+                    Content="Close"
+                    HorizontalAlignment="Right"
+                    Command="{Binding Close}" />
+        </Grid>
+    </StackPanel>
+</Window>
