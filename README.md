@@ -11,7 +11,7 @@ Chinese conversion.
 
 ## 🚀 Download
 
-Always get the **latest version** of OpenccNetLibGui from the GitHub Releases page:
+Always get the **latest version** of `OpenccNetLibGui` from the GitHub Releases page:
 
 - 🔖 **[Latest release (all platforms)](https://github.com/laisuk/OpenccNetLibGui/releases/latest)**
 
@@ -21,8 +21,8 @@ On the release page, look for assets named:
 - `OpenccNetLibGui-vX.Y.Z-linux-x64.tar.gz` – **Linux (linux-x64)**
 - `OpenccNetLibGui-vX.Y.Z-osx-arm64.tar.gz` – **macOS (Apple Silicon, osx-arm64)**
 
-> 📦 These are **framework-dependent builds**, targeting **.NET 8**.  
-> You must have the [.NET 8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime) installed to run
+> 📦 These are **framework-dependent builds**, targeting **.NET 10** started from **v1.4.0**.  
+> You must have the [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/runtime) installed to run
 > them.
 
 ## Features
@@ -36,7 +36,7 @@ On the release page, look for assets named:
 
 - **Wide File Format Support**  
   Supports most **text-based file types**, including:
-    - Plain text (`.txt`)
+    - Plain text (`.txt`, `.md`)
     - Subtitles (`.srt`, `.vtt`, `.ass`, `.ttml2`)
     - **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`)
     - **EPUB** (`.epub`)
@@ -71,7 +71,7 @@ On the release page, look for assets named:
 ### **PDF Support**
 
 Only **text-embedded PDFs** are supported.  
-OpenccNetLibGui reads Unicode text directly from the PDF content stream using either PdfPig or Pdfium.
+`OpenccNetLibGui` reads Unicode text directly from the PDF content stream using either `PdfPig` or `Pdfium`.
 
 ❌ Scanned PDFs or pure image-based PDFs **are not supported**.  
 Such files require OCR (Optical Character Recognition), which is **not included** in this application.
@@ -80,7 +80,7 @@ Such files require OCR (Optical Character Recognition), which is **not included*
 
 ### **PDF Extraction Engines**
 
-OpenccNetLibGui offers two selectable engines for PDF text extraction:
+`OpenccNetLibGui` offers two selectable engines for PDF text extraction:
 
 - **PdfPig**  
   A pure-managed, cross-platform engine suitable for most standard text-embedded PDFs.
@@ -99,7 +99,8 @@ The preferred engine can be changed in the **Settings** menu.
 
 ### **CJK Paragraph Reflow**
 
-The CJK paragraph reflow module is designed as a **lightweight readability enhancement** for extracted PDF/EPUB text.  
+The CJK paragraph reflow module is designed as a **lightweight readability enhancement** for extracted `PDF/EPUB`
+text.  
 It provides:
 
 - Line merging
@@ -128,8 +129,8 @@ will be published or redistributed.
   A performant text editor control with syntax-highlighting, line numbers, and virtualization support.
 
 - **[OpenccNetLib](https://github.com/laisuk/OpenccNet)**  
-  Core conversion engine providing optimized OpenCC dictionary handling, FMM segmentation,  
-  Jieba integration, and multi-stage dictionary pipelines for Simplified/Traditional conversion.
+  Core conversion engine providing optimized OpenCC dictionary handling, FMM segmentation and multi-stage dictionary
+  pipelines for Simplified/Traditional conversion.
 
 - **[Newtonsoft.Json](https://www.newtonsoft.com/json)**  
   High-performance JSON serialization/deserialization library used for settings, layout recovery,  
@@ -195,7 +196,8 @@ dotnet run
 
 Support most **text base** file types and **Text-Embedded PDF documents**.
 
-1. Paste the text or open a file (text or PDF file) you wish to convert (file/text drag and drop are supported on
+1. Paste the text or open a file (text, DOCX, ODT or PDF file) you wish to convert (file/text drag and drop are
+   supported on
    Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).
 3. `PDF options` can be set in reight-click context menu.
@@ -203,7 +205,7 @@ Support most **text base** file types and **Text-Embedded PDF documents**.
 
 #### Notes
 
-PDF Engine can be set in `LanguageSettings.json`:
+PDF Engine can be set in `LanguageSettings.json` as well:
 Where:  
 `1` = `PdfPig`, `2`= `Pdfium`
 
@@ -221,7 +223,7 @@ Where:
 ![image03](./Assets/image03.png)
 
 Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`), EPUB (
-`.epub`) and **PDF** (`.pdf`, introduced in OpenccNetLibGui v1.3.2).
+`.epub`) and **PDF** (`.pdf`, introduced in `OpenccNetLibGui` v1.3.2).
 
 1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and
    macOS).
@@ -272,7 +274,7 @@ Custom Chinese Language in UI can be set in `LanguageSettings.json`:
 
 Options are:
 
-1. `1` - Traditional Chinese (繁體字)
+1. `1` - Traditional Chinese (繁體字/傳統漢字)
 2. `2` - Simplified Chinese (简体字)
 3. Other values - Reset to Simplified Chinese (简体字)
 
