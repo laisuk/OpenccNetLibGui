@@ -5,16 +5,17 @@ namespace OpenccNetLibGui.ViewModels;
 
 public sealed class AboutViewModel : ReactiveObject
 {
-    public static string AppName => "OpenccNetLibGui";
+    // Instance property required for XAML binding (do not make them static)
+    public string AppName => "OpenccNetLibGui";
 
-    public static string Version =>
+    public string Version =>
         typeof(AboutViewModel).Assembly
             .GetName().Version?.ToString() ?? "Unknown";
 
-    public static string Description =>
+    public string Description =>
         "Open Chinese Simplified / Traditional Converter\nPowered by OpenccNetLib + Pdfium";
 
-    public static string PdfEngine => "Pdfium (native)";
+    public string PdfEngine => "Pdfium (native)";
 
     public ReactiveCommand<Unit, Unit> Close { get; }
         = ReactiveCommand.Create(() => { });

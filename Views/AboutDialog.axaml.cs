@@ -23,6 +23,7 @@ public partial class AboutDialog : ReactiveWindow<AboutViewModel>
 
     private void OnGitHubLinkClicked(object? sender, PointerPressedEventArgs e)
     {
+        e.Handled = true;
         Process.Start(new ProcessStartInfo
         {
             FileName = "https://github.com/laisuk/OpenccNetLibGui",
