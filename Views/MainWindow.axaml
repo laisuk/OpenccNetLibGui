@@ -209,6 +209,17 @@
                                             </MenuItem.Header>
                                         </MenuItem>
 
+                                        <!-- 🛡️ Ignore untrusted / overlay PDF text -->
+                                        <MenuItem ToggleType="CheckBox"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="🛡️" />
+                                                    <TextBlock Text="Ignore untrusted PDF text" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
                                         <!-- Separator -->
                                         <Separator />
 
@@ -468,6 +479,17 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🔃" />
                                                 <TextBlock Text="Auto-Reflow PDF text" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+
+                                    <!-- 🛡️ Ignore untrusted / overlay PDF text -->
+                                    <MenuItem ToggleType="CheckBox"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="🛡️" />
+                                                <TextBlock Text="Ignore untrusted PDF text" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>

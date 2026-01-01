@@ -21,9 +21,9 @@ On the release page, look for assets named:
 - `OpenccNetLibGui-vX.Y.Z-linux-x64.tar.gz` – **Linux (linux-x64)**
 - `OpenccNetLibGui-vX.Y.Z-osx-arm64.tar.gz` – **macOS (Apple Silicon, osx-arm64)**
 
-> 📦 These are **framework-dependent builds**, targeting **.NET 10** started from **v1.4.0**.  
-> You must have the [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/runtime) installed to run
-> them.
+> 📦 These are **framework-dependent builds** targeting **.NET 10** (starting from **v1.4.0**).
+> The **.NET 10 Runtime** must be installed on your system to run these builds:  
+> [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/runtime)
 
 ## Features
 

@@ -17,6 +17,7 @@ namespace OpenccNetLibGui.ViewModels
         public bool IsAutoReflow { get; set; }
         public ShortHeadingSettings? ShortHeading { get; set; }
         public int SentenceBoundaryLevel { get; init; } = 2;
+        public bool IsIgnoreUntrustedPdfText { get; set; }
 
         public void Cancel()
         {
@@ -63,6 +64,7 @@ namespace OpenccNetLibGui.ViewModels
                     extract = await PdfiumModel.ExtractTextAsync(
                         filePath,
                         IsAddPdfPageHeader,
+                        IsIgnoreUntrustedPdfText,
                         progressCallback,
                         cancellationToken);
                     // If Pdfium can get total page: otherwise 0

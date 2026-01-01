@@ -196,4 +196,53 @@ internal static class PdfiumNative
         byte[] data,
         int size,
         [MarshalAs(UnmanagedType.LPStr)] string? password);
+    
+    // ---------------------------------------------------------------------
+    // Object-level extraction (for IgnoreUntrustedPdfText)
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns number of page objects on the page.
+    /// </summary>
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern int FPDFPage_CountObjects(IntPtr page);
+
+    /// <summary>
+    /// Returns the page object handle at the given index.
+    /// </summary>
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern IntPtr FPDFPage_GetObject(IntPtr page, int index);
+
+    /// <summary>
+    /// Returns the type of a page object (e.g. TEXT, PATH, IMAGE...).
+    /// </summary>
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern int FPDFPageObj_GetType(IntPtr page_object);
+
+    /// <summary>
+    /// Gets the bounds of a page object in page coordinates.
+    /// Returns non-zero on success.
+    /// </summary>
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern int FPDFPageObj_GetBounds(
+        IntPtr page_object,
+        out float left,
+        out float bottom,
+        out float right,
+        out float top);
+
+    /// <summary>
+    /// Extracts UTF-16 text from a text page object.
+    /// </summary>
+    /// <remarks>
+    /// PDFium returns the required buffer size in <b>bytes</b> (UTF-16LE),
+    /// including the trailing NUL. Call with (buffer=null, buflen=0) first.
+    /// </remarks>
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern uint FPDFTextObj_GetText(
+        IntPtr text_object,
+        IntPtr text_page,
+        [Out] ushort[]? buffer,
+        uint buflen);
+
 }

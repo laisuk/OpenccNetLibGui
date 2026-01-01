@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] – 2026-01-01
+## [1.4.0] – 2026-01-02
 
 ### Added
 
@@ -22,18 +22,24 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - **User-configurable short heading detection**
     - Introduces an advanced, regex-based override mechanism for heading detection.
-    - Custom title patterns are evaluated **immediately after built-in title detection** and before other reflow
-      heuristics.
-    - Enables precise identification of book-structured headings, such as:
+    - Custom title patterns are evaluated **immediately after built-in title detection**
+      and before other reflow heuristics.
+    - Enables precise identification of structured book headings, including:
         - Front-matter titles (e.g. *序章*, *前言*, *楔子*)
         - Chapter banners (e.g. `第十二章 夜雨初歇`)
         - Decorated or stylized headings commonly found in novels and scanned PDFs
-    - Supports unlimited pattern combinations via regular expressions (e.g. `xxx|yyy|zzz`), allowing users to fully
-      adapt heading detection to diverse content styles.
+    - Supports unlimited pattern combinations via regular expressions
+      (e.g. `xxx|yyy|zzz`), allowing full adaptation to diverse content styles.
 
 - **Design-time preview support**
-    - Added `Design.DataContext` for the Short Heading dialog, improving layout iteration and visual consistency during
-      development.
+    - Added `Design.DataContext` for the Short Heading dialog,
+      improving layout iteration and visual consistency during development.
+
+- **Ignore untrusted PDF text (Pdfium)**
+    - Added an option to skip repeated overlay- or annotation-like text during PDF extraction.
+    - Uses object-level text extraction to reduce duplicated or non-content text in certain PDFs.
+    - Extraction-only filtering; does not modify the original PDF.
+    - Available via the PDF context menu and persisted under `pdfOptions.ignoreUntrustedPdfText`.
 
 - **DOCX (.docx) plain-text import support**
     - Extracts human-readable text from Microsoft Word documents into the source editor.
@@ -47,7 +53,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Supports paragraphs, headings, lists, and tables.
     - Designed for lightweight, predictable text editing in the source editor.
 
-- Added `About` Dialog Box.
+- **About dialog**
+    - Added a dedicated About dialog displaying application version,
+      engine information, and project homepage.
 
 ### Changed
 

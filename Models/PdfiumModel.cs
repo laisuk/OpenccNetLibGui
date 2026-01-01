@@ -1,7 +1,10 @@
-﻿using System;
+﻿// ReSharper disable InconsistentNaming
+
+using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace OpenccNetLibGui.Models;
 
@@ -17,13 +20,18 @@ internal static class PdfiumModel
     /// <param name="pdfPath">
     /// Full path to the PDF file to open.
     /// </param>
+    /// <param name="ignoreUntrustedPdfText">
+    /// If <c>true</c>, performs object-level text extraction and skips
+    /// repeated overlay- or watermark-like text objects. This is an
+    /// extraction-only filter and does not modify the original PDF.
+    /// </param>
     /// <returns>
-    /// The concatenated plain-text content of all pages in the PDF, with page
-    /// markers inserted in the form <c>=== [Page X/Y] ===</c>.
+    /// The concatenated plain-text content of all pages in the PDF, with
+    /// page markers inserted in the form <c>=== [Page X/Y] ===</c>.
     /// </returns>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="pdfPath"/> is <c>null</c>, empty,
-    /// or whitespace-only.
+    /// or consists only of whitespace.
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when PDFium fails to load the document
@@ -31,18 +39,23 @@ internal static class PdfiumModel
     /// </exception>
     /// <remarks>
     /// <para>
-    /// This method is a thin, synchronous wrapper around the internal
-    /// PDFium-based extraction pipeline and always behaves as if
-    /// <c>addPdfPageHeader</c> were <c>true</c>, so that each page
-    /// is prefixed with a page header marker.
+    /// This method is a synchronous entry point into the PDFium-based
+    /// extraction pipeline and always emits page header markers
+    /// (<c>addPdfPageHeader</c> is implicitly enabled).
     /// </para>
     /// <para>
-    /// Only text-embedded PDF files are supported. Scanned/image-only PDFs
-    /// will not yield useful results unless they have already been OCR-processed
-    /// into selectable text.
+    /// When <paramref name="ignoreUntrustedPdfText"/> is enabled, the extractor
+    /// prefers content text and may intentionally skip repeated overlay text
+    /// commonly used for watermarking or anti-copy purposes. This behavior
+    /// affects extraction results only and does not alter the source document.
+    /// </para>
+    /// <para>
+    /// Only PDFs containing embedded, selectable text are supported. Scanned or
+    /// image-only PDFs will not produce meaningful output unless they have been
+    /// OCR-processed beforehand.
     /// </para>
     /// </remarks>
-    public static PdfLoadResult ExtractText(string pdfPath)
+    public static PdfLoadResult ExtractText(string pdfPath, bool ignoreUntrustedPdfText)
     {
         if (string.IsNullOrWhiteSpace(pdfPath))
             throw new ArgumentException("PDF path is required.", nameof(pdfPath));
@@ -58,7 +71,8 @@ internal static class PdfiumModel
             {
                 return ExtractPages(
                     doc,
-                    addPdfPageHeader: true, // behavior same as before
+                    addPdfPageHeader: true,
+                    ignoreUntrustedPdfText: ignoreUntrustedPdfText,
                     statusCallback: null,
                     cancellationToken: CancellationToken.None);
             }
@@ -79,46 +93,58 @@ internal static class PdfiumModel
 
     /// <summary>
     /// Asynchronously extracts plain text from a PDF file using PDFium,
-    /// with optional page headers and progress reporting.
+    /// with optional page headers, overlay-text filtering, and progress reporting.
     /// </summary>
     /// <param name="pdfPath">
     /// Full path to the PDF file to open.
     /// </param>
     /// <param name="addPdfPageHeader">
     /// If <c>true</c>, each page is prefixed with a header marker in the form
-    /// <c>=== [Page X/Y] ===</c>, matching the behavior of the PdfPig-based
-    /// extractor and aiding downstream reflow or debugging.
+    /// <c>=== [Page X/Y] ===</c>, matching the PdfPig-based extractor and aiding
+    /// downstream reflow or debugging.
+    /// </param>
+    /// <param name="ignoreUntrustedPdfText">
+    /// If <c>true</c>, performs object-level text extraction and skips repeated
+    /// overlay- or watermark-like text objects. This is an extraction-only filter
+    /// and does not modify the original PDF.
     /// </param>
     /// <param name="progressCallback">
-    /// Optional callback invoked periodically with progress as percent.  
-    /// The callback is driven by an internal <c>Progress(pageIndex, percent)</c>
-    /// delegate.
+    /// Optional callback invoked periodically with overall progress as a percentage
+    /// (0–100).
     /// </param>
     /// <param name="cancellationToken">
-    /// Token that can be used to cancel the operation.  
-    /// If cancellation is requested, an <see cref="OperationCanceledException"/>
-    /// is thrown.
+    /// Token that can be used to cancel the operation.
+    /// If cancellation is requested, an <see cref="OperationCanceledException"/> is thrown.
     /// </param>
     /// <returns>
     /// A task representing the asynchronous operation, whose result is the
     /// concatenated plain-text content of all pages in the PDF.
     /// </returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="pdfPath"/> is <c>null</c>, empty,
+    /// or consists only of whitespace.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when PDFium fails to load the document
+    /// (i.e. <c>FPDF_LoadDocument</c> returns <c>NULL</c>).
+    /// </exception>
     /// <remarks>
     /// <para>
     /// The extraction work is executed on a background thread using
     /// <see cref="Task.Run{TResult}(Func{TResult}, CancellationToken)"/>,
-    /// making this method suitable for UI applications that must remain
-    /// responsive while processing large PDFs.
+    /// making this method suitable for UI applications that must remain responsive
+    /// while processing large PDFs.
     /// </para>
     /// <para>
-    /// Only text-embedded PDFs are supported. Scanned/image-only PDFs will
-    /// not yield meaningful text unless OCR has already produced selectable
-    /// text content.
+    /// Only PDFs containing embedded, selectable text are supported. Scanned or
+    /// image-only PDFs will not produce meaningful output unless they have been
+    /// OCR-processed beforehand.
     /// </para>
     /// </remarks>
     internal static Task<PdfLoadResult> ExtractTextAsync(
         string pdfPath,
         bool addPdfPageHeader,
+        bool ignoreUntrustedPdfText,
         Action<int>? progressCallback = null,
         CancellationToken cancellationToken = default)
     {
@@ -138,16 +164,15 @@ internal static class PdfiumModel
 
                 try
                 {
-                    // Simple progress callback as percent (1-100)
                     void Progress(int pageIndex, int percent)
                     {
                         progressCallback?.Invoke(percent);
                     }
 
-
                     return ExtractPages(
                         doc,
                         addPdfPageHeader,
+                        ignoreUntrustedPdfText,
                         Progress,
                         cancellationToken);
                 }
@@ -163,66 +188,62 @@ internal static class PdfiumModel
         }, cancellationToken);
     }
 
-    // -------------------------------
-    //  Shared core: page loop
-    // -------------------------------
+
+    // -----------------------------------------------------------------------------
+//  Shared core: PDFium page loop
+// -----------------------------------------------------------------------------
 
     /// <summary>
-    /// Shared PDFium-based page loop used by both synchronous and asynchronous
-    /// extraction helpers.
-    ///
-    /// This method walks all pages in the given document, extracts their text,
-    /// optionally prefixes each page with a header marker, and reports progress
-    /// through a simple <c>(pageIndex, percent)</c> callback.
+    /// Core PDFium-based page iteration routine shared by both synchronous and
+    /// asynchronous extraction entry points.
     /// </summary>
     /// <param name="doc">
-    /// An open PDFium document handle obtained from
-    /// <c>FPDF_LoadDocument</c>. Ownership of the handle remains with the caller;
-    /// this method does not close the document.
+    /// An open PDFium document handle obtained from <c>FPDF_LoadDocument</c>.
+    /// Ownership of the handle remains with the caller; this method does not
+    /// close the document.
     /// </param>
     /// <param name="addPdfPageHeader">
-    /// If <c>true</c>, each page is prefixed with a header line in the form
-    /// <c>=== [Page X/Y] ===</c>, where <c>X</c> is the 1-based page index and
-    /// <c>Y</c> is the total page count.
+    /// If <c>true</c>, emits a page header marker in the form
+    /// <c>=== [Page X/Y] ===</c> before the content of each page.
+    /// </param>
+    /// <param name="ignoreUntrustedPdfText">
+    /// If <c>true</c>, uses object-level extraction and skips repeated
+    /// overlay- or watermark-like text objects. This filter affects extraction
+    /// results only and does not modify the source PDF.
     /// </param>
     /// <param name="statusCallback">
-    /// Optional progress callback invoked during extraction with:
-    /// <list type="bullet">
-    ///   <item><description><c>pageIndex</c>: zero-based index of the page
-    ///   currently being processed;</description></item>
-    ///   <item><description><c>percent</c>: integer completion percentage
-    ///   (1–100) based on pages processed.</description></item>
-    /// </list>
-    /// The callback is fired at the first page, the last page, and at
-    /// adaptive intervals depending on total page count.
+    /// Optional progress callback invoked with the zero-based page index and an
+    /// overall completion percentage (0–100).
     /// </param>
     /// <param name="cancellationToken">
     /// Token used to cancel the operation. If cancellation is requested,
     /// an <see cref="OperationCanceledException"/> is thrown.
     /// </param>
     /// <returns>
-    /// A single string containing the concatenated plain-text content of all
-    /// successfully processed pages. Each page is separated by a blank line,
-    /// and optional page headers are included when
-    /// <paramref name="addPdfPageHeader"/> is <c>true</c>.
+    /// A <see cref="PdfLoadResult"/> containing the concatenated plain-text
+    /// content of all processed pages and the total page count.
     /// </returns>
     /// <remarks>
     /// <para>
-    /// This method is the core engine behind <see cref="ExtractText(string)"/>
-    /// and <see cref="ExtractTextAsync(string, bool, Action{int}?, CancellationToken)"/>.
-    /// It allocates a reusable UTF-16 buffer once and passes it by reference to
-    /// <c>ExtractPageText</c> to minimize per-page allocations.
+    /// This method performs a single pass over all pages in the document,
+    /// loading each page, extracting its text, and appending the result to
+    /// a shared buffer. Page headers and blank page separators are emitted
+    /// consistently to preserve page boundaries.
     /// </para>
     /// <para>
-    /// If <c>FPDF_GetPageCount</c> returns zero or a negative value, the method
-    /// immediately reports <c>(pageIndex: 0, percent: 100)</c> to
-    /// <paramref name="statusCallback"/> (if provided) and returns an empty
-    /// string.
+    /// A reusable UTF-16 buffer is allocated once and passed by reference to
+    /// the flattened text extractor to minimize per-page allocations.
+    /// </para>
+    /// <para>
+    /// If the document contains no pages (<c>FPDF_GetPageCount</c> &lt;= 0),
+    /// the method reports completion (100%) to <paramref name="statusCallback"/>
+    /// (if provided) and returns an empty result.
     /// </para>
     /// </remarks>
     private static PdfLoadResult ExtractPages(
         IntPtr doc,
         bool addPdfPageHeader,
+        bool ignoreUntrustedPdfText,
         Action<int, int>? statusCallback, // (pageIndex, percent)
         CancellationToken cancellationToken)
     {
@@ -230,44 +251,37 @@ internal static class PdfiumModel
         if (pageCount <= 0)
         {
             statusCallback?.Invoke(0, 100);
-            // return string.Empty;
-            return new PdfLoadResult(
-                string.Empty,
-                0
-            );
+            return new PdfLoadResult(string.Empty, 0);
         }
 
-        static int GetProgressBlock(int totalPages)
+        static int GetProgressBlock(int totalPages) => totalPages switch
         {
-            return totalPages switch
-            {
-                <= 20 => 1,
-                <= 100 => 3,
-                <= 300 => 5,
-                _ => Math.Max(1, totalPages / 20)
-            };
-        }
+            <= 20 => 1,
+            <= 100 => 3,
+            <= 300 => 5,
+            _ => Math.Max(1, totalPages / 20)
+        };
 
         var block = GetProgressBlock(pageCount);
         var sb = new StringBuilder();
 
-        // Reusable buffer to reduce allocations across pages
+        // Reusable UTF-16 buffer for flattened extraction
         ushort[]? buffer = null;
 
         for (var i = 0; i < pageCount; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // progress (same logic as before, but callback is generalized)
+            // Progress reporting at adaptive intervals
             if (statusCallback != null &&
-                (i % block == 0 || i == 0 || i == pageCount - 1))
+                (i == 0 || i == pageCount - 1 || i % block == 0))
             {
                 var percent = (int)(((double)(i + 1) / pageCount) * 100);
                 statusCallback(i, percent);
             }
 
-            var page = IntPtr.Zero;
-            var textPage = IntPtr.Zero;
+            IntPtr page = IntPtr.Zero;
+            IntPtr textPage = IntPtr.Zero;
 
             try
             {
@@ -279,22 +293,22 @@ internal static class PdfiumModel
                 if (textPage == IntPtr.Zero)
                     continue;
 
-                var text = ExtractPageText(textPage, ref buffer);
-                // 🔹 handle empty/blank pages explicitly
+                var text = ignoreUntrustedPdfText
+                    ? ExtractPageText_IgnoreUntrusted(page, textPage)
+                    : ExtractPageText(textPage, ref buffer);
+
+                // Explicit handling of empty / whitespace-only pages
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     if (addPdfPageHeader)
-                    {
                         sb.AppendLine($"=== [Page {i + 1}/{pageCount}] ===");
-                    }
 
-                    // always emit at least one blank line for this empty page
-                    sb.AppendLine(); // visible blank page separator
-
+                    // Always emit a visible blank separator for this page
+                    sb.AppendLine();
                     continue;
                 }
 
-                // 🔹 non-empty page
+                // Non-empty page
                 if (addPdfPageHeader)
                     sb.AppendLine($"=== [Page {i + 1}/{pageCount}] ===");
 
@@ -312,11 +326,7 @@ internal static class PdfiumModel
 
         statusCallback?.Invoke(pageCount - 1, 100);
 
-        // return sb.ToString();
-        return new PdfLoadResult(
-            sb.ToString(),
-            pageCount
-        );
+        return new PdfLoadResult(sb.ToString(), pageCount);
     }
 
     // -------------------------------
@@ -385,6 +395,203 @@ internal static class PdfiumModel
             len--;
 
         return Utf16BufferToString(buffer, len);
+    }
+
+    // -----------------------------------------------------------------------------
+// IgnoreUntrustedPdfText (object-level extraction)
+// -----------------------------------------------------------------------------
+
+    private readonly struct TextObjItem
+    {
+        public readonly string Raw; // Original extracted text
+        public readonly string Norm; // Normalized text used for repetition detection
+        public readonly int YBucket; // Coarse Y-band bucket (page coordinates)
+
+        public TextObjItem(string raw, string norm, int yBucket)
+        {
+            Raw = raw;
+            Norm = norm;
+            YBucket = yBucket;
+        }
+    }
+
+    private static string ExtractPageText_IgnoreUntrusted(IntPtr page, IntPtr textPage)
+    {
+        // PDFium page object type: text
+        const int FPDF_PAGEOBJ_TEXT = 1;
+
+        var objCount = PdfiumNative.FPDFPage_CountObjects(page);
+        if (objCount <= 0)
+            return string.Empty;
+
+        // Collect candidate text objects (cap initial capacity to avoid over-alloc on huge pages)
+        var items = new List<TextObjItem>(Math.Min(objCount, 2048));
+
+        for (var i = 0; i < objCount; i++)
+        {
+            var obj = PdfiumNative.FPDFPage_GetObject(page, i);
+            if (obj == IntPtr.Zero)
+                continue;
+
+            if (PdfiumNative.FPDFPageObj_GetType(obj) != FPDF_PAGEOBJ_TEXT)
+                continue;
+
+            var raw = GetTextFromTextObject(obj, textPage);
+            if (string.IsNullOrWhiteSpace(raw))
+                continue;
+
+            // Bucket by Y position so repeated overlay text (tiled) becomes obvious.
+            var yBucket = TryGetYBucket(obj, out var bucket) ? bucket : 0;
+
+            var norm = NormalizeWhitespace(raw);
+            if (norm.Length == 0)
+                continue;
+
+            items.Add(new TextObjItem(raw, norm, yBucket));
+        }
+
+        if (items.Count == 0)
+            return string.Empty;
+
+        // Count repetitions by (normalized text, Y-band). Overlay/watermark text tends to repeat.
+        var freq = new Dictionary<(string Norm, int YBucket), int>(items.Count);
+
+        for (var i = 0; i < items.Count; i++)
+        {
+            var it = items[i];
+            var key = (it.Norm, it.YBucket);
+
+            if (freq.TryGetValue(key, out var count))
+                freq[key] = count + 1;
+            else
+                freq[key] = 1;
+        }
+
+        var sb = new StringBuilder();
+
+        for (var i = 0; i < items.Count; i++)
+        {
+            var it = items[i];
+            var repeats = freq[(it.Norm, it.YBucket)];
+
+            if (IsUntrustedOverlay(it.Norm, repeats))
+                continue;
+
+            sb.Append(it.Raw);
+        }
+
+        return sb.ToString();
+
+        // Local helper keeps the core loop readable.
+        static bool TryGetYBucket(IntPtr obj, out int bucket)
+        {
+            bucket = 0;
+
+            var ok = PdfiumNative.FPDFPageObj_GetBounds(
+                obj, out _, out var bottom, out _, out var top) != 0;
+            if (!ok)
+                return false;
+
+            var yMid = (bottom + top) * 0.5f;
+            bucket = BucketY(yMid);
+            return true;
+        }
+    }
+
+    private static string GetTextFromTextObject(IntPtr textObj, IntPtr textPage)
+    {
+        // First pass: query required buffer size in BYTES (UTF-16LE, includes trailing NUL).
+        var requiredBytes = PdfiumNative.FPDFTextObj_GetText(textObj, textPage, null, 0);
+        if (requiredBytes == 0)
+            return string.Empty;
+
+        // Convert bytes -> ushort count. (+1) guards odd values.
+        var u16Count = (int)((requiredBytes + 1) / 2);
+        if (u16Count <= 1 || u16Count > 10_000_000)
+            return string.Empty;
+
+        var buf = new ushort[u16Count];
+
+        // Second pass: fill buffer. Parameter is buflen in BYTES.
+        var writtenBytes = PdfiumNative.FPDFTextObj_GetText(textObj, textPage, buf, requiredBytes);
+        if (writtenBytes == 0)
+            return string.Empty;
+
+        var writtenU16 = (int)(writtenBytes / 2);
+        if (writtenU16 <= 0)
+            return string.Empty;
+
+        // Trim trailing NUL if present.
+        var len = writtenU16;
+        if (buf[len - 1] == 0)
+            len--;
+
+        if (len <= 0)
+            return string.Empty;
+
+        return Utf16BufferToString(buf, len);
+    }
+
+    private static int BucketY(float yMid)
+    {
+        // Group nearby text objects into coarse horizontal bands to detect tiled overlays.
+        return (int)MathF.Round(yMid / 5f);
+    }
+
+    private static string NormalizeWhitespace(string s)
+    {
+        // Collapse consecutive whitespace to a single space, then trim.
+        if (string.IsNullOrEmpty(s))
+            return string.Empty;
+
+        var sb = new StringBuilder(s.Length);
+        var lastWasWs = false;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            var ch = s[i];
+
+            if (char.IsWhiteSpace(ch))
+            {
+                if (!lastWasWs)
+                {
+                    sb.Append(' ');
+                    lastWasWs = true;
+                }
+
+                continue;
+            }
+
+            sb.Append(ch);
+            lastWasWs = false;
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private static bool IsUntrustedOverlay(string norm, int repeatCount)
+    {
+        // Strong signal: the same normalized text repeats many times at the same Y-band.
+        if (repeatCount >= 4 && norm.Length <= 200)
+            return true;
+
+        // Extra signal: "X X X X X ..." (single token repeated across the line).
+        // This catches typical tiled watermark patterns.
+        var parts = norm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 6)
+            return false;
+
+        var first = parts[0];
+        var same = 1;
+
+        for (var i = 1; i < parts.Length; i++)
+        {
+            if (parts[i] == first)
+                same++;
+        }
+
+        // Almost all tokens are identical, and the token is short -> likely overlay text.
+        return same >= parts.Length - 1 && first.Length <= 32;
     }
 
     // -------------------------------

@@ -161,6 +161,7 @@ public class MainWindowViewModel : ViewModelBase
         IsAddPdfPageHeader = po.AddPdfPageHeader > 0;
         IsCompactPdfText = po.CompactPdfText > 0;
         IsAutoReflow = po.AutoReflowPdfText > 0;
+        IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText > 0;
 
         ShortHeading = po.ShortHeadingSettings;
         // ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
@@ -190,6 +191,7 @@ public class MainWindowViewModel : ViewModelBase
             IsAddPdfPageHeader = IsAddPdfPageHeader,
             IsCompactPdfText = IsCompactPdfText,
             IsAutoReflow = IsAutoReflow,
+            IsIgnoreUntrustedPdfText =  IsIgnoreUntrustedPdfText,
             ShortHeading = ShortHeading,
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
@@ -1641,6 +1643,22 @@ public class MainWindowViewModel : ViewModelBase
 
             Pdf.IsAutoReflow = value;
             _languageSettings!.PdfOptions.AutoReflowPdfText = value ? 1 : 0;
+
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+    
+    public bool IsIgnoreUntrustedPdfText
+    {
+        get => Pdf.IsIgnoreUntrustedPdfText;
+        set
+        {
+            if (Pdf.IsIgnoreUntrustedPdfText == value)
+                return;
+
+            Pdf.IsIgnoreUntrustedPdfText = value;
+            _languageSettings!.PdfOptions.IgnoreUntrustedPdfText = value ? 1 : 0;
 
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSettingsDirty));

@@ -16,16 +16,19 @@
         <TextBlock Text="{Binding AppName}" FontSize="20" FontWeight="Bold" />
         <TextBlock Text="{Binding Version}" />
         <TextBlock Text="{Binding Description}" />
-        <TextBlock Text="https://github.com/laisuk/OpenccNetLibGui"
-                   Cursor="Hand"
-                   Foreground="{DynamicResource SystemAccentColor}"
-                   PointerPressed="OnGitHubLinkClicked">
-            <TextBlock.Styles>
-                <Style Selector="TextBlock:pointerover">
-                    <Setter Property="TextDecorations" Value="Underline" />
-                </Style>
-            </TextBlock.Styles>
-        </TextBlock>
+        <StackPanel Orientation="Horizontal" Spacing="0">
+            <TextBlock Text="Homepage: " />
+            <TextBlock Text="https://github.com/laisuk/OpenccNetLibGui"
+                       Cursor="Hand"
+                       Foreground="{DynamicResource SystemAccentColor}"
+                       PointerPressed="OnGitHubLinkClicked">
+                <TextBlock.Styles>
+                    <Style Selector="TextBlock:pointerover">
+                        <Setter Property="TextDecorations" Value="Underline" />
+                    </Style>
+                </TextBlock.Styles>
+            </TextBlock>
+        </StackPanel>
 
         <Separator />
 
