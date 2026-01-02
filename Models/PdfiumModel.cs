@@ -489,7 +489,7 @@ internal static class PdfiumModel
         // Too small => punctuation/quotes cause artificial line breaks (fragmentation).
         // Too large => merges distinct lines (run-on text).
         // Empirically, 2 provides good stability for novel PDFs while preserving line separation.
-        const int LineBucketGap = 2;
+        const int LineBucketGap = 3;
         
         for (var i = 0; i < items.Count; i++)
         {
