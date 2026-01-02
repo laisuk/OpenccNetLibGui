@@ -280,8 +280,8 @@ internal static class PdfiumModel
                 statusCallback(i, percent);
             }
 
-            IntPtr page = IntPtr.Zero;
-            IntPtr textPage = IntPtr.Zero;
+            var page = IntPtr.Zero;
+            var textPage = IntPtr.Zero;
 
             try
             {
@@ -488,7 +488,8 @@ internal static class PdfiumModel
         // LineBucketGap is a tolerance band between adjacent text objects.
         // Too small => punctuation/quotes cause artificial line breaks (fragmentation).
         // Too large => merges distinct lines (run-on text).
-        // Empirically, 2 provides good stability for novel PDFs while preserving line separation.
+        // Empirically, 3 is the smallest value that reliably keeps top-aligned CJK quote glyphs
+        // (e.g., “ ” ‘ ’) in the same line bucket across real-world novel PDFs.
         const int LineBucketGap = 3;
         
         for (var i = 0; i < items.Count; i++)
@@ -543,7 +544,7 @@ internal static class PdfiumModel
 
         // Convert bytes -> ushort count. (+1) guards odd values.
         var u16Count = (int)((requiredBytes + 1) / 2);
-        if (u16Count <= 1 || u16Count > 10_000_000)
+        if (u16Count is <= 1 or > 10_000_000)
             return string.Empty;
 
         var buf = new ushort[u16Count];
@@ -562,10 +563,7 @@ internal static class PdfiumModel
         if (buf[len - 1] == 0)
             len--;
 
-        if (len <= 0)
-            return string.Empty;
-
-        return Utf16BufferToString(buf, len);
+        return len <= 0 ? string.Empty : Utf16BufferToString(buf, len);
     }
 
     private static int BucketY(float yMid)
@@ -610,7 +608,7 @@ internal static class PdfiumModel
     private static bool IsUntrustedOverlay(string norm, int repeatCount)
     {
         // Strong signal: the same normalized text repeats many times at the same Y-band.
-        if (repeatCount >= 4 && norm.Length <= 200)
+        if (repeatCount > 4 && norm.Length <= 200)
             return true;
 
         // Extra signal: "X X X X X ..." (single token repeated across the line).

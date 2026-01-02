@@ -380,7 +380,7 @@ public class MainWindowViewModel : ViewModelBase
 
             UpdateEncodeInfo(Opencc.ZhoCheck(result.Text));
             LblStatusBarContent =
-                $"✅ PDF loaded ({result.PageCount:N0} pages, {result.EngineUsed.ToDisplayName()}{(result.AutoReflowApplied ? ", Auto-Reflowed" : "")}): {displayName}";
+                $"✅ PDF loaded ({result.PageCount:N0} pages, {result.EngineUsed.ToDisplayName()}{(result.AutoReflowApplied ? ", Auto-Reflowed" : "")}{(IsIgnoreUntrustedPdfText ? ", Ignore-Untrusted" : "")}): {displayName}";
         }
         catch (OperationCanceledException)
         {
