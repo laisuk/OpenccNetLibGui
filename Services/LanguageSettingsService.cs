@@ -346,7 +346,7 @@ public class LanguageSettingsService
     ""addPdfPageHeader"": 0,
     ""compactPdfText"": 0,
     ""autoReflowPdfText"": 1,
-    ""ignoreUntrustedPdfText"": 1,
+    ""ignoreUntrustedPdfText"": 0,
     ""pdfEngine"": 2,
     ""shortHeadingSettings"": {
       ""maxLen"": 8,

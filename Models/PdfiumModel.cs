@@ -190,8 +190,8 @@ internal static class PdfiumModel
 
 
     // -----------------------------------------------------------------------------
-//  Shared core: PDFium page loop
-// -----------------------------------------------------------------------------
+    //  Shared core: PDFium page loop
+    // -----------------------------------------------------------------------------
 
     /// <summary>
     /// Core PDFium-based page iteration routine shared by both synchronous and
@@ -398,8 +398,8 @@ internal static class PdfiumModel
     }
 
     // -----------------------------------------------------------------------------
-// IgnoreUntrustedPdfText (object-level extraction)
-// -----------------------------------------------------------------------------
+    // IgnoreUntrustedPdfText (object-level extraction)
+    // -----------------------------------------------------------------------------
 
     private readonly struct TextObjItem
     {
@@ -467,7 +467,21 @@ internal static class PdfiumModel
                 freq[key] = 1;
         }
 
+        // var sb = new StringBuilder();
+        //
+        // for (var i = 0; i < items.Count; i++)
+        // {
+        //     var it = items[i];
+        //     var repeats = freq[(it.Norm, it.YBucket)];
+        //
+        //     if (IsUntrustedOverlay(it.Norm, repeats))
+        //         continue;
+        //
+        //     sb.Append(it.Raw);
+        // }
+        //
         var sb = new StringBuilder();
+        int? lastBucket = null;
 
         for (var i = 0; i < items.Count; i++)
         {
@@ -477,7 +491,12 @@ internal static class PdfiumModel
             if (IsUntrustedOverlay(it.Norm, repeats))
                 continue;
 
+            // New line only when Y-bucket changes
+            if (lastBucket != null && it.YBucket != lastBucket)
+                sb.AppendLine();
+
             sb.Append(it.Raw);
+            lastBucket = it.YBucket;
         }
 
         return sb.ToString();
