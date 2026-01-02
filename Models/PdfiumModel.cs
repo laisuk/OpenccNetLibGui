@@ -485,6 +485,12 @@ internal static class PdfiumModel
         var sb = new StringBuilder();
         int? lastBucket = null;
 
+        // LineBucketGap is a tolerance band between adjacent text objects.
+        // Too small => punctuation/quotes cause artificial line breaks (fragmentation).
+        // Too large => merges distinct lines (run-on text).
+        // Empirically, 2 provides good stability for novel PDFs while preserving line separation.
+        const int LineBucketGap = 2;
+        
         for (var i = 0; i < items.Count; i++)
         {
             var it = items[i];
@@ -495,8 +501,6 @@ internal static class PdfiumModel
 
             if (it.Raw.Length == 0)
                 continue;
-
-            const int LineBucketGap = 2;
 
             // Only insert a newline when we clearly moved to another text line.
             // NOTE:

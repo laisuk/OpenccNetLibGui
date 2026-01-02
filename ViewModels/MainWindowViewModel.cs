@@ -1649,11 +1649,17 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
     
+    public bool CanIgnoreUntrustedPdfText => IsPdfiumEngine;
+    
     public bool IsIgnoreUntrustedPdfText
     {
         get => Pdf.IsIgnoreUntrustedPdfText;
         set
         {
+            // ✅ hard gate: cannot enable under PdfPig
+            if (value && IsPdfPigEngine)
+                return;
+            
             if (Pdf.IsIgnoreUntrustedPdfText == value)
                 return;
 
@@ -1676,11 +1682,20 @@ public class MainWindowViewModel : ViewModelBase
             Pdf.PdfEngine = value;
             // Sync settings object (no magic numbers)
             _languageSettings!.PdfOptions.PdfEngine = (int)value;
+            
+            // ✅ PDFium-only option: force off when switching to PdfPig
+            if (Pdf.PdfEngine == PdfEngine.PdfPig && Pdf.IsIgnoreUntrustedPdfText)
+            {
+                // go through wrapper so it syncs settings + raises dirty
+                IsIgnoreUntrustedPdfText = false;
+            }
 
             // PdfEngine changed → notify RadioButtons
             this.RaisePropertyChanged(); // ✅ add this for self-changed
             this.RaisePropertyChanged(nameof(IsPdfPigEngine));
             this.RaisePropertyChanged(nameof(IsPdfiumEngine));
+            // ✅ dependent enable state
+            this.RaisePropertyChanged(nameof(CanIgnoreUntrustedPdfText));
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
     }

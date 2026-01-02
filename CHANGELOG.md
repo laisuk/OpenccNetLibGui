@@ -38,6 +38,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - **Ignore untrusted PDF text (Pdfium)**
     - Added an option to skip repeated overlay- or annotation-like text during PDF extraction.
     - Uses object-level text extraction to reduce duplicated or non-content text in certain PDFs.
+    - Intended as a rescue option for PDFs with visible duplicated headings, watermarks, or overlay noise.
     - Extraction-only filtering; does not modify the original PDF.
     - Available via the PDF context menu and persisted under `pdfOptions.ignoreUntrustedPdfText`.
 

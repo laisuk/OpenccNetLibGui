@@ -211,7 +211,8 @@
 
                                         <!-- 🛡️ Ignore untrusted / overlay PDF text -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}"
+                                                  IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanIgnoreUntrustedPdfText, FallbackValue=false}"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=false}"
                                                   ToolTip.Tip="Ignores repeated or overlaid text commonly used for watermarks or visual noise.
                                                     Enable this only if extracted text contains obvious duplicates or interference.
                                                     This option affects text extraction only and does not modify the original PDF.">
@@ -488,7 +489,8 @@
 
                                     <!-- 🛡️ Ignore untrusted / overlay PDF text -->
                                     <MenuItem ToggleType="CheckBox"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}"
+                                              IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanIgnoreUntrustedPdfText, FallbackValue=false}"
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=false}"
                                               ToolTip.Tip="Ignores repeated or overlaid text commonly used for watermarks or visual noise.
                                                 Enable this only if extracted text contains obvious duplicates or interference.
                                                 This option affects text extraction only and does not modify the original PDF.">
