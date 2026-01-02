@@ -211,7 +211,10 @@
 
                                         <!-- 🛡️ Ignore untrusted / overlay PDF text -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}">
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}"
+                                                  ToolTip.Tip="Ignores repeated or overlaid text commonly used for watermarks or visual noise.
+                                                    Enable this only if extracted text contains obvious duplicates or interference.
+                                                    This option affects text extraction only and does not modify the original PDF.">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🛡️" />
@@ -485,7 +488,10 @@
 
                                     <!-- 🛡️ Ignore untrusted / overlay PDF text -->
                                     <MenuItem ToggleType="CheckBox"
-                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}">
+                                              IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=true}"
+                                              ToolTip.Tip="Ignores repeated or overlaid text commonly used for watermarks or visual noise.
+                                                Enable this only if extracted text contains obvious duplicates or interference.
+                                                This option affects text extraction only and does not modify the original PDF.">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🛡️" />

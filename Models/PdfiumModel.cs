@@ -467,6 +467,7 @@ internal static class PdfiumModel
                 freq[key] = 1;
         }
 
+        // ---------- (1) Original --------------
         // var sb = new StringBuilder();
         //
         // for (var i = 0; i < items.Count; i++)
@@ -479,20 +480,31 @@ internal static class PdfiumModel
         //
         //     sb.Append(it.Raw);
         // }
-        //
+
+        // -------- (2) Custom: Add newline --------
         var sb = new StringBuilder();
         int? lastBucket = null;
 
         for (var i = 0; i < items.Count; i++)
         {
             var it = items[i];
-            var repeats = freq[(it.Norm, it.YBucket)];
+            freq.TryGetValue((it.Norm, it.YBucket), out var repeats);
 
             if (IsUntrustedOverlay(it.Norm, repeats))
                 continue;
 
-            // New line only when Y-bucket changes
-            if (lastBucket != null && it.YBucket != lastBucket)
+            if (it.Raw.Length == 0)
+                continue;
+
+            const int LineBucketGap = 2;
+
+            // Only insert a newline when we clearly moved to another text line.
+            // NOTE:
+            // PDF text objects' bounding boxes can vary by glyph (quotes/punctuation),
+            // so using strict bucket equality can create artificial line splits.
+            // We treat a line as a Y-band (quantized yMid) and require a bucket gap
+            // (>= 2) to absorb small Y drift and keep output reflow-friendly.
+            if (lastBucket != null && Math.Abs(it.YBucket - lastBucket.Value) >= LineBucketGap)
                 sb.AppendLine();
 
             sb.Append(it.Raw);
@@ -513,6 +525,7 @@ internal static class PdfiumModel
 
             var yMid = (bottom + top) * 0.5f;
             bucket = BucketY(yMid);
+            // bucket = BucketY(bottom);
             return true;
         }
     }
@@ -553,8 +566,10 @@ internal static class PdfiumModel
 
     private static int BucketY(float yMid)
     {
+        const float YBandStep = 5f;
         // Group nearby text objects into coarse horizontal bands to detect tiled overlays.
-        return (int)MathF.Round(yMid / 5f);
+        // return (int)MathF.Round(yMid / 5f);
+        return (int)MathF.Floor(yMid / YBandStep);
     }
 
     private static string NormalizeWhitespace(string s)
