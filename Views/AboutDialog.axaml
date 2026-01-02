@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:OpenccNetLibGui.ViewModels"
+        xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         mc:Ignorable="d"
         x:Class="OpenccNetLibGui.Views.AboutDialog"
         Width="420"
@@ -16,8 +17,9 @@
         <TextBlock Text="{Binding AppName}" FontSize="20" FontWeight="Bold" />
         <TextBlock Text="{Binding Version}" />
         <TextBlock Text="{Binding Description}" />
-        <StackPanel Orientation="Horizontal" Spacing="0">
-            <TextBlock Text="Homepage: " />
+        <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:SymbolIcon Symbol="Home" FontSize="20" />
+            <TextBlock Text=":" />
             <TextBlock Text="https://github.com/laisuk/OpenccNetLibGui"
                        Cursor="Hand"
                        Foreground="{DynamicResource SystemAccentColor}"
