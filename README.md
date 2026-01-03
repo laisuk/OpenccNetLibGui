@@ -194,9 +194,9 @@ dotnet run
 
 ![image04](./Assets/image04.png)
 
-Support most **text base** file types and **Text-Embedded PDF documents**.
+Support most **text base** file types, OpenDocuments (`DOCX`, `ODT`, `EPUB`) and **Text-Embedded PDF documents**.
 
-1. Paste the text or open a file (text, DOCX, ODT or PDF file) you wish to convert (file/text drag and drop are
+1. Paste the text or open a file (text, DOCX, ODT, EPUB or PDF file) you wish to convert (file/text drag and drop are
    supported on
    Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).

@@ -115,8 +115,15 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    // reuse existing text-load logic in VM
-                    await vm.UpdateTbSourceFileContentsAsync(filePath);
+                    try
+                    {
+                        // reuse existing text-load logic in VM (docx/odt/epub/txt...)
+                        await vm.UpdateTbSourceFileContentsAsync(filePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        vm.LblStatusBarContent = $"Error opening file: {ex.Message}";
+                    }
                 }
 
                 break;
