@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -98,38 +97,25 @@ public partial class MainWindow : Window
         switch (sender)
         {
             case TextEditor:
-                var firstFile = fileList[0]; // Safe access as fileList is checked
+            {
+                var firstFile = fileList[0];
                 filePath = NormalizeFilePath(firstFile);
                 if (filePath == null) return;
-                var fileExt = Path.GetExtension(filePath).ToLowerInvariant();
-                if (fileExt == ".pdf")
+
+                try
                 {
-                    try
-                    {
-                        await vm.UpdateTbSourcePdfAsync(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        vm.LblStatusBarContent = $"Error opening PDF: {ex.Message}";
-                    }
+                    await vm.OpenPathAsync(filePath);
                 }
-                else
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        // reuse existing text-load logic in VM (docx/odt/epub/txt...)
-                        await vm.UpdateTbSourceFileContentsAsync(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        vm.LblStatusBarContent = $"Error opening file: {ex.Message}";
-                    }
+                    vm.LblStatusBarContent = $"Error opening file: {ex.Message}";
                 }
 
                 break;
-
+            }
 
             case ListBox:
+            {
                 var newItems = new HashSet<string>(vm.LbxSourceItems!); // Ensure uniqueness
                 var currentCount = newItems.Count;
                 foreach (var file in fileList)
@@ -148,6 +134,7 @@ public partial class MainWindow : Window
                 vm.LblStatusBarContent = $"File(s) dropped: {newCount - currentCount}";
 
                 break;
+            }
         }
     }
 

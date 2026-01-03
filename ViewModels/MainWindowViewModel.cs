@@ -191,7 +191,7 @@ public class MainWindowViewModel : ViewModelBase
             IsAddPdfPageHeader = IsAddPdfPageHeader,
             IsCompactPdfText = IsCompactPdfText,
             IsAutoReflow = IsAutoReflow,
-            IsIgnoreUntrustedPdfText =  IsIgnoreUntrustedPdfText,
+            IsIgnoreUntrustedPdfText = IsIgnoreUntrustedPdfText,
             ShortHeading = ShortHeading,
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
@@ -284,6 +284,8 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+    #region File Open Region
+
     private async Task BtnOpenFile()
     {
         var mainWindow = _topLevelService!.GetMainWindow();
@@ -306,52 +308,47 @@ public class MainWindowViewModel : ViewModelBase
 
         if (result.Count <= 0) return;
         var file = result[0];
-        {
-            var path = file.Path.LocalPath;
-            var fileExt = Path.GetExtension(path);
+        var path = file.Path.LocalPath;
 
-            if (fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    await UpdateTbSourcePdfAsync(path);
-                }
-                catch (Exception ex)
-                {
-                    LblStatusBarContent = $"Error opening PDF: {ex.Message}";
-                }
-
-                return;
-            }
-
-            var isTxt = _textFileTypes != null && _textFileTypes.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
-
-            if (!isTxt
-                && !OpenXmlHelper.IsDocx(path)
-                && !OpenXmlHelper.IsOdt(path)
-                && !EpubHelper.IsEpub(path))
-            {
-                LblStatusBarContent = $"Error: File type ({fileExt}) not support";
-                return;
-            }
-
-            try
-            {
-                await UpdateTbSourceFileContentsAsync(path);
-            }
-            catch (Exception ex)
-            {
-                // Handle unexpected exceptions here
-                // Console.WriteLine($"Unhandled exception: {ex}");
-                LblStatusBarContent = $"Error open file: {ex.Message}";
-            }
-        }
+        await OpenPathAsync(path);
     }
+
+    internal async Task OpenPathAsync(string path)
+    {
+        if (Path.GetExtension(path).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+            await UpdateTbSourcePdfAsync(path);
+        else
+            await UpdateTbSourceFileContentsAsync(path);
+    }
+
+    private async Task UpdateTbSourceFileContentsAsync(string filePath)
+    {
+        var result = await FileOpenViewModel.OpenAsync(filePath);
+
+        if (result.Error != null)
+        {
+            LblStatusBarContent = $"Error opening file: {result.Error}";
+            return;
+        }
+
+        CurrentOpenFilename = result.Path;
+
+        TbSourceTextDocument!.Text = result.Text ?? "";
+        LblStatusBarContent = $"File: {result.Path}";
+        UpdateEncodeInfo(Opencc.ZhoCheck(result.Text ?? ""));
+
+        var displayName = Path.GetFileName(result.Path);
+        LblFileNameContent = displayName.Length > 50
+            ? $"{displayName[..25]}...{displayName[^15..]}"
+            : displayName;
+    }
+
+    #endregion // File Open Region
 
     #region PDF Handling Region
 
     // Public/simple entry point used by UI / DnD / menu etc.
-    internal async Task UpdateTbSourcePdfAsync(string path)
+    private async Task UpdateTbSourcePdfAsync(string path)
     {
         var requestId = Pdf.NewRequestId();
         var ct = Pdf.CurrentToken;
@@ -478,7 +475,7 @@ public class MainWindowViewModel : ViewModelBase
         LblStatusBarContent = "✅ Reflow complete (CJK-aware)";
     }
 
-    #endregion
+    #endregion // PDF Handling Region
 
     private async Task BtnSaveFile()
     {
@@ -1020,75 +1017,6 @@ public class MainWindowViewModel : ViewModelBase
             default:
                 LblSourceCodeContent = _selectedLanguage!.Name![0];
                 break;
-        }
-    }
-
-    internal async Task UpdateTbSourceFileContentsAsync(string filename)
-    {
-        CurrentOpenFilename = filename;
-
-        try
-        {
-            string text;
-
-            // ---- DOCX ----
-            if (OpenXmlHelper.IsDocx(filename))
-            {
-                text = await Task.Run(() =>
-                    OpenXmlHelper.ExtractDocxAllText(filename));
-            }
-            // ---- ODT ----
-            else if (OpenXmlHelper.IsOdt(filename))
-            {
-                text = await Task.Run(() =>
-                    OpenXmlHelper.ExtractOdtAllText(filename));
-            }
-            // ---- EPUB ----
-            else if (EpubHelper.IsEpub(filename))
-            {
-                text = await Task.Run(() =>
-                    EpubHelper.ExtractEpubAllText(
-                        filename,
-                        includePartHeadings: false,
-                        normalizeNewlines: true,
-                        skipNavDocuments: true));
-            }
-            // ---- Plain text ----
-            else
-            {
-                var fileExt = new FileInfo(filename).Extension;
-                var isTxt = _textFileTypes != null &&
-                            _textFileTypes.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
-                if (!isTxt)
-                {
-                    LblStatusBarContent = $"Error: Unsupported file type. ({fileExt})";
-                    return;
-                }
-
-                using var reader = new StreamReader(filename, Encoding.UTF8, true);
-                text = await reader.ReadToEndAsync();
-            }
-
-            // ---- Apply to TbSource ----
-            TbSourceTextDocument!.Text = text;
-
-            // ---- UI updates ----
-            LblStatusBarContent = $"File: {filename}";
-            UpdateEncodeInfo(Opencc.ZhoCheck(text));
-
-            var displayName = Path.GetFileName(filename);
-            LblFileNameContent = displayName.Length > 50
-                ? $"{displayName[..25]}...{displayName[^15..]}"
-                : displayName;
-        }
-        catch (Exception ex)
-        {
-            TbSourceTextDocument!.Text = string.Empty;
-            LblSourceCodeContent = string.Empty;
-            LblStatusBarContent = $"Error opening file: {ex.Message}";
-            CurrentOpenFilename = string.Empty;
-
-            Console.WriteLine($"Exception in UpdateTbSourceFileContentsAsync: {ex}");
         }
     }
 
@@ -1660,9 +1588,9 @@ public class MainWindowViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
     }
-    
+
     public bool CanIgnoreUntrustedPdfText => IsPdfiumEngine;
-    
+
     public bool IsIgnoreUntrustedPdfText
     {
         get => Pdf.IsIgnoreUntrustedPdfText;
@@ -1671,7 +1599,7 @@ public class MainWindowViewModel : ViewModelBase
             // ✅ hard gate: cannot enable under PdfPig
             if (value && IsPdfPigEngine)
                 return;
-            
+
             if (Pdf.IsIgnoreUntrustedPdfText == value)
                 return;
 
@@ -1694,7 +1622,7 @@ public class MainWindowViewModel : ViewModelBase
             Pdf.PdfEngine = value;
             // Sync settings object (no magic numbers)
             _languageSettings!.PdfOptions.PdfEngine = (int)value;
-            
+
             // ✅ PDFium-only option: force off when switching to PdfPig
             if (Pdf.PdfEngine == PdfEngine.PdfPig && Pdf.IsIgnoreUntrustedPdfText)
             {
