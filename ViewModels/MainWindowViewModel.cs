@@ -1624,7 +1624,7 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings!.PdfOptions.PdfEngine = (int)value;
 
             // ✅ PDFium-only option: force off when switching to PdfPig
-            if (Pdf.PdfEngine == PdfEngine.PdfPig && Pdf.IsIgnoreUntrustedPdfText)
+            if (Pdf is { PdfEngine: PdfEngine.PdfPig, IsIgnoreUntrustedPdfText: true })
             {
                 // go through wrapper so it syncs settings + raises dirty
                 IsIgnoreUntrustedPdfText = false;

@@ -168,6 +168,7 @@ namespace OpenccNetLibGui.Models
             "主題詞", "主题词",
             "類型", "类型",
             "標簽", "标签",
+            "内容標簽", "内容标签",
             "系列",
 
             // ===== 7. Publishing Cycle =====
