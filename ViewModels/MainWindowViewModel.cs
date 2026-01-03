@@ -25,7 +25,8 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly LanguageSettings? _languageSettings;
     private readonly LanguageSettingsService? _languageSettingsService;
-    private readonly Language? _selectedLanguage;
+    private readonly Language _selectedLanguage = new();
+    private readonly List<string> _codeNames = new();
     private readonly List<string>? _textFileTypes;
     private readonly List<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
@@ -143,6 +144,7 @@ public class MainWindowViewModel : ViewModelBase
                     "zh-Hans (Simplified)"
                 }
             };
+        _codeNames = _selectedLanguage.Name;
         _rbT2SContent = _selectedLanguage.T2SContent;
         _rbS2TContent = _selectedLanguage.S2TContent;
         _rbCustomContent = _selectedLanguage.CustomContent;
@@ -599,9 +601,9 @@ public class MainWindowViewModel : ViewModelBase
         LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
             ? LblSourceCodeContent
             : IsRbT2S
-                ? _selectedLanguage!.Name[2]
+                ? _selectedLanguage.Name[2]
                 : IsRbS2T
-                    ? _selectedLanguage!.Name[1]
+                    ? _selectedLanguage.Name[1]
                     : $"Manual ( {config} )";
 
         LblStatusBarContent = $"Process completed: {config} —> {stopwatch.ElapsedMilliseconds} ms";
@@ -650,7 +652,7 @@ public class MainWindowViewModel : ViewModelBase
 
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
-        var log = _selectedLanguage!.BatchLogContents;
+        var log = _selectedLanguage.BatchLogContents;
 
         LbxDestinationItems.Add($"{log.ConversionType} => {conversion}");
 
@@ -943,7 +945,7 @@ public class MainWindowViewModel : ViewModelBase
                     continue;
                 }
 
-                var textCode = _selectedLanguage!.Name[Opencc.ZhoCheck(inputText)];
+                var textCode = _selectedLanguage.Name[Opencc.ZhoCheck(inputText)];
                 LbxDestinationItems.Add($"({counter}) [{textCode}] {item}");
             }
             else
@@ -1005,17 +1007,17 @@ public class MainWindowViewModel : ViewModelBase
         switch (codeText)
         {
             case 1:
-                LblSourceCodeContent = _selectedLanguage!.Name[codeText];
+                LblSourceCodeContent = _codeNames[codeText];
                 if (!IsRbT2S) IsRbT2S = true;
                 break;
 
             case 2:
-                LblSourceCodeContent = _selectedLanguage!.Name[codeText];
+                LblSourceCodeContent = _codeNames[codeText];
                 if (!IsRbS2T) IsRbS2T = true;
                 break;
 
             default:
-                LblSourceCodeContent = _selectedLanguage!.Name[0];
+                LblSourceCodeContent = _codeNames[0];
                 break;
         }
     }
@@ -1311,7 +1313,7 @@ public class MainWindowViewModel : ViewModelBase
             IsRbT2S = false;
             // IsRbSegment = false;
             // IsRbTag = false;
-            LblSourceCodeContent = _selectedLanguage!.Name[2];
+            LblSourceCodeContent = _selectedLanguage.Name[2];
         }
     }
 
@@ -1323,7 +1325,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isRbT2S, value);
             if (!value) return;
             IsRbS2T = false;
-            LblSourceCodeContent = _selectedLanguage!.Name[1];
+            LblSourceCodeContent = _selectedLanguage.Name[1];
         }
     }
 
