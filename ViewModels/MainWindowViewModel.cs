@@ -131,7 +131,7 @@ public class MainWindowViewModel : ViewModelBase
         _topLevelService = topLevelService;
         _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
-        var locale = _languageSettings.Locale == 1 ? 1 : 2;
+        var locale = Math.Clamp(_languageSettings.Locale, 0, 2);
         var languages = _languageSettings.Languages;
         _selectedLanguage = languages != null && locale < languages.Count
             ? languages[locale]
@@ -1026,8 +1026,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (IsRbCustom)
         {
-            if (string.IsNullOrWhiteSpace(SelectedItem) || SelectedItem!.IndexOf(' ') <= 0) return "s2t";
-            return SelectedItem![..SelectedItem!.IndexOf(' ')];
+            var s = SelectedItem;
+            if (string.IsNullOrWhiteSpace(s))
+                return "s2t";
+
+            var i = s.IndexOf(' ');
+            return i > 0 ? s[..i] : s;
         }
 
         var config = IsRbS2T

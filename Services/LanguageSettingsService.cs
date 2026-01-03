@@ -74,7 +74,7 @@ public class LanguageSettingsService
         "locale",
         "charCheck"
     };
-    
+
     private static readonly JsonSerializerSettings JsonSaveSettings =
         new()
         {
@@ -235,9 +235,43 @@ public class LanguageSettingsService
       ""code"": ""non-zho"",
       ""name"": [
         ""Non-zho (Others)"",
-        ""zh-Hant (Traditional)"",
-        ""zh-Hans (Simplified)""
-      ]
+        ""zh-Hant (TRAD)"",
+        ""zh-Hans (SIMP)""
+      ],
+      ""t2sContent"": ""zh-Hant (TRAD) to zh-Hans (SIMP)"",
+      ""s2tContent"": ""zh-Hans (SIMP) to zh-Hant (TRAD)"",
+      ""customContent"": ""Custom Config"",
+      ""stdContent"": ""General"",
+      ""zhtwContent"": ""zh-CN / zh-TW"",
+      ""hkContent"": ""zh-CN / zh-HK"",
+      ""cbZhtwContent"": ""zh-CN / zh-TW Idioms"",
+      ""cbPunctuationContent"": ""Punctuation"",
+      ""customOptions"": [
+        ""s2t"",
+        ""s2tw"",
+        ""s2twp"",
+        ""s2hk"",
+        ""t2s"",
+        ""t2tw"",
+        ""t2twp"",
+        ""t2hk"",
+        ""tw2s"",
+        ""tw2sp"",
+        ""tw2t"",
+        ""tw2tp"",
+        ""hk2s"",
+        ""hk2t"",
+        ""t2jp"",
+        ""jp2t""
+      ],
+      ""batchLogContents"": {
+        ""conversionType"": ""Conversion Type"",
+        ""region"": ""Region"",
+        ""zhtwIdioms"": ""ZH/TW Idioms"",
+        ""punctuations"": ""Punctuations"",
+        ""convertFilename"": ""Convert filename"",
+        ""outputFolder"": ""Output folder""
+      }
     },
     {
       ""id"": 1,
