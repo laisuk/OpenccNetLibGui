@@ -297,6 +297,7 @@ public class MainWindowViewModel : ViewModelBase
                 new("Text Files") { Patterns = new[] { "*.txt", "*.md", "*.csv", "*.html", "*.xml" } },
                 new("Subtitle Files") { Patterns = new[] { "*.srt", "*.vtt", "*.ass", "*.ttml2" } },
                 new("Word Documents") { Patterns = new[] { "*.docx", "*.odt" } },
+                new("Epub Files") { Patterns = new[] { "*.epub" } },
                 new("Pdf Files") { Patterns = new[] { "*.pdf" } },
                 new("All Files") { Patterns = new[] { "*.*" } }
             },
@@ -327,7 +328,8 @@ public class MainWindowViewModel : ViewModelBase
 
             if (!isTxt
                 && !OpenXmlHelper.IsDocx(path)
-                && !OpenXmlHelper.IsOdt(path))
+                && !OpenXmlHelper.IsOdt(path)
+                && !EpubHelper.IsEpub(path))
             {
                 LblStatusBarContent = $"Error: File type ({fileExt}) not support";
                 return;
@@ -1040,6 +1042,16 @@ public class MainWindowViewModel : ViewModelBase
             {
                 text = await Task.Run(() =>
                     OpenXmlHelper.ExtractOdtAllText(filename));
+            }
+            // ---- EPUB ----
+            else if (EpubHelper.IsEpub(filename))
+            {
+                text = await Task.Run(() =>
+                    EpubHelper.ExtractEpubAllText(
+                        filename,
+                        includePartHeadings: false,
+                        normalizeNewlines: true,
+                        skipNavDocuments: true));
             }
             // ---- Plain text ----
             else
