@@ -79,7 +79,6 @@ public class MainWindowViewModel : ViewModelBase
 
     private readonly Opencc? _opencc;
     private bool _isCbConvertFilename;
-    private readonly int _locale;
     private PdfViewModel Pdf { get; }
     private readonly int _sentenceBoundaryLevel;
 
@@ -131,22 +130,30 @@ public class MainWindowViewModel : ViewModelBase
         _topLevelService = topLevelService;
         _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
-        _locale = _languageSettings.Locale == 1 ? _languageSettings.Locale : 2;
-        _selectedLanguage = _languageSettings.Languages![_locale];
-        _rbT2SContent = _selectedLanguage.T2SContent ?? "zh-Hant to zh-Hans";
-        _rbS2TContent = _selectedLanguage.S2TContent ?? "zh-Hans to zh-Hant";
-        _rbCustomContent = _selectedLanguage.CustomContent ?? "Manual";
-        _rbStdContent = _selectedLanguage.StdContent ?? "General";
-        _rbZhtwContent = _selectedLanguage.ZhtwContent ?? "ZH-TW";
-        _rbHkContent = _selectedLanguage.HkContent ?? "ZH-HK";
-        _cbZhtwContent = _selectedLanguage.CbZhtwContent ?? "ZH-TW Idioms";
-        _cbPunctuationContent = _selectedLanguage.CbPunctuationContent ?? "Punctuation";
+        var locale = _languageSettings.Locale == 1 ? 1 : 2;
+        var languages = _languageSettings.Languages;
+        _selectedLanguage = languages != null && locale < languages.Count
+            ? languages[locale]
+            : new Language
+            {
+                Name = new List<string>
+                {
+                    "Non-zho (Others)",
+                    "zh-Hant (Traditional)",
+                    "zh-Hans (Simplified)"
+                }
+            };
+        _rbT2SContent = _selectedLanguage.T2SContent;
+        _rbS2TContent = _selectedLanguage.S2TContent;
+        _rbCustomContent = _selectedLanguage.CustomContent;
+        _rbStdContent = _selectedLanguage.StdContent;
+        _rbZhtwContent = _selectedLanguage.ZhtwContent;
+        _rbHkContent = _selectedLanguage.HkContent;
+        _cbZhtwContent = _selectedLanguage.CbZhtwContent;
+        _cbPunctuationContent = _selectedLanguage.CbPunctuationContent;
         CustomOptions.Clear();
-        if (_selectedLanguage.CustomOptions != null)
-        {
-            foreach (var opt in _selectedLanguage.CustomOptions!)
-                CustomOptions.Add(opt);
-        }
+        foreach (var opt in _selectedLanguage.CustomOptions)
+            CustomOptions.Add(opt);
 
         SelectedItem =
             CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
@@ -592,9 +599,9 @@ public class MainWindowViewModel : ViewModelBase
         LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
             ? LblSourceCodeContent
             : IsRbT2S
-                ? _selectedLanguage!.Name![2]
+                ? _selectedLanguage!.Name[2]
                 : IsRbS2T
-                    ? _selectedLanguage!.Name![1]
+                    ? _selectedLanguage!.Name[1]
                     : $"Manual ( {config} )";
 
         LblStatusBarContent = $"Process completed: {config} —> {stopwatch.ElapsedMilliseconds} ms";
@@ -643,26 +650,19 @@ public class MainWindowViewModel : ViewModelBase
 
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
-        LbxDestinationItems.Add(_locale == 1
-            ? $"Conversion Type (轉換方式) => {conversion}"
-            : $"Conversion Type (转换方式) => {conversion}");
+        var log = _selectedLanguage!.BatchLogContents;
+
+        LbxDestinationItems.Add($"{log.ConversionType} => {conversion}");
+
         if (!IsRbCustom)
         {
-            LbxDestinationItems.Add(_locale == 1 ? $"Region (區域) => {region}" : $"Region (区域) => {region}");
-            LbxDestinationItems.Add(_locale == 1
-                ? $"ZH/TW Idioms (中臺慣用語) => {isZhTwIdioms}"
-                : $"ZH/TW Idioms (中台惯用语) => {isZhTwIdioms}");
+            LbxDestinationItems.Add($"{log.Region} => {region}");
+            LbxDestinationItems.Add($"{log.ZhtwIdioms} => {isZhTwIdioms}");
         }
 
-        LbxDestinationItems.Add(_locale == 1
-            ? $"Punctuations (標點) => {isPunctuations}"
-            : $"Punctuations (标点) => {isPunctuations}");
-        LbxDestinationItems.Add(_locale == 1
-            ? $"Convert filename (轉換文件名) => {isConvertFilename}"
-            : $"Convert filename (转换文件名) => {isConvertFilename}");
-        LbxDestinationItems.Add(_locale == 1
-            ? $"Output folder: (輸出文件夾) => {TbOutFolderText}"
-            : $"Output folder: (输出文件夹) => {TbOutFolderText}");
+        LbxDestinationItems.Add($"{log.Punctuations} => {isPunctuations}");
+        LbxDestinationItems.Add($"{log.ConvertFilename} => {isConvertFilename}");
+        LbxDestinationItems.Add($"{log.OutputFolder} => {TbOutFolderText}");
 
         var count = 0;
         if (_opencc!.Config != config) _opencc.Config = config; // avoid touching when same
@@ -943,7 +943,7 @@ public class MainWindowViewModel : ViewModelBase
                     continue;
                 }
 
-                var textCode = _selectedLanguage!.Name![Opencc.ZhoCheck(inputText)];
+                var textCode = _selectedLanguage!.Name[Opencc.ZhoCheck(inputText)];
                 LbxDestinationItems.Add($"({counter}) [{textCode}] {item}");
             }
             else
@@ -1005,17 +1005,17 @@ public class MainWindowViewModel : ViewModelBase
         switch (codeText)
         {
             case 1:
-                LblSourceCodeContent = _selectedLanguage!.Name![codeText];
+                LblSourceCodeContent = _selectedLanguage!.Name[codeText];
                 if (!IsRbT2S) IsRbT2S = true;
                 break;
 
             case 2:
-                LblSourceCodeContent = _selectedLanguage!.Name![codeText];
+                LblSourceCodeContent = _selectedLanguage!.Name[codeText];
                 if (!IsRbS2T) IsRbS2T = true;
                 break;
 
             default:
-                LblSourceCodeContent = _selectedLanguage!.Name![0];
+                LblSourceCodeContent = _selectedLanguage!.Name[0];
                 break;
         }
     }
@@ -1311,7 +1311,7 @@ public class MainWindowViewModel : ViewModelBase
             IsRbT2S = false;
             // IsRbSegment = false;
             // IsRbTag = false;
-            LblSourceCodeContent = _selectedLanguage!.Name![2];
+            LblSourceCodeContent = _selectedLanguage!.Name[2];
         }
     }
 
@@ -1323,7 +1323,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isRbT2S, value);
             if (!value) return;
             IsRbS2T = false;
-            LblSourceCodeContent = _selectedLanguage!.Name![1];
+            LblSourceCodeContent = _selectedLanguage!.Name[1];
         }
     }
 
