@@ -53,7 +53,7 @@ public static class EpubHelper
             if (!manifest.TryGetValue(idref, out var item))
                 continue;
 
-            // Usually XHTML: application/xhtml+xml, but allow html, xhtml, xml
+            // Usually XHTML: application/xhtml+xml, but allow HTML, xhtml, XML
             if (!LooksLikeHtml(item.MediaType, item.Href))
                 continue;
 

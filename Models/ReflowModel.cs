@@ -56,7 +56,6 @@ namespace OpenccNetLibGui.Models
         private static bool IsDialogCloser(char ch)
             => DialogClosers.Contains(ch);
 
-
         // Bracket punctuations (open-close)
         private static readonly Dictionary<char, char> BracketPairs = new()
         {

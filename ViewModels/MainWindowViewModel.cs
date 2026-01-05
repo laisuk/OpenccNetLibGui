@@ -1052,6 +1052,42 @@ public class MainWindowViewModel : ViewModelBase
         return config;
     }
 
+    private OpenccConfig GetCurrentConfigId()
+    {
+        if (IsRbCustom)
+        {
+            var s = SelectedItem;
+
+            // Default fallback: s2t
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return OpenccConfig.S2T;
+            }
+
+            // Extract first token before space
+            var i = s.IndexOf(' ');
+            var name = i > 0 ? s[..i] : s;
+
+            // Try parse user-selected config
+            return Opencc.TryParseConfig(name, out var config) ? config : OpenccConfig.S2T;
+        }
+
+        if (IsRbS2T)
+        {
+            if (IsRbStd)
+                return OpenccConfig.S2T;
+            if (IsRbHk)
+                return OpenccConfig.S2Hk;
+            return IsCbZhtw ? OpenccConfig.S2Twp : OpenccConfig.S2Tw;
+        }
+
+        if (IsRbStd)
+            return OpenccConfig.T2S;
+        if (IsRbHk)
+            return OpenccConfig.Hk2S;
+        return IsCbZhtw ? OpenccConfig.Tw2Sp : OpenccConfig.Tw2S;
+    }
+
     public void TbSourceTextChanged()
     {
         LblTotalCharsContent = $"[ Ch: {TbSourceTextDocument!.Text!.Length:N0} ]";
