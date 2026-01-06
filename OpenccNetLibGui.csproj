@@ -17,11 +17,13 @@
         <IsPackable>false</IsPackable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+    
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <DebugType>portable</DebugType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
       <DebugType>none</DebugType>
+      <DebugSymbols>false</DebugSymbols>
     </PropertyGroup>
 
     <ItemGroup>
@@ -47,7 +49,7 @@
         <PackageReference Include="OpenccNetLib" Version="1.4.0" />
         <PackageReference Include="PdfPig" Version="0.1.13" />
         <PackageReference Include="ReactiveUI.Avalonia" Version="11.3.8" />
-        <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.6.2" />
+        <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.9.1" />
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9" />
     </ItemGroup>
 
@@ -128,7 +130,6 @@
 
     <ItemGroup>
         <Folder Include="Assets\Icons\" />
-        <Folder Include="Properties\PublishProfiles\" />
     </ItemGroup>
 
     <ItemGroup>

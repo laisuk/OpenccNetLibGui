@@ -19,6 +19,8 @@ jobs:
         include:
           - os: windows-latest
             rid: win-x64
+          - os: windows-latest
+            rid: win-x86
           - os: ubuntu-latest
             rid: linux-x64
           - os: macos-latest
@@ -33,7 +35,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore
         run: dotnet restore OpenccNetLibGui.sln
@@ -42,7 +44,7 @@ jobs:
         run: dotnet build OpenccNetLibGui.sln --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish OpenccNetLibGui.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/ --no-self-contained -p:PublishSingleFile=true
+        run: dotnet publish OpenccNetLibGui.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/ --no-self-contained -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
 
       # Package per-OS
       - name: Package (Windows)

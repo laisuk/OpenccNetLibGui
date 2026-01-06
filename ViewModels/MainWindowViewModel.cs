@@ -611,8 +611,22 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task BtnBatchStart()
     {
-        if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output")))
-            Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output"));
+        var baseOutputDir =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output");
+
+        try
+        {
+            if (!Directory.Exists(baseOutputDir))
+                Directory.CreateDirectory(baseOutputDir);
+        }
+        catch
+        {
+            // Intentionally ignored:
+            // - permission denied
+            // - read-only location
+            // - race condition
+            // Output folder is optional; later logic will handle actual target folder.
+        }
 
         if (LbxSourceItems!.Count == 0)
         {
@@ -1052,6 +1066,7 @@ public class MainWindowViewModel : ViewModelBase
         return config;
     }
 
+    /*
     private OpenccConfig GetCurrentConfigId()
     {
         if (IsRbCustom)
@@ -1087,6 +1102,7 @@ public class MainWindowViewModel : ViewModelBase
             return OpenccConfig.Hk2S;
         return IsCbZhtw ? OpenccConfig.Tw2Sp : OpenccConfig.Tw2S;
     }
+    */
 
     public void TbSourceTextChanged()
     {

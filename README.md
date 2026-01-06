@@ -99,24 +99,30 @@ The preferred engine can be changed in the **Settings** menu.
 
 ### **CJK Paragraph Reflow**
 
-The CJK paragraph reflow module is designed as a **lightweight readability enhancement** for extracted `PDF/EPUB`
-text.  
-It provides:
+The CJK paragraph reflow module is designed as a **lightweight, text-only readability enhancement** for extracted
+`PDF/EPUB` content.  
+Its goal is to restore a **natural reading flow** for continuous text, especially CJK novels and prose.
 
-- Line merging
-- Dialogue reconstruction
-- Chapter heading detection
-- Removal of common page-level artifacts
+It focuses on:
 
-Reflowed text aims for **cleaner, novel-style readability**, but **is not intended for:**
+- Line merging for broken paragraph fragments
+- Dialogue reconstruction across line breaks
+- Basic chapter heading detection
+- Removal of common page-level extraction artifacts
 
-- professional publishing
-- academic typesetting
-- print-ready layout
-- high-precision editorial work
+Reflowed output aims for **cleaner, novel-style plain-text readability**, but it is **not intended to:**
 
-Users should consider reflowed output as a **draft-quality starting point**, and perform manual review if the content
-will be published or redistributed.
+- reproduce original page layout
+- preserve columns, tables, or typography
+- support professional publishing or academic typesetting
+- generate print-ready or editorial-grade output
+
+Reflow intentionally applies **conservative, general heuristics** that work reasonably well across *many* documents,
+rather than being optimized for any single PDF or personal formatting preference.
+
+Users should treat reflowed text as a **draft-quality starting point**.  
+If exact formatting or document-specific behavior is required, disabling Reflow and working with raw extracted text
+is recommended.
 
 ---
 
@@ -276,7 +282,8 @@ Options are:
 
 1. `1` - Traditional Chinese (繁體字/傳統漢字)
 2. `2` - Simplified Chinese (简体字)
-3. Other values - Reset to Simplified Chinese (简体字)
+3. `0` - English
+4. Other values - Reset to Simplified Chinese (简体字)
 
 ---
 
