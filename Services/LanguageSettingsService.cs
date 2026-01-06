@@ -241,9 +241,9 @@ public class LanguageSettingsService
       ""t2sContent"": ""zh-Hant (TRAD) to zh-Hans (SIMP)"",
       ""s2tContent"": ""zh-Hans (SIMP) to zh-Hant (TRAD)"",
       ""customContent"": ""Custom Config"",
-      ""stdContent"": ""General"",
-      ""zhtwContent"": ""zh-CN / zh-TW"",
-      ""hkContent"": ""zh-CN / zh-HK"",
+      ""stdContent"": ""General Region"",
+      ""zhtwContent"": ""zh-CN / zh-TW Region"",
+      ""hkContent"": ""zh-CN / zh-HK Region"",
       ""cbZhtwContent"": ""zh-CN / zh-TW Idioms"",
       ""cbPunctuationContent"": ""Punctuation"",
       ""customOptions"": [
