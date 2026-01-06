@@ -44,7 +44,7 @@ On the release page, look for assets named:
 
 - **PDF Extraction & CJK Reflow**  
   Import PDF files and automatically:
-    - Extract text using **PdfPig** or **Pdfium**
+    - Extract text using **Pdfium** or **PdfPig**
     - Remove repetitive headers and footers (optional)
     - Merge broken lines across pages (e.g., `面` + `容` → `面容`)
     - Preserve chapter titles and headings
@@ -71,7 +71,7 @@ On the release page, look for assets named:
 ### **PDF Support**
 
 Only **text-embedded PDFs** are supported.  
-`OpenccNetLibGui` reads Unicode text directly from the PDF content stream using either `PdfPig` or `Pdfium`.
+`OpenccNetLibGui` reads Unicode text directly from the PDF content stream using either `Pdfium` or `PdfPig`.
 
 ❌ Scanned PDFs or pure image-based PDFs **are not supported**.  
 Such files require OCR (Optical Character Recognition), which is **not included** in this application.
@@ -82,9 +82,6 @@ Such files require OCR (Optical Character Recognition), which is **not included*
 
 `OpenccNetLibGui` offers two selectable engines for PDF text extraction:
 
-- **PdfPig**  
-  A pure-managed, cross-platform engine suitable for most standard text-embedded PDFs.
-
 - **Pdfium (native)**  
   A high-accuracy native engine with superior handling of:
     - CJK characters
@@ -93,7 +90,10 @@ Such files require OCR (Optical Character Recognition), which is **not included*
     - repeated text tokens
     - tricky multi-column or multi-page flows
 
-The preferred engine can be changed in the **Settings** menu.
+- **PdfPig**  
+  A pure-managed, cross-platform engine suitable for most standard text-embedded PDFs.
+
+The preferred engine can be changed in the **Settings** context menu.
 
 ---
 
