@@ -418,12 +418,10 @@ namespace OpenccNetLibGui.Models
                 {
                     if (!addPdfPageHeader && buffer.Length > 0)
                     {
-                        // ReSharper disable once UseIndexFromEndExpression
-                        var lastChar = buffer[buffer.Length - 1];
-
-                        // Page-break-like blank line, skip it
-                        // if (Array.IndexOf(CjkPunctEndChars, lastChar) < 0)
-                        if (!IsCjkPunctEndChar(lastChar))
+                        // Light rule: only flush on blank line if buffer ends with STRONG sentence end.
+                        // Otherwise, treat as a soft cross-page blank line and keep accumulating.
+                        var idx = FindLastNonWhitespaceIndex(buffer.ToString());
+                        if (idx >= 0 && !IsStrongSentenceEnd(buffer[idx]))
                             continue;
                     }
 
@@ -563,6 +561,22 @@ namespace OpenccNetLibGui.Models
                     }
 
                     // else: fall through → normal merge logic below
+                }
+
+                // Final strong line punct ending check for current line text.
+                // If the current line completes a strong sentence, append it and flush immediately.
+                if (buffer.Length > 0)
+                {
+                    var idx = FindLastNonWhitespaceIndex(stripped); // stripped is a string
+                    if (idx >= 0 && IsStrongSentenceEnd(stripped[idx]))
+                    {
+                        buffer.Append(stripped); // or rawLine
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
+                    }
                 }
 
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
