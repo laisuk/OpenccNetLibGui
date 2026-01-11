@@ -380,12 +380,15 @@ namespace OpenccNetLibGui.Models
                 // 2) Probe form (for structural / heading detection): remove all indentation
                 var probe = stripped.TrimStart(' ', '\u3000');
 
+                // We already have some text in buffer
+                var bufferText = buffer.ToString();
+
                 // 🧱 ABSOLUTE STRUCTURAL RULE — must be first (run on probe, output stripped)
                 if (IsBoxDrawingLine(probe))
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(bufferText);
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -420,7 +423,7 @@ namespace OpenccNetLibGui.Models
                     {
                         // Light rule: only flush on blank line if buffer ends with STRONG sentence end.
                         // Otherwise, treat as a soft cross-page blank line and keep accumulating.
-                        var idx = FindLastNonWhitespaceIndex(buffer.ToString());
+                        var idx = FindLastNonWhitespaceIndex(bufferText);
                         if (idx >= 0 && !IsStrongSentenceEnd(buffer[idx]))
                             continue;
                     }
@@ -428,7 +431,7 @@ namespace OpenccNetLibGui.Models
                     // End of paragraph → flush buffer (do NOT emit "")
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(bufferText);
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -443,7 +446,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(bufferText);
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -457,7 +460,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(bufferText);
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -471,7 +474,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(bufferText);
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -485,7 +488,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(bufferText);
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -510,16 +513,16 @@ namespace OpenccNetLibGui.Models
                     }
                     else
                     {
-                        var bufText = buffer.ToString();
+                        // var bufText = buffer.ToString();
 
-                        if (HasUnclosedBracket(bufText))
+                        if (HasUnclosedBracket(bufferText))
                         {
                             // Unsafe previous paragraph → must be continuation
                             splitAsHeading = false;
                         }
                         else
                         {
-                            var bt = bufText.TrimEnd();
+                            var bt = bufferText.TrimEnd();
 
                             if (bt.Length == 0)
                             {
@@ -550,7 +553,7 @@ namespace OpenccNetLibGui.Models
                         // If we have a real previous paragraph, flush it first
                         if (buffer.Length > 0)
                         {
-                            segments.Add(buffer.ToString());
+                            segments.Add(bufferText);
                             buffer.Clear();
                             dialogState.Reset();
                         }
@@ -563,15 +566,15 @@ namespace OpenccNetLibGui.Models
                     // else: fall through → normal merge logic below
                 }
 
-                // Final strong line punct ending check for current line text.
+                // Finalizer: strong sentence end → flush immediately. Do not remove.
                 // If the current line completes a strong sentence, append it and flush immediately.
                 if (buffer.Length > 0)
                 {
                     var idx = FindLastNonWhitespaceIndex(stripped); // stripped is a string
                     if (idx >= 0 && IsStrongSentenceEnd(stripped[idx]))
                     {
-                        buffer.Append(stripped); // or rawLine
-                        segments.Add(buffer.ToString());
+                        buffer.Append(stripped); // buffer now has new value
+                        segments.Add(buffer.ToString()); // This is not old bufferText (it had been updated)
                         buffer.Clear();
                         dialogState.Reset();
                         dialogState.Update(stripped);
@@ -592,7 +595,6 @@ namespace OpenccNetLibGui.Models
                 }
 
                 // We already have some text in buffer
-                var bufferText = buffer.ToString();
 
                 // 🔸 NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
