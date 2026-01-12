@@ -645,24 +645,28 @@ namespace OpenccNetLibGui.Models
 
                 switch (dialogState.IsUnclosed)
                 {
-                    // 5) Ends with CJK punctuation → new paragraph
+                    // 5a) Strong sentence boundary → new paragraph
+                    // Triggered by full-width CJK sentence-ending punctuation (。！？ etc.)
                     // NOTE: Dialog safety gate has the highest priority.
                     // If dialog quotes/brackets are not closed, never split the paragraph.
                     case false when EndsWithSentenceBoundary(bufferText, level: sentenceBoundaryLevel):
+
+                    // 5b) Closing CJK bracket boundary → new paragraph
+                    // Handles cases where a paragraph ends with a full-width closing bracket/quote
+                    // (e.g. ）】》」) and should not be merged with the next line.
                     case false when EndsWithCjkBracketBoundary(bufferText):
+
+                    // 6) Indentation → new paragraph
+                    // Pre-append rule:
+                    // Indentation indicates a new paragraph starts on this line.
+                    // Flush the previous buffer and immediately seed the next paragraph.
+                    case false when buffer.Length > 0 && IndentRegex.IsMatch(rawLine):
                         segments.Add(bufferText);
                         buffer.Clear();
                         buffer.Append(stripped);
                         dialogState.Reset();
                         dialogState.Update(stripped);
                         continue;
-                    // 6) Indentation → new paragraph
-                    // Pre-append: indentation indicates a new paragraph starts here
-                    case false when buffer.Length > 0 && IndentRegex.IsMatch(rawLine):
-                        segments.Add(bufferText);
-                        buffer.Clear();
-                        dialogState.Reset();
-                        break;
                 }
 
                 // Removed legacy chapter-ending safety check; behavior covered by sentence-boundary logi
