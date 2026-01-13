@@ -421,6 +421,11 @@ namespace OpenccNetLibGui.Models
                 {
                     if (!addPdfPageHeader && buffer.Length > 0)
                     {
+                        // NEW: If dialog is unclosed, always treat blank line as soft (cross-page artifact).
+                        // Never flush mid-dialog just because we saw a blank line.
+                        if (dialogState.IsUnclosed)
+                            continue;
+
                         // Light rule: only flush on blank line if buffer ends with STRONG sentence end.
                         // Otherwise, treat as a soft cross-page blank line and keep accumulating.
                         var idx = FindLastNonWhitespaceIndex(bufferText);
@@ -568,7 +573,7 @@ namespace OpenccNetLibGui.Models
 
                 // Finalizer: strong sentence end → flush immediately. Do not remove.
                 // If the current line completes a strong sentence, append it and flush immediately.
-                if (buffer.Length > 0)
+                if (buffer.Length > 0  && !dialogState.IsUnclosed)
                 {
                     var idx = FindLastNonWhitespaceIndex(stripped); // stripped is a string
                     if (idx >= 0 && IsStrongSentenceEnd(stripped[idx]))
@@ -577,7 +582,7 @@ namespace OpenccNetLibGui.Models
                         segments.Add(buffer.ToString()); // This is not old bufferText (it had been updated)
                         buffer.Clear();
                         dialogState.Reset();
-                        dialogState.Update(stripped);
+                        // dialogState.Update(stripped);
                         continue;
                     }
                 }
