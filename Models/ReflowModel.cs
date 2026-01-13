@@ -1018,6 +1018,11 @@ namespace OpenccNetLibGui.Models
                 // 4b) Bracket closers with most CJK
                 if (IsBracketCloser(last) && lastNonWs > 0 && IsMostlyCjk(s))
                     return true;
+                
+                // 4c) NEW: long Mostly-CJK line ending with full-width colon "："
+                // Treat as a weak boundary (common in novels: "他说：" then dialog starts next line)
+                if (last == '：' && IsMostlyCjk(s))
+                    return true;
 
                 // Level 2 (lenient): allow ellipsis as weak boundary
                 if (EndsWithEllipsis(s))
