@@ -522,10 +522,13 @@ namespace OpenccNetLibGui.Models
                     if (bufferText.Length > 0 &&
                         PunctSets.TryGetLastNonWhitespace(bufferText, out var last))
                     {
-                        shouldFlushPrev =
-                            !PunctSets.IsCommaLike(last) &&
-                            !dialogState.IsUnclosed &&
-                            !hasUnclosedBracket;
+                        var isContinuation =
+                            PunctSets.IsCommaLike(last) ||
+                            IsCjk(last) ||
+                            dialogState.IsUnclosed ||
+                            hasUnclosedBracket;
+
+                        shouldFlushPrev = !isContinuation;
                     }
 
                     if (shouldFlushPrev)
