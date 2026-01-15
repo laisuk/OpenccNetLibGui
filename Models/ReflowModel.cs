@@ -380,21 +380,8 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // 3) Titles
-                if (isTitleHeading)
-                {
-                    if (buffer.Length > 0)
-                    {
-                        segments.Add(bufferText);
-                        buffer.Clear();
-                        dialogState.Reset();
-                    }
-
-                    segments.Add(stripped);
-                    continue;
-                }
-
-                // 3a) New: Custom title heading regex (Advanced)
+                // 3) New: Custom title heading regex (Advanced)
+                // Custom overrides built-in: user intent > heuristics.
                 if (isCustomTitleHeading)
                 {
                     if (buffer.Length > 0)
@@ -407,8 +394,22 @@ namespace OpenccNetLibGui.Models
                     segments.Add(stripped);
                     continue;
                 }
+                
+                // 4) Titles (default)
+                if (isTitleHeading)
+                {
+                    if (buffer.Length > 0)
+                    {
+                        segments.Add(bufferText);
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
 
-                // 3b) Metadata 行（短 key:val，如「書名：xxx」「作者：yyy」）
+                    segments.Add(stripped);
+                    continue;
+                }
+                
+                // 5) Metadata 行（短 key:val，如「書名：xxx」「作者：yyy」）
                 if (isMetadata)
                 {
                     if (buffer.Length > 0)
@@ -423,7 +424,7 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // 3c) Weak heading-like:
+                // 6) Weak heading-like:
                 //     Only takes effect when the “previous paragraph is safe”
                 //     AND “the previous paragraph’s ending looks like a sentence boundary”.
                 if (isShortHeading)
@@ -485,7 +486,7 @@ namespace OpenccNetLibGui.Models
                     // else: fall through → normal merge logic below
                 }
 
-                // Finalizer: strong sentence end → flush immediately. Do not remove.
+                // 7) Finalizer: strong sentence end → flush immediately. Do not remove.
                 // If the current line completes a strong sentence, append it and flush immediately.
                 if (buffer.Length > 0
                     && !dialogState.IsUnclosed
@@ -502,9 +503,9 @@ namespace OpenccNetLibGui.Models
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
                 var currentIsDialogStart = PunctSets.IsDialogStarter(stripped);
 
+                // 8) First line inside buffer → start of a new paragraph
                 if (buffer.Length == 0)
                 {
-                    // 4) First line inside buffer → start of a new paragraph
                     buffer.Append(stripped);
                     dialogState.Reset();
                     dialogState.Update(stripped);
@@ -513,7 +514,7 @@ namespace OpenccNetLibGui.Models
 
                 // We already have some text in buffer
 
-                // 🔸 NEW RULE: If previous line ends with comma, 
+                // 🔸 9a) NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
                 //     (comma-ending means the sentence is not finished)
                 if (currentIsDialogStart)
@@ -542,7 +543,7 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // NEW RULE: colon + dialog continuation
+                // 9b) NEW RULE: colon + dialog continuation
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
                 if (bufferText.EndsWith('：') || bufferText.EndsWith(':'))
                 {
@@ -560,18 +561,18 @@ namespace OpenccNetLibGui.Models
 
                 switch (dialogState.IsUnclosed)
                 {
-                    // 5a) Strong sentence boundary → new paragraph
+                    // 10a) Strong sentence boundary → new paragraph
                     // Triggered by full-width CJK sentence-ending punctuation (。！？ etc.)
                     // NOTE: Dialog safety gate has the highest priority.
                     // If dialog quotes/brackets are not closed, never split the paragraph.
                     case false when EndsWithSentenceBoundary(bufferText, level: sentenceBoundaryLevel):
 
-                    // 5b) Closing CJK bracket boundary → new paragraph
+                    // 10b) Closing CJK bracket boundary → new paragraph
                     // Handles cases where a paragraph ends with a full-width closing bracket/quote
                     // (e.g. ）】》」) and should not be merged with the next line.
                     case false when EndsWithCjkBracketBoundary(bufferText):
 
-                    // 6) Indentation → new paragraph
+                    // 10c) Indentation → new paragraph
                     // Pre-append rule:
                     // Indentation indicates a new paragraph starts on this line.
                     // Flush the previous buffer and immediately seed the next paragraph.
@@ -585,7 +586,7 @@ namespace OpenccNetLibGui.Models
                 }
 
                 // Removed legacy chapter-ending safety check; behavior covered by sentence-boundary logi
-                // 8) Chapter-like endings: 章 / 节 / 部 / 卷 (with trailing brackets)
+                // 11) Chapter-like endings: 章 / 节 / 部 / 卷 (with trailing brackets)
                 // if (!dialogState.IsUnclosed &&
                 //     bufferText.Length <= 12 &&
                 //     IsMostlyCjk(bufferText) &&
@@ -600,7 +601,7 @@ namespace OpenccNetLibGui.Models
                 //     continue;
                 // }
 
-                // 9) Default merge (soft line break)
+                // 12) Default merge (soft line break)
                 buffer.Append(stripped);
                 dialogState.Update(stripped);
             }
