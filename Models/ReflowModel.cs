@@ -298,15 +298,12 @@ namespace OpenccNetLibGui.Models
                 // 2) Probe form (for structural / heading detection): remove all indentation
                 var probe = stripped.TrimStart(' ', '\u3000');
 
-                // We already have some text in buffer
-                var bufferText = buffer.ToString();
-
                 // 🧱 ABSOLUTE STRUCTURAL RULE — must be first (run on probe, output stripped)
                 if (PunctSets.IsVisualDividerLine(probe))
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -330,9 +327,9 @@ namespace OpenccNetLibGui.Models
                 var isShortHeading = IsHeadingLike(stripped, shortHeading);
                 var isMetadata = IsMetadataLine(stripped); // 〈── New
 
-                // Collapse style-layer repeated titles
-                // if (isTitleHeading)
-                // stripped = CollapseRepeatedSegments(stripped);
+                // We already have some text in buffer
+                var bufferText = buffer.Length > 0 ? buffer.ToString() : string.Empty;
+                var hasUnclosedBracket = buffer.Length > 0 && PunctSets.HasUnclosedBracket(bufferText);
 
                 // 1) Empty line
                 if (stripped.Length == 0)
@@ -341,7 +338,7 @@ namespace OpenccNetLibGui.Models
                     {
                         // NEW: If dialog is unclosed, always treat blank line as soft (cross-page artifact).
                         // Never flush mid-dialog just because we saw a blank line.
-                        if (dialogState.IsUnclosed)
+                        if (dialogState.IsUnclosed || hasUnclosedBracket)
                             continue;
 
                         // Light rule: only flush on blank line if buffer ends with STRONG sentence end.
@@ -394,7 +391,7 @@ namespace OpenccNetLibGui.Models
                     segments.Add(stripped);
                     continue;
                 }
-                
+
                 // 4) Titles (default)
                 if (isTitleHeading)
                 {
@@ -408,7 +405,7 @@ namespace OpenccNetLibGui.Models
                     segments.Add(stripped);
                     continue;
                 }
-                
+
                 // 5) Metadata 行（短 key:val，如「書名：xxx」「作者：yyy」）
                 if (isMetadata)
                 {
@@ -439,7 +436,7 @@ namespace OpenccNetLibGui.Models
                     }
                     else
                     {
-                        if (PunctSets.HasUnclosedBracket(bufferText))
+                        if (hasUnclosedBracket)
                         {
                             // Unsafe previous paragraph → must be continuation
                             splitAsHeading = false;
@@ -490,6 +487,7 @@ namespace OpenccNetLibGui.Models
                 // If the current line completes a strong sentence, append it and flush immediately.
                 if (buffer.Length > 0
                     && !dialogState.IsUnclosed
+                    && !hasUnclosedBracket
                     && PunctSets.EndsWithStrongSentenceEnd(stripped))
                 {
                     buffer.Append(stripped); // buffer now has new value
@@ -527,7 +525,7 @@ namespace OpenccNetLibGui.Models
                         shouldFlushPrev =
                             !PunctSets.IsCommaLike(last) &&
                             !dialogState.IsUnclosed &&
-                            !PunctSets.HasUnclosedBracket(bufferText);
+                            !hasUnclosedBracket;
                     }
 
                     if (shouldFlushPrev)
@@ -565,7 +563,8 @@ namespace OpenccNetLibGui.Models
                     // Triggered by full-width CJK sentence-ending punctuation (。！？ etc.)
                     // NOTE: Dialog safety gate has the highest priority.
                     // If dialog quotes/brackets are not closed, never split the paragraph.
-                    case false when EndsWithSentenceBoundary(bufferText, level: sentenceBoundaryLevel):
+                    case false when EndsWithSentenceBoundary(bufferText, level: sentenceBoundaryLevel)
+                                    && !hasUnclosedBracket:
 
                     // 10b) Closing CJK bracket boundary → new paragraph
                     // Handles cases where a paragraph ends with a full-width closing bracket/quote
@@ -824,9 +823,9 @@ namespace OpenccNetLibGui.Models
                 return false;
             }
 
-            // Returns <c>true</c> if the string consists entirely of CJK characters.
-            // Whitespace handling is controlled by <paramref name="allowWhitespace"/>.
-            // Returns <c>false</c> for empty or whitespace-only strings.
+            // Returns true if the string consists entirely of CJK characters.
+            // Whitespace handling is controlled by allowWhitespace.
+            // Returns false for null, empty, or whitespace-only strings.
             static bool IsAllCjk(string s, bool allowWhitespace = false)
             {
                 var seen = false;

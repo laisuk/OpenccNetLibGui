@@ -177,42 +177,34 @@ internal static class PunctSets
 
     /// <summary>
     /// Returns <c>true</c> if the text contains any unclosed or mismatched brackets
-    /// according to <see cref="BracketPairs"/>. Treats stray closers / mismatches as unsafe.
+    /// according to <see cref="BracketPairs"/>.
+    /// Treats stray closers / mismatches as unsafe.
     /// </summary>
+    // Cross-page / soft-wrap safety:
+    // If the previous buffer is inside an unclosed bracket like
+    // "（......" ... "...。）", never flush on blank lines / sentence ends.
+    // Otherwise, we may split a single parenthesized paragraph across pages.
     internal static bool HasUnclosedBracket(string s)
     {
         if (string.IsNullOrEmpty(s))
             return false;
 
-        // Fast path: if we never see any bracket chars, it's safe.
-        // (We check via the existing predicates so policy stays centralized.)
-        var maybeHasBracket = false;
-        foreach (var ch in s)
-        {
-            if (IsBracketOpener(ch) || IsBracketCloser(ch))
-            {
-                maybeHasBracket = true;
-                break;
-            }
-        }
-
-        if (!maybeHasBracket)
-            return false;
-
         char[]? rented = null;
+        var top = 0;
+        var seenBracket = false;
+
         try
         {
-            // Depth rarely gets big in real text; rent modestly and grow if needed.
-            rented = ArrayPool<char>.Shared.Rent(16);
-            var top = 0;
-
             foreach (var ch in s)
             {
                 if (IsBracketOpener(ch))
                 {
+                    seenBracket = true;
+
+                    rented ??= ArrayPool<char>.Shared.Rent(16);
+
                     if (top == rented.Length)
                     {
-                        // Grow
                         var bigger = ArrayPool<char>.Shared.Rent(rented.Length * 2);
                         Array.Copy(rented, bigger, rented.Length);
                         ArrayPool<char>.Shared.Return(rented);
@@ -226,19 +218,20 @@ internal static class PunctSets
                 if (!IsBracketCloser(ch))
                     continue;
 
-                // Stray closer
+                seenBracket = true;
+
+                // stray closer
                 if (top == 0)
                     return true;
 
-                var open = rented[--top];
+                // here: top > 0 implies rented != null (we must have seen an opener)
+                var open = rented![--top];
 
-                // Mismatch
                 if (!IsMatchingBracket(open, ch))
                     return true;
             }
 
-            // Any unclosed openers left
-            return top != 0;
+            return seenBracket && top != 0;
         }
         finally
         {
