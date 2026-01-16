@@ -138,6 +138,9 @@ internal static class PunctSets
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsBracketCloser(char ch) => CloseBrackets.Contains(ch);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsAllowedPostfixCloser(char ch) => ch is '）' or ')';
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsMatchingBracket(char open, char close)
@@ -371,9 +374,9 @@ internal static class PunctSets
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool TryGetPrevNonWhitespace(string s, int startIndex, out char ch)
+    internal static bool TryGetPrevNonWhitespace(string s, int beforeIndex, out char ch)
     {
-        for (var i = startIndex - 1; i >= 0; i--)
+        for (var i = beforeIndex - 1; i >= 0; i--)
         {
             var c = s[i];
             if (char.IsWhiteSpace(c))
