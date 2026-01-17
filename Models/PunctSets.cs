@@ -57,12 +57,18 @@ internal static class PunctSets
 
         return false;
     }
-
+    
     // Optional broader soft clause end (ONLY use if a rule explicitly wants it)
     private const string SoftClauseEndChars = "，,、;；:：";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsSoftClauseEnd(char ch) => SoftClauseEndChars.Contains(ch);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool EndsWithColonLike(string s)
+    {
+        return TryGetLastNonWhitespace(s, out var last) && (last is '：' or ':');
+    }
 
     // -------------------------
     // Sentence endings (two tiers)

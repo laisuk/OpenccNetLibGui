@@ -318,11 +318,11 @@ namespace OpenccNetLibGui.Models
                 // 3) Logical form for heading detection: no indent at all
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
-                var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
-
                 // NEW: user-defined title heading regex (runs right after built-in title check)
                 var customTitleRx = shortHeading.CustomTitleHeadingRegexCompiled;
                 var isCustomTitleHeading = customTitleRx != null && customTitleRx.IsMatch(headingProbe);
+
+                var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
 
                 var isShortHeading = IsHeadingLike(stripped, shortHeading);
                 var isMetadata = IsMetadataLine(stripped); // 〈── New
@@ -457,7 +457,8 @@ namespace OpenccNetLibGui.Models
                                 if (prevEndsWithCommaLike)
                                     splitAsHeading = false;
                                 // All-CJK short heading-like + previous not ended → continuation
-                                else if (isAllCjk && !prevEndsWithSentencePunct)
+                                else if ((isAllCjk || PunctSets.EndsWithColonLike(stripped)) &&
+                                         !prevEndsWithSentencePunct)
                                     splitAsHeading = false;
                                 else
                                     splitAsHeading = true;
