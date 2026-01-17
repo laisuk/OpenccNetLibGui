@@ -57,17 +57,20 @@ internal static class PunctSets
 
         return false;
     }
-    
+
     // Optional broader soft clause end (ONLY use if a rule explicitly wants it)
     private const string SoftClauseEndChars = "，,、;；:：";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsSoftClauseEnd(char ch) => SoftClauseEndChars.Contains(ch);
-    
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsColonLike(char ch) => ch is '：' or ':';
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool EndsWithColonLike(string s)
     {
-        return TryGetLastNonWhitespace(s, out var last) && (last is '：' or ':');
+        return TryGetLastNonWhitespace(s, out var last) && IsColonLike(last);
     }
 
     // -------------------------
@@ -144,7 +147,7 @@ internal static class PunctSets
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsBracketCloser(char ch) => CloseBrackets.Contains(ch);
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsAllowedPostfixCloser(char ch) => ch is '）' or ')';
 

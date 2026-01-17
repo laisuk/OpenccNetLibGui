@@ -547,7 +547,7 @@ namespace OpenccNetLibGui.Models
 
                 // 9b) NEW RULE: colon + dialog continuation
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
-                if (bufferText.EndsWith('：') || bufferText.EndsWith(':'))
+                if (PunctSets.EndsWithColonLike(bufferText))
                 {
                     if (stripped.Length > 0 && PunctSets.IsDialogOpener(stripped[0]))
                     {
@@ -649,7 +649,7 @@ namespace OpenccNetLibGui.Models
                 var len = s.Length;
 
                 // Short circuit for item title-like: "物品准备："
-                if (last is ':' or '：' && s.Length <= sh.MaxLen && IsAllCjkNoWhiteSpace(s[..^1]))
+                if (PunctSets.IsColonLike(last) && s.Length <= sh.MaxLen && IsAllCjkNoWhiteSpace(s[..^1]))
                     return true;
 
                 // Bracket-wrapped standalone structural line
@@ -858,6 +858,8 @@ namespace OpenccNetLibGui.Models
             static bool IsAllCjkNoWhiteSpace(string s)
                 => IsAllCjk(s, allowWhitespace: false);
 
+            // ------ Sentence Boundary start ------ //
+
             static bool EndsWithSentenceBoundary(string s, int level = 2)
             {
                 if (string.IsNullOrWhiteSpace(s))
@@ -958,6 +960,8 @@ namespace OpenccNetLibGui.Models
 
                 return true;
             }
+
+            // ------ Sentence Boundary end ------ //
 
             static bool IsMostlyCjk(string s)
             {
