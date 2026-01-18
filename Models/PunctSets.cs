@@ -613,11 +613,9 @@ internal static class PunctSets
             for (var i = 0; i < s.Length; i++, pos++)
             {
                 var ch = s[i];
-                if (!char.IsWhiteSpace(ch))
-                {
-                    lastIdx = pos;
-                    last = ch;
-                }
+                if (char.IsWhiteSpace(ch)) continue;
+                lastIdx = pos;
+                last = ch;
             }
         }
 

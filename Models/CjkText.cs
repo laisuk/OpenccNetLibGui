@@ -275,7 +275,7 @@ namespace OpenccNetLibGui.Models
             int lastIdx = -1, prevIdx = -1, prevPrevIdx = -1;
             char last = '\0', prev = '\0', prevPrev = '\0';
 
-            // "Mostly CJK" counts (EXACT same semantics as your IsMostlyCjk)
+            // "Mostly CJK" counts (EXACT same semantics as IsMostlyCjk())
             var cjk = 0;
             var ascii = 0;
 
@@ -328,11 +328,9 @@ namespace OpenccNetLibGui.Models
                     last = ch;
 
                     // ---- Update ASCII punct candidate
-                    if (ch is '.' or ':')
-                    {
-                        asciiPunctIdx = pos;
-                        asciiPunctTailOk = true;
-                    }
+                    if (ch is not ('.' or ':')) continue;
+                    asciiPunctIdx = pos;
+                    asciiPunctTailOk = true;
                 }
             }
 
@@ -349,10 +347,7 @@ namespace OpenccNetLibGui.Models
             if (level >= 3)
             {
                 // Strict OCR: ASCII punct itself is last non-ws char
-                if (last is '.' or ':' && prevIdx >= 0 && IsCjk(prev) && isMostlyCjk)
-                    return true;
-
-                return false;
+                return last is '.' or ':' && prevIdx >= 0 && IsCjk(prev) && isMostlyCjk;
             }
 
             // ---- LENIENT rules (level == 2) ----
@@ -380,23 +375,20 @@ namespace OpenccNetLibGui.Models
                 }
             }
 
-            // 4) Mostly-CJK line ending with full-width colon "："
-            if (last == '：' && isMostlyCjk)
-                return true;
-
-            // Ellipsis (same semantics as your string version: trim-right-ws then check tail)
-            // Single Unicode ellipsis
-            if (isMostlyCjk && last == '…')
-                return true;
-
-            // OCR case: ASCII "..." at the very end (consecutive indices after trimming whitespace)
-            if (isMostlyCjk &&
-                last == '.' && prev == '.' && prevPrev == '.' &&
-                prevPrevIdx >= 0 &&
-                lastIdx == prevIdx + 1 &&
-                prevIdx == prevPrevIdx + 1)
+            switch (isMostlyCjk)
             {
-                return true;
+                // 4) Mostly-CJK line ending with full-width colon "："
+                case true when last == '：':
+                // Ellipsis (same semantics as your string version: trim-right-ws then check tail)
+                // Single Unicode ellipsis
+                case true when last == '…':
+                // OCR case: ASCII "..." at the very end (consecutive indices after trimming whitespace)
+                case true when
+                    last == '.' && prev == '.' && prevPrev == '.' &&
+                    prevPrevIdx >= 0 &&
+                    lastIdx == prevIdx + 1 &&
+                    prevIdx == prevPrevIdx + 1:
+                    return true;
             }
 
             if (level >= 2)
@@ -512,7 +504,7 @@ namespace OpenccNetLibGui.Models
                 return false;
 
             // ASCII bracket pairs suspicious -> require at least one CJK in inner
-            if ((open == '(' || open == '[') && !innerHasCjk)
+            if (open is '(' or '[' && !innerHasCjk)
                 return false;
 
             // 3) Ensure this bracket type is balanced inside the trimmed text

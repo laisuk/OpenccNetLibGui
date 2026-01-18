@@ -595,15 +595,15 @@ namespace OpenccNetLibGui.Models
 
                 // 9b) NEW RULE: colon + dialog continuation
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
-                if (PunctSets.EndsWithColonLike(buffer))
-                {
-                    if (stripped.Length > 0 && PunctSets.IsDialogOpener(stripped[0]))
-                    {
-                        buffer.Append(stripped);
-                        dialogState.Update(stripped);
-                        continue;
-                    }
-                }
+                // if (PunctSets.EndsWithColonLike(buffer))
+                // {
+                //     if (stripped.Length > 0 && PunctSets.IsDialogOpener(stripped[0]))
+                //     {
+                //         buffer.Append(stripped);
+                //         dialogState.Update(stripped);
+                //         continue;
+                //     }
+                // }
 
                 // NOTE: we *do* block splits when dialogState.IsUnclosed,
                 // so multi-line dialog stays together. Once all quotes are
@@ -696,13 +696,14 @@ namespace OpenccNetLibGui.Models
                 // Short circuit for item title-like: "物品准备："
                 if (PunctSets.IsColonLike(last) &&
                     len <= sh.MaxLen &&
-                    CjkText.IsAllCjk(s[..lastIdx], allowWhitespace: false))
+                    // CjkText.IsAllCjk(s[..lastIdx], allowWhitespace: false))
+                    CjkText.IsAllCjkNoWhiteSpace(s[..lastIdx]))
                 {
                     return true;
                 }
 
                 // Bracket-wrapped standalone structural line (e.g. 《书名》 / 【组成】 / （附录）)
-                if (PunctSets.IsMatchingBracket(s[0], last) && CjkText.IsMostlyCjk(s))
+                if (PunctSets.IsWrappedByMatchingBracket(s, last) && CjkText.IsMostlyCjk(s))
                 {
                     return true;
                 }
