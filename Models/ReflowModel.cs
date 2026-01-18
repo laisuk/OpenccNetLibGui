@@ -759,12 +759,12 @@ namespace OpenccNetLibGui.Models
 
             static bool StartsWith(ReadOnlySpan<char> s, ReadOnlySpan<char> prefix)
             {
-                return s.Length >= prefix.Length && s.Slice(0, prefix.Length).SequenceEqual(prefix);
+                return s.Length >= prefix.Length && s[..prefix.Length].SequenceEqual(prefix);
             }
 
             static bool EndsWith(ReadOnlySpan<char> s, ReadOnlySpan<char> suffix)
             {
-                return s.Length >= suffix.Length && s.Slice(s.Length - suffix.Length).SequenceEqual(suffix);
+                return s.Length >= suffix.Length && s[^suffix.Length..].SequenceEqual(suffix);
             }
 
             static bool IsMetadataLine(ReadOnlySpan<char> line)
