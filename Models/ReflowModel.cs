@@ -496,6 +496,7 @@ namespace OpenccNetLibGui.Models
                     // else: fall through → normal merge logic below
                 }
 
+                // ------ Current line finalizer ------
                 switch (buffer.Length)
                 {
                     // 7) Finalizer: strong sentence end → flush immediately. Do not remove.
