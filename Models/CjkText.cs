@@ -376,6 +376,10 @@ namespace OpenccNetLibGui.Models
 
             // ---- LENIENT rules (level == 2) ----
             
+            // 3) Bracket closers with most CJK (reserved)
+            // if (PunctSets.IsBracketCloser(last) && lastIdx > 0 && IsMostlyCjk(s))
+            //     return true;
+            
             switch (isMostlyCjk)
             {
                 // 4) Mostly-CJK line ending with full-width colon "："

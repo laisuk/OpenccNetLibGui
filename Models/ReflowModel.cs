@@ -496,29 +496,27 @@ namespace OpenccNetLibGui.Models
                     // else: fall through → normal merge logic below
                 }
 
-                // 7) Finalizer: strong sentence end → flush immediately. Do not remove.
-                // If the current line completes a strong sentence, append it and flush immediately.
-                if (buffer.Length > 0
-                    && !dialogState.IsUnclosed
-                    && !HasUnclosedBracket()
-                    && PunctSets.EndsWithStrongSentenceEnd(stripped))
+                switch (buffer.Length)
                 {
-                    buffer.Append(stripped); // buffer now has new value
-                    segments.Add(buffer.ToString()); // This is not old bufferText (it had been updated)
-                    buffer.Clear();
-                    dialogState.Reset();
-                    // dialogState.Update(stripped);
-                    continue;
-                }
-
-                // 8) First line inside buffer → start of a new paragraph
-                // No boundary note here — flushing is handled later (Rule 10).
-                if (buffer.Length == 0)
-                {
-                    buffer.Append(stripped);
-                    dialogState.Reset();
-                    dialogState.Update(stripped);
-                    continue;
+                    // 7) Finalizer: strong sentence end → flush immediately. Do not remove.
+                    // If the current line completes a strong sentence, append it and flush immediately.
+                    case > 0
+                        when !dialogState.IsUnclosed
+                             && !HasUnclosedBracket()
+                             && PunctSets.EndsWithStrongSentenceEnd(stripped):
+                        buffer.Append(stripped); // buffer now has new value
+                        segments.Add(buffer.ToString()); // This is not old bufferText (it had been updated)
+                        buffer.Clear();
+                        dialogState.Reset();
+                        // dialogState.Update(stripped);
+                        continue;
+                    // 8) First line inside buffer → start of a new paragraph
+                    // No boundary note here — flushing is handled later (Rule 10).
+                    case 0:
+                        buffer.Append(stripped);
+                        dialogState.Reset();
+                        dialogState.Update(stripped);
+                        continue;
                 }
 
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
@@ -673,12 +671,12 @@ namespace OpenccNetLibGui.Models
 
             static bool IsHeadingLike(ReadOnlySpan<char> s, ShortHeadingSettings sh)
             {
-                s = TrimSpan(s);
+                s = s.Trim();
                 if (s.IsEmpty)
                     return false;
 
                 // keep page markers intact
-                if (StartsWith(s, "=== ".AsSpan()) && EndsWith(s, "===".AsSpan()))
+                if (s.StartsWith("=== ") && s.EndsWith("==="))
                     return false;
 
                 // Reject headings with unclosed brackets
@@ -746,27 +744,6 @@ namespace OpenccNetLibGui.Models
                        || (sh.AllCjkEnabled && CjkText.IsAllCjk(s, allowWhitespace: false))
                        || (sh.AllAsciiDigitsEnabled && CjkText.IsAllAsciiDigits(s))
                        || (sh.MixedCjkAsciiEnabled && CjkText.IsMixedCjkAscii(s));
-            }
-
-            static ReadOnlySpan<char> TrimSpan(ReadOnlySpan<char> s)
-            {
-                var start = 0;
-                var end = s.Length - 1;
-
-                while (start <= end && char.IsWhiteSpace(s[start])) start++;
-                while (end >= start && char.IsWhiteSpace(s[end])) end--;
-
-                return start > end ? ReadOnlySpan<char>.Empty : s.Slice(start, end - start + 1);
-            }
-
-            static bool StartsWith(ReadOnlySpan<char> s, ReadOnlySpan<char> prefix)
-            {
-                return s.Length >= prefix.Length && s[..prefix.Length].SequenceEqual(prefix);
-            }
-
-            static bool EndsWith(ReadOnlySpan<char> s, ReadOnlySpan<char> suffix)
-            {
-                return s.Length >= suffix.Length && s[^suffix.Length..].SequenceEqual(suffix);
             }
 
             static bool IsMetadataLine(ReadOnlySpan<char> line)
