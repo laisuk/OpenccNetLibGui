@@ -11,7 +11,7 @@ internal static class PunctSets
     // -------------------------
     // Dialog quotes
     // -------------------------
-    
+
     // Dialog brackets (Simplified / Traditional / JP-style)
     private const string DialogOpeners = "“‘「『﹁﹃";
     private const string DialogClosers = "”’」』﹂﹄";
@@ -20,7 +20,7 @@ internal static class PunctSets
     internal static bool IsDialogOpener(char ch) => DialogOpeners.Contains(ch);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsDialogCloser(char ch) => DialogClosers.Contains(ch);
+    public static bool IsDialogCloser(char ch) => DialogClosers.Contains(ch);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsQuoteCloser(char ch) => IsDialogCloser(ch);
@@ -42,6 +42,12 @@ internal static class PunctSets
         }
 
         return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool EndsWithDialogCloser(ReadOnlySpan<char> s)
+    {
+        return TryGetLastNonWhitespace(s, out _, out var last) && IsDialogCloser(last);
     }
 
     // -------------------------
@@ -165,6 +171,13 @@ internal static class PunctSets
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsAllowedPostfixCloser(char ch) => ch is '）' or ')';
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool EndsWithAllowedPostfixCloser(ReadOnlySpan<char> s)
+    {
+        return TryGetLastNonWhitespace(s, out _, out var last)
+               && IsAllowedPostfixCloser(last);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsMatchingBracket(char open, char close)

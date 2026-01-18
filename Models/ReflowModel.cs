@@ -461,12 +461,16 @@ namespace OpenccNetLibGui.Models
                                 var prevEndsWithCommaLike = PunctSets.IsCommaLike(last);
                                 var prevEndsWithSentencePunct = PunctSets.IsClauseOrEndPunct(last);
 
+                                var currentLooksLikeContinuationMarker =
+                                    isAllCjk
+                                    || PunctSets.EndsWithColonLike(stripped)
+                                    || PunctSets.EndsWithAllowedPostfixCloser(stripped);
+
                                 // Comma-ending → continuation
                                 if (prevEndsWithCommaLike)
                                     splitAsHeading = false;
                                 // All-CJK short heading-like + previous not ended → continuation
-                                else if ((isAllCjk || PunctSets.EndsWithColonLike(stripped)) &&
-                                         !prevEndsWithSentencePunct)
+                                else if (currentLooksLikeContinuationMarker && !prevEndsWithSentencePunct)
                                     splitAsHeading = false;
                                 else
                                     splitAsHeading = true;
@@ -511,6 +515,7 @@ namespace OpenccNetLibGui.Models
                 var currentIsDialogStart = PunctSets.IsDialogStarter(stripped);
 
                 // 8) First line inside buffer → start of a new paragraph
+                // No boundary note here — flushing is handled later (Rule 10).
                 if (buffer.Length == 0)
                 {
                     buffer.Append(stripped);
@@ -548,6 +553,43 @@ namespace OpenccNetLibGui.Models
                     buffer.Append(stripped);
                     dialogState.Reset();
                     dialogState.Update(stripped);
+                    continue;
+                }
+
+                // 🔸 9b) Dialog end line: ends with dialog closer.
+                // Flush when the char before closer is strong end,
+                // and bracket safety is satisfied (with a narrow typo override).
+                if (PunctSets.TryGetLastNonWhitespace(stripped, out var lastIdx, out var lastCh) &&
+                    PunctSets.IsDialogCloser(lastCh))
+                {
+                    // Check punctuation right before the closer (e.g., “？” / “。”)
+                    var punctBeforeCloserIsStrong =
+                        PunctSets.TryGetPrevNonWhitespace(stripped, lastIdx, out var prevCh) &&
+                        PunctSets.IsClauseOrEndPunct(prevCh);
+
+                    // Snapshot bracket safety BEFORE appending current line
+                    var bufferHasBracketIssue = HasUnclosedBracket();
+                    var lineHasBracketIssue = PunctSets.HasUnclosedBracket(stripped);
+
+                    buffer.Append(stripped);
+                    dialogState.Update(stripped);
+
+                    // Allow flush if:
+                    // - dialog is closed after this line
+                    // - punctuation before closer is a strong end
+                    // - and either:
+                    //     (a) buffer has no bracket issue, OR
+                    //     (b) buffer has bracket issue but this line itself is the culprit (OCR/typo),
+                    //        so allow a dialog-end flush anyway.
+                    if (!dialogState.IsUnclosed &&
+                        punctBeforeCloserIsStrong &&
+                        (!bufferHasBracketIssue || lineHasBracketIssue))
+                    {
+                        segments.Add(buffer.ToString());
+                        buffer.Clear();
+                        dialogState.Reset();
+                    }
+
                     continue;
                 }
 
@@ -654,7 +696,7 @@ namespace OpenccNetLibGui.Models
                 // Short circuit for item title-like: "物品准备："
                 if (PunctSets.IsColonLike(last) &&
                     len <= sh.MaxLen &&
-                    CjkText.IsAllCjk(s.Slice(0, lastIdx), allowWhitespace: false))
+                    CjkText.IsAllCjk(s[..lastIdx], allowWhitespace: false))
                 {
                     return true;
                 }
@@ -665,11 +707,17 @@ namespace OpenccNetLibGui.Models
                     return true;
                 }
 
+                if (PunctSets.IsAllowedPostfixCloser(last) && !PunctSets.ContainsAnyCommaLike(s))
+                {
+                    return true;
+                }
+
+                // Reject any other clause or End Punct
                 if (PunctSets.IsClauseOrEndPunct(last))
                     return false;
 
                 // Reject any short line containing comma-like separators
-                if (PunctSets.ContainsAnyCommaLike(s)) // <-- add span overload or keep string version if you must
+                if (PunctSets.ContainsAnyCommaLike(s))
                     return false;
 
                 // ASCII headings can be longer
@@ -688,7 +736,7 @@ namespace OpenccNetLibGui.Models
 
                 // Reject if the candidate contains any strong sentence-ending punctuation.
                 // Soft punctuation (comma-like, colon, etc.) is allowed in heading candidates.
-                if (PunctSets.ContainsStrongSentenceEnd(s)) // <-- span overload or keep string
+                if (PunctSets.ContainsStrongSentenceEnd(s))
                     return false;
 
                 // ---- Pattern checks ----

@@ -352,33 +352,34 @@ namespace OpenccNetLibGui.Models
                 if (last is '.' or ':' && prevIdx >= 0 && IsCjk(prev) && isMostlyCjk)
                     return true;
 
-                // 2) Quote closers + Allowed postfix closer after strong end
-                if ((PunctSets.IsQuoteCloser(last) || PunctSets.IsAllowedPostfixCloser(last)) && prevIdx >= 0)
-                {
-                    // Strong end immediately before quote closer
-                    if (PunctSets.IsStrongSentenceEnd(prev))
-                        return true;
-
-                    // OCR artifact: '.' before closers ('.' is prev non-ws, last is closer)
-                    // Original requires:
-                    // - after '.' only whitespace and closers
-                    // - previous non-ws before '.' must be CJK
-                    // - line mostly CJK
-                    if (prev == '.' &&
-                        asciiPunctIdx == prevIdx &&
-                        asciiPunctTailOk &&
-                        prevPrevIdx >= 0 &&
-                        IsCjk(prevPrev) &&
-                        isMostlyCjk)
-                    {
-                        return true;
-                    }
-                }
-
                 return false;
             }
 
             // ---- LENIENT rules (level == 2) ----
+
+            // 2) Quote closers + Allowed postfix closer after strong end
+            if ((PunctSets.IsQuoteCloser(last) || PunctSets.IsAllowedPostfixCloser(last)) && prevIdx >= 0)
+            {
+                // Strong end immediately before quote closer
+                if (PunctSets.IsStrongSentenceEnd(prev))
+                    return true;
+
+                // OCR artifact: '.' before closers ('.' is prev non-ws, last is closer)
+                // Original requires:
+                // - after '.' only whitespace and closers
+                // - previous non-ws before '.' must be CJK
+                // - line mostly CJK
+                if (prev == '.' &&
+                    asciiPunctIdx == prevIdx &&
+                    asciiPunctTailOk &&
+                    prevPrevIdx >= 0 &&
+                    IsCjk(prevPrev) &&
+                    isMostlyCjk)
+                {
+                    return true;
+                }
+            }
+
             // 4) Mostly-CJK line ending with full-width colon "："
             if (last == '：' && isMostlyCjk)
                 return true;
