@@ -344,13 +344,9 @@ namespace OpenccNetLibGui.Models
             if (PunctSets.IsStrongSentenceEnd(last))
                 return true;
 
-            if (level >= 3)
-            {
-                // Strict OCR: ASCII punct itself is last non-ws char
-                return last is '.' or ':' && prevIdx >= 0 && IsCjk(prev) && isMostlyCjk;
-            }
-
-            // ---- LENIENT rules (level == 2) ----
+            // Strict OCR: ASCII punct itself is last non-ws char
+            if (last is '.' or ':' && prevIdx >= 0 && IsCjk(prev) && isMostlyCjk)
+                return true;
 
             // 2) Quote closers + Allowed postfix closer after strong end
             if ((PunctSets.IsQuoteCloser(last) || PunctSets.IsAllowedPostfixCloser(last)) && prevIdx >= 0)
@@ -374,7 +370,12 @@ namespace OpenccNetLibGui.Models
                     return true;
                 }
             }
+            
+            if (level >= 3)
+                return false;
 
+            // ---- LENIENT rules (level == 2) ----
+            
             switch (isMostlyCjk)
             {
                 // 4) Mostly-CJK line ending with full-width colon "："
