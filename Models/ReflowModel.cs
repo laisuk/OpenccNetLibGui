@@ -682,7 +682,7 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // Reject headings with unclosed brackets
-                if (PunctSets.HasUnclosedBracket(s)) // <-- add span overload (you already have it!)
+                if (PunctSets.HasUnclosedBracket(s))
                     return false;
 
                 // Get last meaningful character (robust against whitespace changes)
@@ -702,13 +702,14 @@ namespace OpenccNetLibGui.Models
                     return true;
                 }
 
-                // Bracket-wrapped standalone structural line (e.g. 《书名》 / 【组成】 / （附录）)
-                if (PunctSets.IsWrappedByMatchingBracket(s, last) && CjkText.IsMostlyCjk(s))
+                // Allow postfix closer with condition
+                if (PunctSets.IsAllowedPostfixCloser(last) && !PunctSets.ContainsAnyCommaLike(s))
                 {
                     return true;
                 }
-
-                if (PunctSets.IsAllowedPostfixCloser(last) && !PunctSets.ContainsAnyCommaLike(s))
+                
+                // Bracket-wrapped standalone structural line (e.g. 《书名》 / 【组成】 / （附录）)
+                if (PunctSets.IsWrappedByMatchingBracket(s, last) && CjkText.IsMostlyCjk(s))
                 {
                     return true;
                 }
