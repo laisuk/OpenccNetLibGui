@@ -511,9 +511,6 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
-                var currentIsDialogStart = PunctSets.IsDialogStarter(stripped);
-
                 // 8) First line inside buffer → start of a new paragraph
                 // No boundary note here — flushing is handled later (Rule 10).
                 if (buffer.Length == 0)
@@ -524,6 +521,9 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
+                // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
+                var currentIsDialogStart = PunctSets.BeginWithDialogStarter(stripped);
+                
                 // 🔸 9a) NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
                 //     (comma-ending means the sentence is not finished)

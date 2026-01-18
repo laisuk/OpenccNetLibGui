@@ -30,7 +30,7 @@ internal static class PunctSets
     /// after skipping leading whitespace and indentation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool IsDialogStarter(ReadOnlySpan<char> s)
+    internal static bool BeginWithDialogStarter(ReadOnlySpan<char> s)
     {
         for (var i = 0; i < s.Length; i++)
         {
@@ -38,7 +38,7 @@ internal static class PunctSets
             if (char.IsWhiteSpace(ch))
                 continue;
 
-            return PunctSets.IsDialogOpener(ch);
+            return IsDialogOpener(ch);
         }
 
         return false;
