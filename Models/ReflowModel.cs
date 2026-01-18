@@ -289,6 +289,9 @@ namespace OpenccNetLibGui.Models
             var buffer = new StringBuilder();
             var dialogState = new DialogState();
 
+            var customTitleRx = shortHeading.CustomTitleHeadingRegexCompiled;
+            var hasCustomTitleRegex = customTitleRx != null;
+
             foreach (var rawLine in lines)
             {
                 // 1) Visual form: keep full-width indent, drop half-width indent on the left, trim only right side
@@ -319,17 +322,22 @@ namespace OpenccNetLibGui.Models
                 var headingProbe = stripped.TrimStart(' ', '\u3000');
 
                 // NEW: user-defined title heading regex (runs right after built-in title check)
-                var customTitleRx = shortHeading.CustomTitleHeadingRegexCompiled;
-                var isCustomTitleHeading = customTitleRx != null && customTitleRx.IsMatch(headingProbe);
-
+                var isCustomTitleHeading = hasCustomTitleRegex && customTitleRx!.IsMatch(headingProbe);
                 var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
-
                 var isShortHeading = IsHeadingLike(stripped, shortHeading);
                 var isMetadata = IsMetadataLine(stripped); // 〈── New
 
-                // We already have some text in buffer
-                var bufferText = buffer.Length > 0 ? buffer.ToString() : string.Empty;
-                var hasUnclosedBracket = buffer.Length > 0 && PunctSets.HasUnclosedBracket(bufferText);
+                var hasBuffer = buffer.Length > 0;
+                bool? hasUnclosedBracketLazy = null;
+
+                bool HasUnclosedBracket()
+                {
+                    if (!hasBuffer)
+                        return false;
+
+                    return hasUnclosedBracketLazy ??=
+                        PunctSets.HasUnclosedBracket(buffer);
+                }
 
                 // 1) Empty line
                 if (stripped.Length == 0)
@@ -338,12 +346,12 @@ namespace OpenccNetLibGui.Models
                     {
                         // NEW: If dialog is unclosed, always treat blank line as soft (cross-page artifact).
                         // Never flush mid-dialog just because we saw a blank line.
-                        if (dialogState.IsUnclosed || hasUnclosedBracket)
+                        if (dialogState.IsUnclosed || HasUnclosedBracket())
                             continue;
 
                         // Light rule: only flush on blank line if buffer ends with STRONG sentence end.
                         // Otherwise, treat as a soft cross-page blank line and keep accumulating.
-                        if (PunctSets.TryGetLastNonWhitespace(bufferText, out var last) &&
+                        if (PunctSets.TryGetLastNonWhitespace(buffer, out _, out var last) &&
                             !PunctSets.IsStrongSentenceEnd(last))
                         {
                             continue;
@@ -353,7 +361,7 @@ namespace OpenccNetLibGui.Models
                     // End of paragraph → flush buffer (do NOT emit "")
                     if (buffer.Length > 0)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -368,7 +376,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -383,7 +391,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -397,7 +405,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -411,7 +419,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -426,7 +434,7 @@ namespace OpenccNetLibGui.Models
                 //     AND “the previous paragraph’s ending looks like a sentence boundary”.
                 if (isShortHeading)
                 {
-                    var isAllCjk = IsAllCjkIgnoringWhitespace(stripped);
+                    var isAllCjk = CjkText.IsAllCjkIgnoringWhitespace(stripped);
 
                     bool splitAsHeading;
                     if (buffer.Length == 0)
@@ -436,14 +444,14 @@ namespace OpenccNetLibGui.Models
                     }
                     else
                     {
-                        if (hasUnclosedBracket)
+                        if (HasUnclosedBracket())
                         {
                             // Unsafe previous paragraph → must be continuation
                             splitAsHeading = false;
                         }
                         else
                         {
-                            if (!PunctSets.TryGetLastNonWhitespace(bufferText, out var last))
+                            if (!PunctSets.TryGetLastTwoNonWhitespace(buffer, out _, out var last, out _, out _))
                             {
                                 // Buffer is whitespace-only → treat like empty
                                 splitAsHeading = true;
@@ -471,7 +479,7 @@ namespace OpenccNetLibGui.Models
                         // If we have a real previous paragraph, flush it first
                         if (buffer.Length > 0)
                         {
-                            segments.Add(bufferText);
+                            segments.Add(buffer.ToString());
                             buffer.Clear();
                             dialogState.Reset();
                         }
@@ -488,7 +496,7 @@ namespace OpenccNetLibGui.Models
                 // If the current line completes a strong sentence, append it and flush immediately.
                 if (buffer.Length > 0
                     && !dialogState.IsUnclosed
-                    && !hasUnclosedBracket
+                    && !HasUnclosedBracket()
                     && PunctSets.EndsWithStrongSentenceEnd(stripped))
                 {
                     buffer.Append(stripped); // buffer now has new value
@@ -511,8 +519,6 @@ namespace OpenccNetLibGui.Models
                     continue;
                 }
 
-                // We already have some text in buffer
-
                 // 🔸 9a) NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
                 //     (comma-ending means the sentence is not finished)
@@ -520,21 +526,21 @@ namespace OpenccNetLibGui.Models
                 {
                     var shouldFlushPrev = false;
 
-                    if (bufferText.Length > 0 &&
-                        PunctSets.TryGetLastNonWhitespace(bufferText, out var last))
+                    if (buffer.Length > 0 &&
+                        PunctSets.TryGetLastNonWhitespace(buffer, out _, out var last))
                     {
                         var isContinuation =
                             PunctSets.IsCommaLike(last) ||
-                            IsCjk(last) ||
+                            CjkText.IsCjk(last) ||
                             dialogState.IsUnclosed ||
-                            hasUnclosedBracket;
+                            HasUnclosedBracket();
 
                         shouldFlushPrev = !isContinuation;
                     }
 
                     if (shouldFlushPrev)
                     {
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                     }
 
@@ -547,7 +553,7 @@ namespace OpenccNetLibGui.Models
 
                 // 9b) NEW RULE: colon + dialog continuation
                 // e.g. "她寫了一行字：" + "「如果連自己都不相信……」"
-                if (PunctSets.EndsWithColonLike(bufferText))
+                if (PunctSets.EndsWithColonLike(buffer))
                 {
                     if (stripped.Length > 0 && PunctSets.IsDialogOpener(stripped[0]))
                     {
@@ -567,20 +573,20 @@ namespace OpenccNetLibGui.Models
                     // Triggered by full-width CJK sentence-ending punctuation (。！？ etc.)
                     // NOTE: Dialog safety gate has the highest priority.
                     // If dialog quotes/brackets are not closed, never split the paragraph.
-                    case false when EndsWithSentenceBoundary(bufferText, level: sentenceBoundaryLevel)
-                                    && !hasUnclosedBracket:
+                    case false when CjkText.EndsWithSentenceBoundary(buffer, level: sentenceBoundaryLevel)
+                                    && !HasUnclosedBracket():
 
                     // 10b) Closing CJK bracket boundary → new paragraph
                     // Handles cases where a paragraph ends with a full-width closing bracket/quote
                     // (e.g. ）】》」) and should not be merged with the next line.
-                    case false when EndsWithCjkBracketBoundary(bufferText):
+                    case false when CjkText.EndsWithCjkBracketBoundary(buffer):
 
                     // 10c) Indentation → new paragraph
                     // Pre-append rule:
                     // Indentation indicates a new paragraph starts on this line.
                     // Flush the previous buffer and immediately seed the next paragraph.
                     case false when buffer.Length > 0 && IndentRegex.IsMatch(rawLine):
-                        segments.Add(bufferText);
+                        segments.Add(buffer.ToString());
                         buffer.Clear();
                         buffer.Append(stripped);
                         dialogState.Reset();
@@ -623,25 +629,22 @@ namespace OpenccNetLibGui.Models
 
             // ====== Inline helpers ======
 
-            static bool IsHeadingLike(string? s, ShortHeadingSettings sh)
+            static bool IsHeadingLike(ReadOnlySpan<char> s, ShortHeadingSettings sh)
             {
-                if (s is null)
-                    return false;
-
-                s = s.Trim();
-                if (s.Length == 0)
+                s = TrimSpan(s);
+                if (s.IsEmpty)
                     return false;
 
                 // keep page markers intact
-                if (s.StartsWith("=== ") && s.EndsWith("==="))
+                if (StartsWith(s, "=== ".AsSpan()) && EndsWith(s, "===".AsSpan()))
                     return false;
 
                 // Reject headings with unclosed brackets
-                if (PunctSets.HasUnclosedBracket(s))
+                if (PunctSets.HasUnclosedBracket(s)) // <-- add span overload (you already have it!)
                     return false;
 
                 // Get last meaningful character (robust against whitespace changes)
-                if (!PunctSets.TryGetLastNonWhitespace(s, out var last))
+                if (!PunctSets.TryGetLastNonWhitespace(s, out var lastIdx, out var last))
                     return false;
 
                 // Clamp maxLen
@@ -649,12 +652,15 @@ namespace OpenccNetLibGui.Models
                 var len = s.Length;
 
                 // Short circuit for item title-like: "物品准备："
-                if (PunctSets.IsColonLike(last) && s.Length <= sh.MaxLen && IsAllCjkNoWhiteSpace(s[..^1]))
+                if (PunctSets.IsColonLike(last) &&
+                    len <= sh.MaxLen &&
+                    CjkText.IsAllCjk(s.Slice(0, lastIdx), allowWhitespace: false))
+                {
                     return true;
+                }
 
-                // Bracket-wrapped standalone structural line
-                //     (e.g. 《书名》 / 【组成】 / （附录）)
-                if (PunctSets.IsWrappedByMatchingBracket(s, last) && IsMostlyCjk(s))
+                // Bracket-wrapped standalone structural line (e.g. 《书名》 / 【组成】 / （附录）)
+                if (PunctSets.IsMatchingBracket(s[0], last) && CjkText.IsMostlyCjk(s))
                 {
                     return true;
                 }
@@ -663,14 +669,16 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // Reject any short line containing comma-like separators
-                if (PunctSets.ContainsAnyCommaLike(s))
+                if (PunctSets.ContainsAnyCommaLike(s)) // <-- add span overload or keep string version if you must
                     return false;
 
                 // ASCII headings can be longer
                 var effectiveMax = baseMax;
 
-                if ((sh.AllAsciiEnabled && IsAllAscii(s)) ||
-                    (sh.MixedCjkAsciiEnabled && IsMixedCjkAscii(s)))
+                var isAllAscii = sh.AllAsciiEnabled && CjkText.IsAllAscii(s);
+                var isMixed = sh.MixedCjkAsciiEnabled && CjkText.IsMixedCjkAscii(s);
+
+                if (isAllAscii || isMixed)
                 {
                     effectiveMax = Math.Clamp(baseMax * 2, 10, 30);
                 }
@@ -680,30 +688,57 @@ namespace OpenccNetLibGui.Models
 
                 // Reject if the candidate contains any strong sentence-ending punctuation.
                 // Soft punctuation (comma-like, colon, etc.) is allowed in heading candidates.
-                if (PunctSets.ContainsStrongSentenceEnd(s))
+                if (PunctSets.ContainsStrongSentenceEnd(s)) // <-- span overload or keep string
                     return false;
 
-                // ---- Pattern checks (your requested style) ----
-                return (sh.AllAsciiEnabled && IsAllAscii(s))
-                       || (sh.AllCjkEnabled && IsAllCjkNoWhiteSpace(s))
-                       || (sh.AllAsciiDigitsEnabled && IsAllAsciiDigits(s))
-                       || (sh.MixedCjkAsciiEnabled && IsMixedCjkAscii(s));
+                // ---- Pattern checks ----
+                return (sh.AllAsciiEnabled && CjkText.IsAllAscii(s))
+                       || (sh.AllCjkEnabled && CjkText.IsAllCjk(s, allowWhitespace: false))
+                       || (sh.AllAsciiDigitsEnabled && CjkText.IsAllAsciiDigits(s))
+                       || (sh.MixedCjkAsciiEnabled && CjkText.IsMixedCjkAscii(s));
             }
 
-            static bool IsMetadataLine(string line)
+            static ReadOnlySpan<char> TrimSpan(ReadOnlySpan<char> s)
             {
-                if (string.IsNullOrWhiteSpace(line))
+                var start = 0;
+                var end = s.Length - 1;
+
+                while (start <= end && char.IsWhiteSpace(s[start])) start++;
+                while (end >= start && char.IsWhiteSpace(s[end])) end--;
+
+                return start > end ? ReadOnlySpan<char>.Empty : s.Slice(start, end - start + 1);
+            }
+
+            static bool StartsWith(ReadOnlySpan<char> s, ReadOnlySpan<char> prefix)
+            {
+                return s.Length >= prefix.Length && s.Slice(0, prefix.Length).SequenceEqual(prefix);
+            }
+
+            static bool EndsWith(ReadOnlySpan<char> s, ReadOnlySpan<char> suffix)
+            {
+                return s.Length >= suffix.Length && s.Slice(s.Length - suffix.Length).SequenceEqual(suffix);
+            }
+
+            static bool IsMetadataLine(ReadOnlySpan<char> line)
+            {
+                if (line.IsEmpty)
                     return false;
 
-                if (line.Length > 30)
-                    return false;
-
+                // Equivalent to string.IsNullOrWhiteSpace
                 var firstNonWs = 0;
                 while (firstNonWs < line.Length && char.IsWhiteSpace(line[firstNonWs]))
                     firstNonWs++;
 
-                var idx = -1;
-                var j = -1;
+                if (firstNonWs >= line.Length)
+                    return false;
+
+                // original: if (line.Length > 30) return false;
+                // (keep semantics: uses raw line length, not trimmed length)
+                if (line.Length > 30)
+                    return false;
+
+                var idx = -1; // separator index
+                var j = -1; // first non-ws after separator
 
                 for (var i = firstNonWs; i < line.Length; i++)
                 {
@@ -719,354 +754,21 @@ namespace OpenccNetLibGui.Models
                     break;
                 }
 
+                // must have a separator and content after it
+                if (idx < 0 || j < 0 || j >= line.Length)
+                    return false;
+
                 // structural early reject (ignore leading whitespace)
                 var rawKeyLen = idx - firstNonWs;
                 if (rawKeyLen <= 0 || rawKeyLen > MaxMetadataKeyLength)
                     return false;
 
-                if (j < 0 || j >= line.Length)
-                    return false;
-
                 // semantic owner
-                if (!IsMetadataKey(line.AsSpan(firstNonWs, rawKeyLen)))
+                if (!IsMetadataKey(line.Slice(firstNonWs, rawKeyLen)))
                     return false;
 
+                // Must not start value with dialog opener
                 return !PunctSets.IsDialogOpener(line[j]);
-            }
-
-            static bool IsAllAscii(string s)
-            {
-                for (var i = 0; i < s.Length; i++)
-                    if (s[i] > 0x7F)
-                        return false;
-                return true;
-            }
-
-            static bool IsAllAsciiDigits(string s)
-            {
-                var hasDigit = false;
-
-                for (var i = 0; i < s.Length; i++)
-                {
-                    var ch = s[i];
-
-                    switch (ch)
-                    {
-                        // ASCII space is neutral
-                        case ' ':
-                            continue;
-                        // ASCII digits
-                        case >= '0' and <= '9':
-                        // FULLWIDTH digits
-                        case >= '０' and <= '９':
-                            hasDigit = true;
-                            continue;
-                        default:
-                            // anything else -> reject
-                            return false;
-                    }
-                }
-
-                return hasDigit;
-            }
-
-            // Minimal CJK checker (BMP focused). You can swap with your existing one.
-            static bool IsCjk(char ch)
-            {
-                var c = (int)ch;
-
-                // CJK Unified Ideographs + Extension A
-                if ((uint)(c - 0x3400) <= (0x4DBF - 0x3400)) return true;
-                if ((uint)(c - 0x4E00) <= (0x9FFF - 0x4E00)) return true;
-
-                // Compatibility Ideographs
-                return (uint)(c - 0xF900) <= (0xFAFF - 0xF900);
-            }
-
-            static bool IsMixedCjkAscii(string s)
-            {
-                var hasCjk = false;
-                var hasAscii = false;
-
-                for (var i = 0; i < s.Length; i++)
-                {
-                    var ch = s[i];
-
-                    // Neutral ASCII (allowed, but doesn't count as ASCII content)
-                    if (ch is ' ' or '-' or '/' or ':' or '.')
-                        continue;
-
-                    if (ch <= 0x7F)
-                    {
-                        if (char.IsLetterOrDigit(ch))
-                        {
-                            hasAscii = true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    else if (ch is >= '０' and <= '９')
-                    {
-                        hasAscii = true;
-                    }
-                    else if (IsCjk(ch))
-                    {
-                        hasCjk = true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    if (hasCjk && hasAscii)
-                        return true;
-                }
-
-                return false;
-            }
-
-            // Returns true if the string consists entirely of CJK characters.
-            // Whitespace handling is controlled by allowWhitespace.
-            // Returns false for null, empty, or whitespace-only strings.
-            static bool IsAllCjk(string s, bool allowWhitespace = false)
-            {
-                var seen = false;
-
-                foreach (var ch in s)
-                {
-                    if (char.IsWhiteSpace(ch))
-                    {
-                        if (!allowWhitespace)
-                            return false;
-                        continue;
-                    }
-
-                    seen = true;
-
-                    if (!IsCjk(ch))
-                        return false;
-                }
-
-                return seen;
-            }
-
-            static bool IsAllCjkIgnoringWhitespace(string s)
-                => IsAllCjk(s, allowWhitespace: true);
-
-            static bool IsAllCjkNoWhiteSpace(string s)
-                => IsAllCjk(s, allowWhitespace: false);
-
-            // ------ Sentence Boundary start ------ //
-
-            static bool EndsWithSentenceBoundary(string s, int level = 2)
-            {
-                if (string.IsNullOrWhiteSpace(s))
-                    return false;
-
-                // last non-whitespace
-                if (!PunctSets.TryGetLastNonWhitespace(s, out var lastIdx, out var last))
-                    return false;
-
-                // ---- STRICT rules (level >= 3) ----
-                // 1) Strong sentence end
-                switch (last)
-                {
-                    case var _ when PunctSets.IsStrongSentenceEnd(last):
-                    case '.' when level >= 3 && IsOcrCjkAsciiPunctAtLineEnd(s, lastIdx):
-                    case ':' when level >= 3 && IsOcrCjkAsciiPunctAtLineEnd(s, lastIdx):
-                        return true;
-                }
-
-                // prev non-whitespace (before last-Non-Ws)
-                PunctSets.TryGetPrevNonWhitespace(s, lastIdx, out var prevIdx, out var prev);
-
-                // 2) Quote closers + Allowed postfix closer after strong end
-                if ((PunctSets.IsQuoteCloser(last) || PunctSets.IsAllowedPostfixCloser(last)) && prevIdx >= 0)
-                {
-                    // Strong end immediately before quote closer
-                    if (PunctSets.IsStrongSentenceEnd(prev))
-                        return true;
-
-                    // OCR artifact: “.” where '.' acts like '。' (CJK context)
-                    // '.' is not the lastNonWs (quote is), so use the "before closers" version.
-                    if (prev == '.' && IsOcrCjkAsciiPunctBeforeClosers(s, prevIdx))
-                        return true;
-                }
-
-                if (level >= 3)
-                    return false;
-
-                // ---- LENIENT rules (level == 2) ----
-
-                // 3) Bracket closers with most CJK (reserved)
-                // if (PunctSets.IsBracketCloser(last) && lastIdx > 0 && IsMostlyCjk(s))
-                //     return true;
-
-                // 4) NEW: long Mostly-CJK line ending with full-width colon "："
-                // Treat as a weak boundary (common in novels: "他说：" then dialog starts next line)
-                if (last == '：' && IsMostlyCjk(s))
-                    return true;
-
-                // Level 2 (lenient): allow ellipsis as weak boundary
-                if (EndsWithEllipsis(s))
-                    return true;
-
-                if (level >= 2)
-                    return false;
-
-                // ---- VERY LENIENT rules (level == 1) ----
-                return last is '；' or '：' or ';' or ':';
-            }
-
-            // Strict: the ASCII punct itself is the last non-whitespace char (level 3 strict rules).
-            static bool IsOcrCjkAsciiPunctAtLineEnd(string s, int lastNonWsIndex)
-            {
-                if (lastNonWsIndex <= 0)
-                    return false;
-
-                return IsCjk(s[lastNonWsIndex - 1]) && IsMostlyCjk(s);
-            }
-
-            // Relaxed "end": after index, only whitespace and closers are allowed.
-            // Needed for patterns like: CJK '.' then closing quote/bracket: “。”  .」  .）
-            static bool IsOcrCjkAsciiPunctBeforeClosers(string s, int index)
-            {
-                if (!IsAtEndAllowingClosers(s, index))
-                    return false;
-
-                // Must have a previous *non-whitespace* character
-                if (!PunctSets.TryGetPrevNonWhitespace(s, index, out var prev))
-                    return false;
-
-                // Previous meaningful char must be CJK, and the line mostly CJK
-                return IsCjk(prev) && IsMostlyCjk(s);
-            }
-
-            static bool IsAtEndAllowingClosers(string s, int index)
-            {
-                for (var j = index + 1; j < s.Length; j++)
-                {
-                    var ch = s[j];
-                    if (char.IsWhiteSpace(ch))
-                        continue;
-
-                    if (PunctSets.IsQuoteCloser(ch) || PunctSets.IsBracketCloser(ch))
-                        continue;
-
-                    return false;
-                }
-
-                return true;
-            }
-
-            // ------ Sentence Boundary end ------ //
-
-            static bool IsMostlyCjk(string s)
-            {
-                var cjk = 0;
-                var ascii = 0;
-
-                for (var i = 0; i < s.Length; i++)
-                {
-                    var ch = s[i];
-
-                    // Neutral whitespace
-                    if (char.IsWhiteSpace(ch))
-                        continue;
-
-                    // Neutral digits (ASCII + FULLWIDTH)
-                    if (IsDigitAsciiOrFullWidth(ch))
-                        continue;
-
-                    if (IsCjk(ch))
-                    {
-                        cjk++;
-                        continue;
-                    }
-
-                    // Count ASCII letters only; ASCII punctuation is neutral
-                    if (ch <= 0x7F && char.IsLetter(ch))
-                        ascii++;
-                }
-
-                return cjk > 0 && cjk >= ascii;
-            }
-
-            static bool IsDigitAsciiOrFullWidth(char ch)
-            {
-                // ASCII digits
-                if ((uint)(ch - '0') <= 9) return true;
-                // FULLWIDTH digits
-                return (uint)(ch - '０') <= 9;
-            }
-
-            static bool EndsWithCjkBracketBoundary(string s)
-            {
-                if (string.IsNullOrWhiteSpace(s))
-                    return false;
-
-                s = s.Trim();
-                if (s.Length < 2)
-                    return false;
-
-                var open = s[0];
-                var close = s[^1];
-
-                // 1) Must be one of our known pairs.
-                if (!PunctSets.IsMatchingBracket(open, close))
-                    return false;
-
-                // Inner content (exclude the outer bracket pair)
-                var inner = s.Substring(1, s.Length - 2).Trim();
-                if (inner.Length == 0)
-                    return false;
-
-                // 2) Must be mostly CJK (based on inner), so "(test)" "[1.2]" etc. are rejected.
-                //    Additionally: ASCII bracket pairs are suspicious → require at least one CJK char in inner.
-                if (!IsMostlyCjk(inner))
-                    return false;
-
-                if (open is '(' or '[' && !ContainsAnyCjk(inner))
-                    return false;
-
-                // 3) Ensure this bracket type is balanced inside the text
-                //    (prevents premature close / malformed OCR)
-                return PunctSets.IsBracketTypeBalanced(s, open);
-            }
-
-            static bool ContainsAnyCjk(string s)
-            {
-                for (var i = 0; i < s.Length; i++)
-                {
-                    if (IsCjk(s[i]))
-                        return true;
-                }
-
-                return false;
-            }
-
-            static bool EndsWithEllipsis(string s)
-            {
-                if (string.IsNullOrWhiteSpace(s))
-                    return false;
-
-                // Strong CJK gate: ellipsis only meaningful in CJK context
-                if (!IsMostlyCjk(s))
-                    return false;
-
-                var i = s.Length - 1;
-                while (i >= 0 && char.IsWhiteSpace(s[i])) i--;
-                if (i < 0)
-                    return false;
-
-                // Single Unicode ellipsis
-                if (s[i] == '…')
-                    return true;
-
-                // OCR case: ASCII "..."
-                return i >= 2 && s[i] == '.' && s[i - 1] == '.' && s[i - 2] == '.';
             }
         }
 
