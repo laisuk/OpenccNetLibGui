@@ -594,7 +594,6 @@ internal static class PunctSets
     /// Try to get the last non-whitespace character from a StringBuilder without allocating.
     /// Returns global index (0 to Length-1) and the character.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool TryGetLastNonWhitespace(
         StringBuilder? sb,
         out int lastIdx,
@@ -625,7 +624,6 @@ internal static class PunctSets
     /// <summary>
     /// Try to get last and previous non-whitespace characters in one pass (no allocations).
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool TryGetLastTwoNonWhitespace(
         StringBuilder? sb,
         out int lastIdx, out char last,
