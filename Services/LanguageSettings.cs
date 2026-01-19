@@ -29,7 +29,7 @@ public sealed class PdfOptions
     public int AddPdfPageHeader { get; set; }
     public int CompactPdfText { get; set; }
     public int AutoReflowPdfText { get; set; } = 1;
-    public int IgnoreUntrustedPdfText { get; set; } = 1;
+    public int IgnoreUntrustedPdfText { get; set; }
 
     /// <summary>1 = PdfPig, 2 = Pdfium</summary>
     public int PdfEngine { get; set; } = 2; // Default = Pdfium

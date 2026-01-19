@@ -318,16 +318,29 @@ namespace OpenccNetLibGui.Models
                 // 🔹 NEW: collapse style-layer repeated segments *before* heading detection
                 stripped = CollapseRepeatedSegments(stripped);
 
-                // 3) Logical form for heading detection: no indent at all
-                var headingProbe = stripped.TrimStart(' ', '\u3000');
+                // Recompute probe after collapse (same name, no second variable)
+                probe = stripped.TrimStart(' ', '\u3000');
 
-                // NEW: user-defined title heading regex (runs right after built-in title check)
-                var isCustomTitleHeading = hasCustomTitleRegex && customTitleRx!.IsMatch(headingProbe);
-                var isTitleHeading = TitleHeadingRegex.IsMatch(headingProbe);
+                // Regex-based title checks use probe (string)
+                var isCustomTitleHeading = hasCustomTitleRegex && customTitleRx!.IsMatch(probe);
+                var isTitleHeading = TitleHeadingRegex.IsMatch(probe);
+                // Structural heuristics should also use probe (indent-insensitive)
                 var isShortHeading = IsHeadingLike(stripped, shortHeading);
                 var isMetadata = IsMetadataLine(stripped); // 〈── New
 
                 var hasBuffer = buffer.Length > 0;
+
+                // Lazy snapshot for this iteration only
+                string? bufferTextLazy = null;
+
+                string BufferText()
+                {
+                    if (!hasBuffer)
+                        return string.Empty;
+
+                    return bufferTextLazy ??= buffer.ToString();
+                }
+
                 bool? hasUnclosedBracketLazy = null;
 
                 bool HasUnclosedBracket()
@@ -336,7 +349,7 @@ namespace OpenccNetLibGui.Models
                         return false;
 
                     return hasUnclosedBracketLazy ??=
-                        PunctSets.HasUnclosedBracket(buffer);
+                        PunctSets.HasUnclosedBracket(BufferText());
                 }
 
                 // 1) Empty line
@@ -351,7 +364,7 @@ namespace OpenccNetLibGui.Models
 
                         // Light rule: only flush on blank line if buffer ends with STRONG sentence end.
                         // Otherwise, treat as a soft cross-page blank line and keep accumulating.
-                        if (PunctSets.TryGetLastNonWhitespace(buffer, out _, out var last) &&
+                        if (PunctSets.TryGetLastNonWhitespace(BufferText(), out _, out var last) &&
                             !PunctSets.IsStrongSentenceEnd(last))
                         {
                             continue;
@@ -361,7 +374,7 @@ namespace OpenccNetLibGui.Models
                     // End of paragraph → flush buffer (do NOT emit "")
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -376,7 +389,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -391,7 +404,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -405,7 +418,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -419,7 +432,7 @@ namespace OpenccNetLibGui.Models
                 {
                     if (buffer.Length > 0)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -451,7 +464,7 @@ namespace OpenccNetLibGui.Models
                         }
                         else
                         {
-                            if (!PunctSets.TryGetLastTwoNonWhitespace(buffer, out _, out var last, out _, out _))
+                            if (!PunctSets.TryGetLastTwoNonWhitespace(BufferText(), out _, out var last, out _, out _))
                             {
                                 // Buffer is whitespace-only → treat like empty
                                 splitAsHeading = true;
@@ -483,7 +496,7 @@ namespace OpenccNetLibGui.Models
                         // If we have a real previous paragraph, flush it first
                         if (buffer.Length > 0)
                         {
-                            segments.Add(buffer.ToString());
+                            segments.Add(BufferText());
                             buffer.Clear();
                             dialogState.Reset();
                         }
@@ -522,7 +535,7 @@ namespace OpenccNetLibGui.Models
 
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
                 var currentIsDialogStart = PunctSets.BeginWithDialogStarter(stripped);
-                
+
                 // 🔸 9a) NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
                 //     (comma-ending means the sentence is not finished)
@@ -531,7 +544,7 @@ namespace OpenccNetLibGui.Models
                     var shouldFlushPrev = false;
 
                     if (buffer.Length > 0 &&
-                        PunctSets.TryGetLastNonWhitespace(buffer, out _, out var last))
+                        PunctSets.TryGetLastNonWhitespace(BufferText(), out _, out var last))
                     {
                         var isContinuation =
                             PunctSets.IsCommaLike(last) ||
@@ -544,7 +557,7 @@ namespace OpenccNetLibGui.Models
 
                     if (shouldFlushPrev)
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                     }
 
@@ -584,7 +597,7 @@ namespace OpenccNetLibGui.Models
                         punctBeforeCloserIsStrong &&
                         (!bufferHasBracketIssue || lineHasBracketIssue))
                     {
-                        segments.Add(buffer.ToString());
+                        segments.Add(buffer.ToString()); // New updated buffer, not old bufferText anymore
                         buffer.Clear();
                         dialogState.Reset();
                     }
@@ -614,20 +627,20 @@ namespace OpenccNetLibGui.Models
                     // Triggered by full-width CJK sentence-ending punctuation (。！？ etc.)
                     // NOTE: Dialog safety gate has the highest priority.
                     // If dialog quotes/brackets are not closed, never split the paragraph.
-                    case false when CjkText.EndsWithSentenceBoundary(buffer, level: sentenceBoundaryLevel)
+                    case false when CjkText.EndsWithSentenceBoundary(BufferText(), level: sentenceBoundaryLevel)
                                     && !HasUnclosedBracket():
 
                     // 10b) Closing CJK bracket boundary → new paragraph
                     // Handles cases where a paragraph ends with a full-width closing bracket/quote
                     // (e.g. ）】》」) and should not be merged with the next line.
-                    case false when CjkText.EndsWithCjkBracketBoundary(buffer):
+                    case false when CjkText.EndsWithCjkBracketBoundary(BufferText()):
 
                     // 10c) Indentation → new paragraph
                     // Pre-append rule:
                     // Indentation indicates a new paragraph starts on this line.
                     // Flush the previous buffer and immediately seed the next paragraph.
                     case false when buffer.Length > 0 && IndentRegex.IsMatch(rawLine):
-                        segments.Add(buffer.ToString());
+                        segments.Add(BufferText());
                         buffer.Clear();
                         buffer.Append(stripped);
                         dialogState.Reset();
@@ -706,7 +719,7 @@ namespace OpenccNetLibGui.Models
                 {
                     return true;
                 }
-                
+
                 // Bracket-wrapped standalone structural line (e.g. 《书名》 / 【组成】 / （附录）)
                 if (PunctSets.IsWrappedByMatchingBracket(s, last) && CjkText.IsMostlyCjk(s))
                 {
