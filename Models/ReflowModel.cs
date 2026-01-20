@@ -325,8 +325,8 @@ namespace OpenccNetLibGui.Models
                 var isCustomTitleHeading = hasCustomTitleRegex && customTitleRx!.IsMatch(probe);
                 var isTitleHeading = TitleHeadingRegex.IsMatch(probe);
                 // Structural heuristics should also use probe (indent-insensitive)
-                var isShortHeading = IsHeadingLike(stripped, shortHeading);
-                var isMetadata = IsMetadataLine(stripped); // 〈── New
+                var isShortHeading = IsHeadingLike(probe, shortHeading);
+                var isMetadata = IsMetadataLine(probe); // 〈── New
 
                 var hasBuffer = buffer.Length > 0;
 
@@ -690,7 +690,7 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // keep page markers intact
-                if (s.StartsWith("=== ") && s.EndsWith("==="))
+                if (s.StartsWith("=== ", StringComparison.Ordinal) && s.EndsWith("===", StringComparison.Ordinal))
                     return false;
 
                 // Reject headings with unclosed brackets
@@ -708,7 +708,7 @@ namespace OpenccNetLibGui.Models
                 // Short circuit for item title-like: "物品准备："
                 if (PunctSets.IsColonLike(last) &&
                     len <= sh.MaxLen &&
-                    // CjkText.IsAllCjk(s[..lastIdx], allowWhitespace: false))
+                    lastIdx > 0 && // need at least one char before ':'
                     CjkText.IsAllCjkNoWhiteSpace(s[..lastIdx]))
                 {
                     return true;
