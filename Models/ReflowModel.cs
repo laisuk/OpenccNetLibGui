@@ -534,7 +534,7 @@ namespace OpenccNetLibGui.Models
                 }
 
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
-                var currentIsDialogStart = PunctSets.BeginWithDialogStarter(stripped);
+                var currentIsDialogStart = PunctSets.BeginsWithDialogOpener(stripped);
 
                 // 🔸 9a) NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
@@ -823,7 +823,7 @@ namespace OpenccNetLibGui.Models
         /// the current paragraph buffer during PDF text reflow.
         ///
         /// This class is designed for incremental updates: callers feed each
-        /// new line or text fragment into <see cref="Update(string?)"/>,
+        /// new line or text fragment into <see cref="Update(System.ReadOnlySpan{char})"/>,
         /// allowing the state to evolve without rescanning previously processed
         /// text. This is essential for maintaining dialog continuity across
         /// broken PDF lines.
@@ -880,7 +880,7 @@ namespace OpenccNetLibGui.Models
 
             /// <summary>
             /// Updates the dialog state by scanning the provided text fragment.
-            /// 
+            ///
             /// Only characters representing CJK dialog punctuation are examined.
             /// Counters are increased for opening quotes and decreased for
             /// closing quotes (never below zero). This incremental approach
@@ -889,16 +889,16 @@ namespace OpenccNetLibGui.Models
             /// </summary>
             /// <param name="s">
             /// A text fragment (typically one line or buffer chunk).
-            /// If <c>null</c> or empty, the method performs no action.
+            /// If empty or whitespace-only, the method performs no action.
             /// </param>
-            public void Update(string? s)
+            public void Update(ReadOnlySpan<char> s)
             {
-                if (string.IsNullOrEmpty(s))
+                if (s.IsEmpty)
                     return;
 
-                foreach (var ch in s)
+                for (var i = 0; i < s.Length; i++)
                 {
-                    switch (ch)
+                    switch (s[i])
                     {
                         // ===== Double quotes =====
                         case '“': _doubleQuote++; break;
@@ -924,13 +924,13 @@ namespace OpenccNetLibGui.Models
                             if (_cornerBold > 0) _cornerBold--;
                             break;
 
-                        // ===== NEW: vertical brackets (﹁ ﹂) =====
+                        // ===== vertical brackets (﹁ ﹂) =====
                         case '﹁': _cornerTop++; break;
                         case '﹂':
                             if (_cornerTop > 0) _cornerTop--;
                             break;
 
-                        // ===== NEW: vertical bold brackets (﹃ ﹄) =====
+                        // ===== vertical bold brackets (﹃ ﹄) =====
                         case '﹃': _cornerWide++; break;
                         case '﹄':
                             if (_cornerWide > 0) _cornerWide--;
@@ -954,23 +954,16 @@ namespace OpenccNetLibGui.Models
         //  Helper methods (IsHeadingLike, IsCjk, etc.)
         // =========================================================
 
-        private static string StripHalfWidthIndentKeepFullWidth(string s)
+        private static string StripHalfWidthIndentKeepFullWidth(ReadOnlySpan<char> s)
         {
             var i = 0;
 
-            // Strip only halfwidth spaces at left
+            // Strip only ASCII halfwidth spaces on the left
             while (i < s.Length && s[i] == ' ')
                 i++;
 
-            return s[i..];
+            return s[i..].ToString();
         }
-
-        // private static ReadOnlySpan<char> NormalizeLeadingDoubleDialogOpener(ReadOnlySpan<char> s)
-        // {
-        //     if (s.Length >= 2 && PunctSets.IsDialogOpener(s[0]) && s[0] == s[1])
-        //         return s[1..];
-        //     return s;
-        // }
 
         // ------------------------------------------------------------
         // Style-layer repeat collapse for PDF headings / title lines.
@@ -1123,8 +1116,10 @@ namespace OpenccNetLibGui.Models
         private static string CollapseRepeatedToken(string token)
         {
             // Very short tokens or huge ones are unlikely to be styled repeats.
-            if (token.Length is < 4 or > 200)
+            if (token.Length is < 4 or > 100)
                 return token;
+
+            var span = token.AsSpan();
 
             // Try unit sizes between 4 and 10 chars, and require at least
             // 3 repeats (N >= 3). This corresponds roughly to a pattern like:
@@ -1132,17 +1127,19 @@ namespace OpenccNetLibGui.Models
             //   (.{4,10}?)\1{2,}
             //
             // but constrained to exactly fill the entire token.
-            for (var unitLen = 4; unitLen <= 10 && unitLen <= token.Length / 3; unitLen++)
+            for (var unitLen = 4; unitLen <= 10 && unitLen <= span.Length / 3; unitLen++)
             {
-                if (token.Length % unitLen != 0)
+                if (span.Length % unitLen != 0)
                     continue;
 
-                var unit = token[..unitLen];
+                var unit = span[..unitLen];
                 var allMatch = true;
 
-                for (var pos = 0; pos < token.Length; pos += unitLen)
+                for (var pos = unitLen; pos < span.Length; pos += unitLen)
                 {
-                    if (token.AsSpan(pos, unitLen).SequenceEqual(unit)) continue;
+                    if (span.Slice(pos, unitLen).SequenceEqual(unit))
+                        continue;
+
                     allMatch = false;
                     break;
                 }
@@ -1151,7 +1148,7 @@ namespace OpenccNetLibGui.Models
                 {
                     // Token is just [unit] repeated N times (N >= 3):
                     // collapse it to a single unit.
-                    return unit;
+                    return unit.ToString();
                 }
             }
 
