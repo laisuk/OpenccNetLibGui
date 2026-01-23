@@ -56,7 +56,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - **EPUB (.epub) plain-text import support**
     - Extracts human-readable text from EPUB eBooks by parsing the package manifest (OPF) and spine order.
-    - Supports both XHTML (`.xhtml`) and legacy HTML (`.html` / `.htm`) chapters, including older Calibre-generated EPUBs.
+    - Supports both XHTML (`.xhtml`) and legacy HTML (`.html` / `.htm`) chapters, including older `Calibre`-generated EPUBs.
     - Ignores CSS and presentation-only markup; text is extracted based on semantic structure
       (paragraphs, headings, block elements, and line breaks).
     - Skips non-content sections such as scripts, styles, and navigation documents (ToC) by default.

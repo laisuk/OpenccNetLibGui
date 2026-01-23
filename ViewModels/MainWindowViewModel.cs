@@ -1036,7 +1036,7 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private string GetCurrentConfig()
+    /*private string GetCurrentConfig()
     {
         if (IsRbCustom)
         {
@@ -1065,8 +1065,13 @@ public class MainWindowViewModel : ViewModelBase
                         : "tw2s";
         return config;
     }
+    */
 
-    /*
+    private string GetCurrentConfig()
+    {
+        return GetCurrentConfigId().ToCanonicalName();
+    }
+
     private OpenccConfig GetCurrentConfigId()
     {
         if (IsRbCustom)
@@ -1084,7 +1089,7 @@ public class MainWindowViewModel : ViewModelBase
             var name = i > 0 ? s[..i] : s;
 
             // Try parse user-selected config
-            return Opencc.TryParseConfig(name, out var config) ? config : OpenccConfig.S2T;
+            return Opencc.TryParseConfig(name, out var configId) ? configId : OpenccConfig.S2T;
         }
 
         if (IsRbS2T)
@@ -1102,7 +1107,6 @@ public class MainWindowViewModel : ViewModelBase
             return OpenccConfig.Hk2S;
         return IsCbZhtw ? OpenccConfig.Tw2Sp : OpenccConfig.Tw2S;
     }
-    */
 
     public void TbSourceTextChanged()
     {
