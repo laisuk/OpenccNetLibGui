@@ -91,8 +91,8 @@ namespace OpenccNetLibGui.Models
             {
                 var ch = s[i];
 
-                // Neutral ASCII (allowed, but doesn't count as ASCII content)
-                if (ch is ' ' or '-' or '/' or ':' or '.')
+                // Neutral punctuation: ignored for mixing decision
+                if (IsNeutralPunctuation(ch))
                     continue;
 
                 if (ch <= 0x7F)
@@ -120,6 +120,34 @@ namespace OpenccNetLibGui.Models
             }
 
             return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsNeutralPunctuation(char ch)
+        {
+            // ASCII neutral punctuation
+            if (ch is ' ' or '-' or '/' or ':' or '.')
+                return true;
+
+            // Common CJK / typography punctuation (neutral)
+            return ch switch
+            {
+                '—' => true, // em dash
+                '–' => true, // en dash
+                '…' => true, // ellipsis
+                '·' => true, // middle dot
+                '・' => true, // katakana middle dot
+                '～' => true, // wave dash
+                '―' => true, // horizontal bar
+                '‐' => true, // hyphen
+                '-' => true, // non-breaking hyphen
+
+                // Full-width punctuation often seen in titles
+                // '，' or '。' or '、' or '；' or '：'
+                //     => true,
+
+                _ => false
+            };
         }
 
         // Returns true if the span consists entirely of CJK characters.
