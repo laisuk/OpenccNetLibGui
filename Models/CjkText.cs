@@ -143,8 +143,8 @@ namespace OpenccNetLibGui.Models
                 '-' => true, // non-breaking hyphen
 
                 // Full-width punctuation often seen in titles
-                // '，' or '。' or '、' or '；' or '：'
-                //     => true,
+                '、' or '：'
+                    => true,
 
                 _ => false
             };
