@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Reactive.Disposables.Fluent;
+// using System.Reactive.Disposables.Fluent;
 using Avalonia.Input;
 using AvaloniaEdit.Utils;
 using OpenccNetLibGui.ViewModels;
@@ -14,10 +14,15 @@ public partial class AboutDialog : ReactiveWindow<AboutViewModel>
     {
         InitializeComponent();
 
+        // this.WhenActivated(d =>
+        // {
+        //     if (ViewModel is { } vm)
+        //         vm.CloseCommand.Subscribe(_ => Close()).DisposeWith(d);
+        // });
         this.WhenActivated(d =>
         {
             if (ViewModel is { } vm)
-                vm.Close.Subscribe(_ => Close()).DisposeWith(d);
+                d.Add(vm.CloseCommand.Subscribe(_ => Close()));
         });
     }
 

@@ -44,7 +44,7 @@
             <Button Grid.Column="1"
                     Content="Close"
                     HorizontalAlignment="Right"
-                    Command="{Binding Close}" />
+                    Command="{Binding CloseCommand}" />
         </Grid>
     </StackPanel>
 </Window>

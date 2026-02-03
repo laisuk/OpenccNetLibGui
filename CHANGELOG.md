@@ -11,7 +11,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Update OpenccNetLib to v1.4.1
+- Update `OpenccNetLib` to v1.4.1
 - CJK text reflow optimized
 - Code optimization
 

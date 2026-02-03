@@ -17,7 +17,7 @@ public sealed class AboutViewModel : ReactiveObject
 
     public string PdfEngine => "Pdfium (native)";
 
-    public ReactiveCommand<Unit, Unit> Close { get; }
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
         = ReactiveCommand.Create(() => { });
 
     // ✅ 保留 constructor，但唔做初始化
