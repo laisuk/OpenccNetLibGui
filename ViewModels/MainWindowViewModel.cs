@@ -343,6 +343,7 @@ public class MainWindowViewModel : ViewModelBase
         CurrentOpenFilename = result.Path;
 
         TbSourceTextDocument!.Text = result.Text ?? "";
+        TbSourceTextDocument.UndoStack.ClearAll(); // ✅ reset undo/redo for new file
         LblStatusBarContent = $"File: {result.Path}";
         UpdateEncodeInfo(Opencc.ZhoCheck(result.Text ?? ""));
 
@@ -382,6 +383,7 @@ public class MainWindowViewModel : ViewModelBase
 
             // Apply to UI (MainWindowVM responsibility)
             TbSourceTextDocument!.Text = result.Text;
+            TbSourceTextDocument.UndoStack.ClearAll(); // ✅ reset undo/redo for new file
             CurrentOpenFilename = path;
             var displayName = Path.GetFileName(path);
             LblFileNameContent = displayName;
