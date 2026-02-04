@@ -200,7 +200,8 @@
 
                                         <!-- 🔃 Auto-Reflow PDF text -->
                                         <MenuItem ToggleType="CheckBox"
-                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}">
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}"
+                                                  ToolTip.Tip="Auto-Reflow extracted CJK text when open PDF file.">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🔃" />
@@ -477,7 +478,8 @@
                                     </MenuItem>
 
                                     <!-- 🔃 Auto-Reflow PDF text -->
-                                    <MenuItem ToggleType="CheckBox"
+                                    <MenuItem ToggleType="CheckBox" 
+                                              ToolTip.Tip="Auto-Reflow extracted CJK text when open PDF file."
                                               IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
