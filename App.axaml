@@ -63,7 +63,7 @@
 
             <!-- 邊框：Fluent 2 式微對比灰線 -->
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+                    Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <Setter Property="BorderThickness" Value="3" />
 
             <!-- 圓角 + 內邊距 -->

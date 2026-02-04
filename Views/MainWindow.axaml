@@ -742,8 +742,8 @@
         </Button>
 
         <Button x:Name="BtnOpenFile" Padding="5 2" HorizontalAlignment="Left"
-                HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnOpenFileVisible}"
-                Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsVisible="{Binding IsBtnOpenFileVisible}"
+                Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Height="30"
                 ToolTip.Tip="Open file for source text box contents."
                 Command="{Binding BtnOpenFileCommand}" Classes="outline-button">
             <StackPanel Orientation="Horizontal" Spacing="0">
@@ -766,8 +766,9 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <Button x:Name="BtnSaveFile" Padding="5 2" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
                 Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Classes="outline-button"
+                Height="30"
                 ToolTip.Tip="Save selected target as text file."
                 Command="{Binding BtnSaveFileCommand}">
             <StackPanel Orientation="Horizontal" Spacing="0">
