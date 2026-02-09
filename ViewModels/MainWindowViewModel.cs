@@ -80,7 +80,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private readonly Opencc? _opencc;
     private bool _isCbConvertFilename;
-    private PdfViewModel Pdf { get; }
+    private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
 
     public bool IsSettingsDirty =>
@@ -101,7 +101,7 @@ public class MainWindowViewModel : ViewModelBase
         TbPreviewTextDocument = new TextDocument();
         LbxSourceItems = new ObservableCollection<string>();
         LbxDestinationItems = new ObservableCollection<string>();
-        Pdf = new PdfViewModel();
+        PdfVm = new PdfViewModel();
         BtnPasteCommand = ReactiveCommand.CreateFromTask(BtnPaste);
         BtnCopyCommand = ReactiveCommand.CreateFromTask(BtnCopy);
         BtnOpenFileCommand = ReactiveCommand.CreateFromTask(BtnOpenFile);
@@ -161,16 +161,16 @@ public class MainWindowViewModel : ViewModelBase
             CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
         _textFileTypes = _languageSettings.TextFileTypes ?? new List<string>();
         _officeFileTypes = _languageSettings.OfficeFileTypes ?? new List<string>();
-        IsCbPunctuation = _languageSettings.Punctuation > 0;
-        IsCbConvertFilename = _languageSettings.ConvertFilename > 0;
+        IsCbPunctuation = _languageSettings.Punctuation;
+        IsCbConvertFilename = _languageSettings.ConvertFilename;
 
         // PDF Options (from pdfOptions)
         var po = _languageSettings.PdfOptions;
 
-        IsAddPdfPageHeader = po.AddPdfPageHeader > 0;
-        IsCompactPdfText = po.CompactPdfText > 0;
-        IsAutoReflow = po.AutoReflowPdfText > 0;
-        IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText > 0;
+        IsAddPdfPageHeader = po.AddPdfPageHeader;
+        IsCompactPdfText = po.CompactPdfText;
+        IsAutoReflow = po.AutoReflowPdfText;
+        IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText;
 
         ShortHeading = po.ShortHeadingSettings;
         // ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
@@ -194,7 +194,7 @@ public class MainWindowViewModel : ViewModelBase
         );
 
         // Create PDF VM (single source of truth)
-        Pdf = new PdfViewModel
+        PdfVm = new PdfViewModel
         {
             PdfEngine = PdfEngine,
             IsAddPdfPageHeader = IsAddPdfPageHeader,
@@ -360,12 +360,12 @@ public class MainWindowViewModel : ViewModelBase
     // Public/simple entry point used by UI / DnD / menu etc.
     private async Task UpdateTbSourcePdfAsync(string path)
     {
-        var requestId = Pdf.NewRequestId();
-        var ct = Pdf.CurrentToken;
+        var requestId = PdfVm.NewRequestId();
+        var ct = PdfVm.CurrentToken;
 
         try
         {
-            LblStatusBarContent = $"📄 Loading PDF ({Pdf.PdfEngine.ToDisplayName()})...";
+            LblStatusBarContent = $"📄 Loading PDF ({PdfVm.PdfEngine.ToDisplayName()})...";
 
             void Progress(int percent)
             {
@@ -373,12 +373,12 @@ public class MainWindowViewModel : ViewModelBase
                 Dispatcher.UIThread.Post(() => LblStatusBarContent = msg);
             }
 
-            var result = await Pdf.LoadPdfAsync(path,
+            var result = await PdfVm.LoadPdfAsync(path,
                 Progress,
                 ct);
 
             // stale request guard
-            if (requestId != Pdf.CurrentRequestId)
+            if (requestId != PdfVm.CurrentRequestId)
                 return;
 
             // Apply to UI (MainWindowVM responsibility)
@@ -752,7 +752,7 @@ public class MainWindowViewModel : ViewModelBase
 
                 try
                 {
-                    var r = await Pdf.LoadPdfAsync(
+                    var r = await PdfVm.LoadPdfAsync(
                         sourceFilePath, progressCallback: null,
                         cancellationToken: CancellationToken.None);
 
@@ -1588,7 +1588,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (IsCbPunctuation == value) return;
             this.RaiseAndSetIfChanged(ref _isCbPunctuation, value);
-            _languageSettings!.Punctuation = value ? 1 : 0;
+            _languageSettings!.Punctuation = value;
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
     }
@@ -1599,7 +1599,7 @@ public class MainWindowViewModel : ViewModelBase
         set
         {
             if (IsCbConvertFilename == value) return;
-            _languageSettings!.ConvertFilename = value ? 1 : 0;
+            _languageSettings!.ConvertFilename = value;
             this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
@@ -1607,14 +1607,14 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsAddPdfPageHeader
     {
-        get => Pdf.IsAddPdfPageHeader;
+        get => PdfVm.IsAddPdfPageHeader;
         set
         {
-            if (Pdf.IsAddPdfPageHeader == value)
+            if (PdfVm.IsAddPdfPageHeader == value)
                 return;
 
-            Pdf.IsAddPdfPageHeader = value;
-            _languageSettings!.PdfOptions.AddPdfPageHeader = value ? 1 : 0;
+            PdfVm.IsAddPdfPageHeader = value;
+            _languageSettings!.PdfOptions.AddPdfPageHeader = value;
 
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
@@ -1623,14 +1623,14 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsCompactPdfText
     {
-        get => Pdf.IsCompactPdfText;
+        get => PdfVm.IsCompactPdfText;
         set
         {
-            if (Pdf.IsCompactPdfText == value)
+            if (PdfVm.IsCompactPdfText == value)
                 return;
 
-            Pdf.IsCompactPdfText = value;
-            _languageSettings!.PdfOptions.CompactPdfText = value ? 1 : 0;
+            PdfVm.IsCompactPdfText = value;
+            _languageSettings!.PdfOptions.CompactPdfText = value;
 
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
@@ -1639,14 +1639,14 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsAutoReflow
     {
-        get => Pdf.IsAutoReflow;
+        get => PdfVm.IsAutoReflow;
         set
         {
-            if (Pdf.IsAutoReflow == value)
+            if (PdfVm.IsAutoReflow == value)
                 return;
 
-            Pdf.IsAutoReflow = value;
-            _languageSettings!.PdfOptions.AutoReflowPdfText = value ? 1 : 0;
+            PdfVm.IsAutoReflow = value;
+            _languageSettings!.PdfOptions.AutoReflowPdfText = value;
 
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
@@ -1657,18 +1657,18 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsIgnoreUntrustedPdfText
     {
-        get => Pdf.IsIgnoreUntrustedPdfText;
+        get => PdfVm.IsIgnoreUntrustedPdfText;
         set
         {
             // ✅ hard gate: cannot enable under PdfPig
             if (value && IsPdfPigEngine)
                 return;
 
-            if (Pdf.IsIgnoreUntrustedPdfText == value)
+            if (PdfVm.IsIgnoreUntrustedPdfText == value)
                 return;
 
-            Pdf.IsIgnoreUntrustedPdfText = value;
-            _languageSettings!.PdfOptions.IgnoreUntrustedPdfText = value ? 1 : 0;
+            PdfVm.IsIgnoreUntrustedPdfText = value;
+            _languageSettings!.PdfOptions.IgnoreUntrustedPdfText = value;
 
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
@@ -1677,18 +1677,18 @@ public class MainWindowViewModel : ViewModelBase
 
     public PdfEngine PdfEngine
     {
-        get => Pdf.PdfEngine;
+        get => PdfVm.PdfEngine;
         set
         {
-            if (Pdf.PdfEngine == value)
+            if (PdfVm.PdfEngine == value)
                 return;
 
-            Pdf.PdfEngine = value;
+            PdfVm.PdfEngine = value;
             // Sync settings object (no magic numbers)
             _languageSettings!.PdfOptions.PdfEngine = (int)value;
 
             // ✅ PDFium-only option: force off when switching to PdfPig
-            if (Pdf is { PdfEngine: PdfEngine.PdfPig, IsIgnoreUntrustedPdfText: true })
+            if (PdfVm is { PdfEngine: PdfEngine.PdfPig, IsIgnoreUntrustedPdfText: true })
             {
                 // go through wrapper so it syncs settings + raises dirty
                 IsIgnoreUntrustedPdfText = false;
@@ -1707,10 +1707,10 @@ public class MainWindowViewModel : ViewModelBase
     // ⚙️ Use PdfPig engine
     public bool IsPdfPigEngine
     {
-        get => Pdf.PdfEngine == PdfEngine.PdfPig;
+        get => PdfVm.PdfEngine == PdfEngine.PdfPig;
         set
         {
-            if (!value || Pdf.PdfEngine == PdfEngine.PdfPig) return;
+            if (!value || PdfVm.PdfEngine == PdfEngine.PdfPig) return;
             PdfEngine = PdfEngine.PdfPig; // ✅ go through wrapper
         }
     }
@@ -1718,21 +1718,21 @@ public class MainWindowViewModel : ViewModelBase
     // ⚙️ Use Pdfium engine
     public bool IsPdfiumEngine
     {
-        get => Pdf.PdfEngine == PdfEngine.Pdfium;
+        get => PdfVm.PdfEngine == PdfEngine.Pdfium;
         set
         {
-            if (!value || Pdf.PdfEngine == PdfEngine.Pdfium) return;
+            if (!value || PdfVm.PdfEngine == PdfEngine.Pdfium) return;
             PdfEngine = PdfEngine.Pdfium; // ✅ go through wrapper
         }
     }
 
     public ShortHeadingSettings? ShortHeading
     {
-        get => Pdf.ShortHeading;
+        get => PdfVm.ShortHeading;
         set
         {
-            if (Equals(Pdf.ShortHeading, value)) return; // ✅ optional, avoids spam
-            Pdf.ShortHeading = value;
+            if (Equals(PdfVm.ShortHeading, value)) return; // ✅ optional, avoids spam
+            PdfVm.ShortHeading = value;
 
             if (_languageSettings is not null)
             {

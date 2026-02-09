@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
@@ -10,12 +11,19 @@ namespace OpenccNetLibGui.Services;
 public class LanguageSettingsService
 {
     private readonly string _defaultSettingsPath;
-    private string _lastSavedSnapshot;
+    private string _lastSavedSnapshot = string.Empty;
 
     public string UserSettingsPath { get; }
 
     public bool IsDirty =>
         CreateSnapshot(LanguageSettings) != _lastSavedSnapshot;
+
+    /// <summary>
+    /// The in-memory language settings used by the application.
+    /// Never <c>null</c>; if the file is missing or corrupted, a default
+    /// configuration will be created and written back to disk.
+    /// </summary>
+    public LanguageSettings LanguageSettings { get; private set; }
 
     public LanguageSettingsService(
         string defaultSettingsPath,
@@ -24,19 +32,26 @@ public class LanguageSettingsService
         _defaultSettingsPath = defaultSettingsPath;
         UserSettingsPath = userSettingsPath;
 
-        LanguageSettings = ReadMergedLanguageSettings(
-            _defaultSettingsPath,
-            UserSettingsPath);
-
-        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
+        // Defensive: ensure invariant for computed properties after ctor returns.
+        Reload();
+        Debug.Assert(LanguageSettings is not null);
     }
 
     /// <summary>
-    /// The in-memory language settings used by the application.
-    /// Never <c>null</c>; if the file is missing or corrupted, a default
-    /// configuration will be created and written back to disk.
+    /// Reloads settings from disk (default + user overrides).
+    /// Restores the shipped default file if it is missing/corrupt.
+    /// Never creates user files/folders.
     /// </summary>
-    public LanguageSettings LanguageSettings { get; private set; }
+    private void Reload()
+    {
+        // Re-merge user overrides onto defaults (no file writes)
+        LanguageSettings = ReadMergedLanguageSettings(
+            _defaultSettingsPath,
+            UserSettingsPath
+        );
+
+        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
+    }
 
     /// <summary>
     /// Saves current settings to UserLanguageSettings.json
@@ -154,22 +169,6 @@ public class LanguageSettingsService
             settings,
             Formatting.None
         );
-    }
-
-    /// <summary>
-    /// Reloads settings from disk (default + user overrides).
-    /// Restores the shipped default file if it is missing/corrupt.
-    /// Never creates user files/folders.
-    /// </summary>
-    public void Reload()
-    {
-        // Re-merge user overrides onto defaults (no file writes)
-        LanguageSettings = ReadMergedLanguageSettings(
-            _defaultSettingsPath,
-            UserSettingsPath
-        );
-
-        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
     }
 
     private static LanguageSettings ReadMergedLanguageSettings(
@@ -393,17 +392,17 @@ public class LanguageSettingsService
     "".epub""
   ],
   ""pdfOptions"": {
-    ""addPdfPageHeader"": 0,
-    ""compactPdfText"": 0,
-    ""autoReflowPdfText"": 1,
-    ""ignoreUntrustedPdfText"": 0,
+    ""addPdfPageHeader"": false,
+    ""compactPdfText"": false,
+    ""autoReflowPdfText"": true,
+    ""ignoreUntrustedPdfText"": false,
     ""pdfEngine"": 2,
     ""shortHeadingSettings"": {
       ""maxLen"": 8,
-      ""allCjk"": 1,
-      ""allAscii"": 1,
-      ""allAsciiDigits"": 1,
-      ""mixedCjkAscii"": 1,
+      ""allCjk"": true,
+      ""allAscii"": true,
+      ""allAsciiDigits"": true,
+      ""mixedCjkAscii"": true,
       ""customTitleHeadingRegex"": """"
     }
   },
@@ -411,8 +410,8 @@ public class LanguageSettingsService
     ""info"": ""1 = lenient, 2 = balanced (default), 3 = strict"",
     ""value"": 2
   },
-  ""punctuation"": 1,
-  ""convertFilename"": 0,
+  ""punctuation"": true,
+  ""convertFilename"": false,
   ""dictionary"": ""zstd"",
   ""locale"": 2
 }

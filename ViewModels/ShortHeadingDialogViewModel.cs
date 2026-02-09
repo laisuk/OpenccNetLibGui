@@ -121,7 +121,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
             if (_allAsciiDigits == value) return;
             this.RaiseAndSetIfChanged(ref _allAsciiDigits, value);
             // if (!value && AllAscii) AllAscii = false;
-            
+
             RaiseAsciiStateChanged();
         }
     }
@@ -131,7 +131,7 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
         get => _mixedCjkAscii;
         set => this.RaiseAndSetIfChanged(ref _mixedCjkAscii, value);
     }
-    
+
     public string? CustomTitleHeadingRegex
     {
         get => _customTitleHeadingRegex;
@@ -203,10 +203,10 @@ public sealed class ShortHeadingDialogViewModel : ReactiveObject
     public ShortHeadingSettings ToSettings() => new()
     {
         MaxLen = MaxLen,
-        AllCjk = AllCjk ? 1 : 0,
-        AllAscii = AllAscii ? 1 : 0,
-        AllAsciiDigits = AllAsciiDigits ? 1 : 0,
-        MixedCjkAscii = MixedCjkAscii ? 1 : 0,
+        AllCjk = AllCjk,
+        AllAscii = AllAscii,
+        AllAsciiDigits = AllAsciiDigits,
+        MixedCjkAscii = MixedCjkAscii,
         CustomTitleHeadingRegex = CustomTitleHeadingRegex ?? string.Empty,
     };
 }

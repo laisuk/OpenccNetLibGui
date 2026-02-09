@@ -281,6 +281,10 @@ namespace OpenccNetLibGui.Models
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
 
+            // Early skip: first ~200 non-space chars are Latin-ish and contain no CJK
+            if (IsLatinLeadingBlock(text, nonSpaceLimit: 200))
+                return text;
+
             // Normalize \r\n and \r into \n for cross-platform stability
             text = text.Replace("\r\n", "\n").Replace("\r", "\n");
 
@@ -813,6 +817,46 @@ namespace OpenccNetLibGui.Models
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsLatinLeadingBlock(ReadOnlySpan<char> s, int nonSpaceLimit)
+        {
+            var seen = 0;
+            var latinish = 0;
+
+            for (var i = 0; i < s.Length && seen < nonSpaceLimit; i++)
+            {
+                var ch = s[i];
+                if (char.IsWhiteSpace(ch))
+                    continue;
+
+                seen++;
+
+                // Any early CJK -> do NOT skip reflow
+                if (CjkText.IsCjk(ch))
+                    return false;
+
+                // Count Latin letters / digits / common ASCII punctuation as "Latin-ish"
+                if (ch <= 0x007F)
+                {
+                    if ((uint)(ch - 'A') <= 25
+                        || (uint)(ch - 'a') <= 25
+                        || (uint)(ch - '0') <= 9
+                        || ch is '.' or ',' or '!' or '?' or ':' or ';' or '\'' or '"' or '(' or ')'
+                            or '[' or ']' or '{' or '}' or '-' or '_' or '/' or '\\' or '@' or '#'
+                            or '$' or '%' or '&' or '*' or '+' or '=' or '<' or '>')
+                        latinish++;
+                }
+                else
+                {
+                    // Latin-1 / Latin Extended blocks (covers most Western languages)
+                    if ((ch >= 0x00C0 && ch <= 0x024F) || (ch >= 0x1E00 && ch <= 0x1EFF))
+                        latinish++;
+                }
+            }
+
+            if (seen < 40) return false; // too little signal
+            return latinish * 10 >= seen * 9; // >= 90% Latin-ish in first 200 non-space chars
+        }
 
         // =========================================================
         //  Dialog state tracking

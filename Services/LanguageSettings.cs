@@ -15,8 +15,8 @@ public class LanguageSettings
     public List<string>? OfficeFileTypes { get; set; }
     public string? Dictionary { get; set; }
     public int Locale { get; set; }
-    public int Punctuation { get; set; }
-    public int ConvertFilename { get; set; }
+    public bool Punctuation { get; set; }
+    public bool ConvertFilename { get; set; }
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
@@ -26,10 +26,10 @@ public class LanguageSettings
 [Serializable]
 public sealed class PdfOptions
 {
-    public int AddPdfPageHeader { get; set; }
-    public int CompactPdfText { get; set; }
-    public int AutoReflowPdfText { get; set; } = 1;
-    public int IgnoreUntrustedPdfText { get; set; }
+    public bool AddPdfPageHeader { get; set; }
+    public bool CompactPdfText { get; set; }
+    public bool AutoReflowPdfText { get; set; } = true;
+    public bool IgnoreUntrustedPdfText { get; set; }
 
     /// <summary>1 = PdfPig, 2 = Pdfium</summary>
     public int PdfEngine { get; set; } = 2; // Default = Pdfium
@@ -72,10 +72,10 @@ public sealed class ShortHeadingSettings
     public int MaxLen { get; set; } = 8;
 
     // JSON expects 0/1 flags
-    public int AllCjk { get; set; } = 1;
-    public int AllAscii { get; set; } = 1;
-    public int AllAsciiDigits { get; set; } = 1;
-    public int MixedCjkAscii { get; set; } = 1;
+    public bool AllCjk { get; set; } = true;
+    public bool AllAscii { get; set; } = true;
+    public bool AllAsciiDigits { get; set; } = true;
+    public bool MixedCjkAscii { get; set; } = true;
 
     /// <summary>
     /// Optional custom regex to treat a line as a title/heading.
@@ -92,10 +92,10 @@ public sealed class ShortHeadingSettings
     }
 
     // Convenience bool views (not serialized)
-    [JsonIgnore] public bool AllCjkEnabled => AllCjk > 0;
-    [JsonIgnore] public bool AllAsciiEnabled => AllAscii > 0;
-    [JsonIgnore] public bool AllAsciiDigitsEnabled => AllAsciiDigits > 0;
-    [JsonIgnore] public bool MixedCjkAsciiEnabled => MixedCjkAscii > 0;
+    [JsonIgnore] public bool AllCjkEnabled => AllCjk;
+    [JsonIgnore] public bool AllAsciiEnabled => AllAscii;
+    [JsonIgnore] public bool AllAsciiDigitsEnabled => AllAsciiDigits;
+    [JsonIgnore] public bool MixedCjkAsciiEnabled => MixedCjkAscii;
 
     /// <summary>
     /// Lazily compiled regex for <see cref="CustomTitleHeadingRegex"/>.
@@ -135,10 +135,10 @@ public sealed class ShortHeadingSettings
     public static ShortHeadingSettings Default => new()
     {
         MaxLen = 8,
-        AllCjk = 1,
-        AllAscii = 1,
-        AllAsciiDigits = 1,
-        MixedCjkAscii = 1,
+        AllCjk = true,
+        AllAscii = true,
+        AllAsciiDigits = true,
+        MixedCjkAscii = true,
         CustomTitleHeadingRegex = ""
     };
 

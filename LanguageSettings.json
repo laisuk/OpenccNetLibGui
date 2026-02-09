@@ -163,17 +163,17 @@
     ".epub"
   ],
   "pdfOptions": {
-    "addPdfPageHeader": 0,
-    "compactPdfText": 0,
-    "autoReflowPdfText": 1,
-    "ignoreUntrustedPdfText": 0,
+    "addPdfPageHeader": false,
+    "compactPdfText": false,
+    "autoReflowPdfText": true,
+    "ignoreUntrustedPdfText": false,
     "pdfEngine": 2,
     "shortHeadingSettings": {
       "maxLen": 8,
-      "allCjk": 1,
-      "allAscii": 1,
-      "allAsciiDigits": 1,
-      "mixedCjkAscii": 1,
+      "allCjk": true,
+      "allAscii": true,
+      "allAsciiDigits": true,
+      "mixedCjkAscii": true,
       "customTitleHeadingRegex": ""
     }
   },
@@ -181,8 +181,8 @@
     "info": "1 = lenient, 2 = balanced (default), 3 = strict",
     "value": 2
   },
-  "punctuation": 1,
-  "convertFilename": 0,
+  "punctuation": true,
+  "convertFilename": false,
   "dictionary": "zstd",
   "locale": 2
 }
