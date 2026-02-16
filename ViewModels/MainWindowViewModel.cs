@@ -166,11 +166,6 @@ public class MainWindowViewModel : ViewModelBase
 
         // PDF Options (from pdfOptions)
         var po = _languageSettings.PdfOptions;
-        // IsAddPdfPageHeader = po.AddPdfPageHeader;
-        // IsCompactPdfText = po.CompactPdfText;
-        // IsAutoReflow = po.AutoReflowPdfText;
-        // IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText;
-        // ShortHeading = po.ShortHeadingSettings;
 
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
         var engine = PdfEngineHelper.InitPdfEngine(po.PdfEngine);
@@ -181,7 +176,7 @@ public class MainWindowViewModel : ViewModelBase
                 "You can set default pdfOptions.pdfEngine to 1 in LanguageSettings.json for PdfPig.";
         }
 
-        PdfEngine = engine;
+        // PdfEngine = engine;
 
         // 1 = lenient, 2 = balanced (default), 3 = strict
         _sentenceBoundaryLevel = Math.Clamp(
@@ -194,7 +189,7 @@ public class MainWindowViewModel : ViewModelBase
         PdfVm = new PdfViewModel
         {
             PdfOptions = po,
-            PdfEngine = PdfEngine,
+            PdfEngine = engine,
             IsIgnoreUntrustedPdfText = IsIgnoreUntrustedPdfText,
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
@@ -1131,7 +1126,7 @@ public class MainWindowViewModel : ViewModelBase
         if (owner is null)
             return;
 
-        var dialog = new ShortHeadingDialog(ShortHeading!);
+        var dialog = new ShortHeadingDialog(ShortHeading);
 
         var result = await dialog.ShowDialog<ShortHeadingSettings?>(owner);
 
@@ -1139,10 +1134,10 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         // update in-memory state
-        ShortHeading = result;
+        ShortHeading = result; // setter updates PdfVm + LanguageSettings
 
         // write back to LanguageSettings
-        _languageSettings!.PdfOptions.ShortHeadingSettings = result;
+        // _languageSettings!.PdfOptions.ShortHeadingSettings = result;
 
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
     }
@@ -1736,18 +1731,18 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public ShortHeadingSettings? ShortHeading
+    public ShortHeadingSettings ShortHeading
     {
         get => PdfVm.PdfOptions.ShortHeadingSettings;
         set
         {
             if (Equals(PdfVm.PdfOptions.ShortHeadingSettings, value)) return; // ✅ optional, avoids spam
-            PdfVm.PdfOptions.ShortHeadingSettings = value ??  ShortHeadingSettings.Default;
+            PdfVm.PdfOptions.ShortHeadingSettings = value;
 
             if (_languageSettings is not null)
             {
                 _languageSettings.PdfOptions.ShortHeadingSettings =
-                    value ?? ShortHeadingSettings.Default;
+                    value;
             }
 
             this.RaisePropertyChanged(); // ✅
