@@ -131,7 +131,7 @@ namespace OpenccNetLibGui.Models
         /// <summary>
         /// Reflows CJK (Chinese/Japanese/Korean) text extracted from a PDF into clean,
         /// human-readable paragraphs.
-        /// 
+        ///
         /// <para>
         /// PDF text extraction often produces broken lines, incorrect paragraph boundaries,
         /// missing or excessive newlines, and split words across lines or pages.
@@ -144,140 +144,99 @@ namespace OpenccNetLibGui.Models
         ///     Raw text extracted from a PDF (via PdfPig, Pdfium, or any other engine).
         ///     The input is expected to be line-based with newline separators.
         /// </param>
-        /// <param name="addPdfPageHeader">
-        ///     If <c>true</c>, PDF page headers of the form <c>"=== [Page X/Y] ==="</c>
-        ///     are preserved during reflow.  
-        ///     If <c>false</c>, page markers (including markers inserted during extraction)
-        ///     are removed during reconstruction.
-        /// </param>
-        /// <param name="compact">
-        ///     Determines output formatting style:
-        ///     <list type="bullet">
-        ///         <item>
-        ///             <description>
-        ///                 <c>true</c> — Compact mode:  
-        ///                 Produces one line per paragraph with no blank lines in between.
-        ///                 Ideal for dictionary building, NLP preprocessing, and plain text exports.
-        ///             </description>
-        ///         </item>
-        ///         <item>
-        ///             <description>
-        ///                 <c>false</c> — Novel mode:  
-        ///                 Inserts a blank line between paragraphs, matching book-style formatting.
-        ///             </description>
-        ///         </item>
-        ///     </list>
-        /// </param>
-        /// <param name="shortHeading">
-        ///     Configuration object that controls how a line is classified as a
-        ///     <em>short heading</em> during CJK paragraph reflow.
-        /// 
+        /// <param name="pdfOptions">
+        ///     PDF reflow options controlling page marker preservation and output formatting.
+        ///
         ///     <para>
-        ///         The classification is based on a combination of:
+        ///     Relevant fields:
         ///     </para>
         ///     <list type="bullet">
         ///         <item>
         ///             <description>
-        ///                 <b>Maximum length</b> (<see cref="ShortHeadingSettings.MaxLen"/>):
-        ///                 Lines longer than this value are never considered headings.
-        ///                 Typical range is 5–15 characters; default is 8.
+        ///                 <b>Page header preservation</b> (<see cref="PdfOptions.AddPdfPageHeader"/>):
+        ///                 If <c>true</c>, PDF page headers of the form <c>"=== [Page X/Y] ==="</c>
+        ///                 are preserved during reflow.
+        ///                 If <c>false</c>, page markers (including markers inserted during extraction)
+        ///                 are removed during reconstruction.
         ///             </description>
         ///         </item>
         ///         <item>
         ///             <description>
-        ///                 <b>Allowed character patterns</b>, such as:
-        ///                 all CJK characters, all ASCII characters, ASCII digits only,
-        ///                 or mixed CJK + ASCII (controlled by the corresponding flags
-        ///                 in <see cref="ShortHeadingSettings"/>).
+        ///                 <b>Compact output</b> (<see cref="PdfOptions.CompactPdfText"/>):
+        ///                 Determines output formatting style:
+        ///                 <list type="bullet">
+        ///                     <item>
+        ///                         <description>
+        ///                             <c>true</c> — Compact mode:
+        ///                             Produces one line per paragraph with no blank lines in between.
+        ///                             Ideal for dictionary building, NLP preprocessing, and plain text exports.
+        ///                         </description>
+        ///                     </item>
+        ///                     <item>
+        ///                         <description>
+        ///                             <c>false</c> — Novel mode:
+        ///                             Inserts a blank line between paragraphs, matching book-style formatting.
+        ///                         </description>
+        ///                     </item>
+        ///                 </list>
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 <b>Short heading detection</b> (<see cref="PdfOptions.ShortHeadingSettings"/>):
+        ///                 Configuration object that controls how a line is classified as a
+        ///                 <em>short heading</em> during CJK paragraph reflow.
+        ///
+        ///                 <para>
+        ///                 The classification is based on a combination of:
+        ///                 </para>
+        ///                 <list type="bullet">
+        ///                     <item>
+        ///                         <description>
+        ///                             <b>Maximum length</b> (<see cref="ShortHeadingSettings.MaxLen"/>):
+        ///                             Lines longer than this value are never considered headings.
+        ///                             Typical range is 5–15 characters; default is 8.
+        ///                         </description>
+        ///                     </item>
+        ///                     <item>
+        ///                         <description>
+        ///                             <b>Allowed character patterns</b>, such as:
+        ///                             all CJK characters, all ASCII characters, ASCII digits only,
+        ///                             or mixed CJK + ASCII (controlled by the corresponding flags
+        ///                             in <see cref="ShortHeadingSettings"/>).
+        ///                         </description>
+        ///                     </item>
+        ///                 </list>
+        ///
+        ///                 <para>
+        ///                 Before pattern matching, several <b>absolute rejection rules</b> are applied:
+        ///                 lines containing sentence-ending punctuation, commas or list separators,
+        ///                 unclosed brackets, or PDF page markers are never treated as headings,
+        ///                 even if they satisfy length and pattern constraints.
+        ///                 </para>
+        ///
+        ///                 <para>
+        ///                 This rule-based approach avoids hard-coded language assumptions and allows
+        ///                 users to fine-tune heading detection behavior for different document styles,
+        ///                 including novels, technical documents, and bilingual (CJK + English) texts.
+        ///                 </para>
         ///             </description>
         ///         </item>
         ///     </list>
-        /// 
-        ///     <para>
-        ///         Before pattern matching, several <b>absolute rejection rules</b> are applied:
-        ///         lines containing sentence-ending punctuation, commas or list separators,
-        ///         unclosed brackets, or PDF page markers are never treated as headings,
-        ///         even if they satisfy length and pattern constraints.
-        ///     </para>
-        /// 
-        ///     <para>
-        ///         This rule-based approach avoids hard-coded language assumptions and allows
-        ///         users to fine-tune heading detection behavior for different document styles,
-        ///         including novels, technical documents, and bilingual (CJK + English) texts.
-        ///     </para>
         /// </param>
-        /// <param name="sentenceBoundaryLevel"></param>
+        /// <param name="sentenceBoundaryLevel">
+        ///     Controls how strict sentence-end punctuation is treated when deciding whether to join lines.
+        ///     Higher values generally create more paragraph breaks; lower values join more aggressively.
+        /// </param>
         /// <returns>
         /// A fully reflowed, cleanly segmented text string with consistent paragraph breaks,
         /// preserved headings, correctly grouped dialog blocks, and normalized whitespace.
         /// </returns>
-        /// 
-        /// <remarks>
-        /// <para>
-        /// The reflow engine performs several processing stages:
-        /// </para>
-        /// <list type="number">
-        ///   <item>
-        ///     <description><b>Page marker detection</b>  
-        ///     Identifies lines representing page headers or separators.
-        ///     </description>
-        ///   </item>
-        /// 
-        ///   <item>
-        ///     <description><b>Metadata block handling</b>  
-        ///     Recognizes copyright/ISBN/publishing information and keeps them intact.
-        ///     </description>
-        ///   </item>
-        /// 
-        ///   <item>
-        ///     <description><b>Heading detection</b>  
-        ///     Includes:
-        ///     <list type="bullet">
-        ///       <item><description>Regex-based title/section headings (“第X章”, “序章”, “终章”).</description></item>
-        ///       <item><description>Short-heading rules based on configurable length.</description></item>
-        ///       <item><description>
-        ///       Smart ASCII expansion — English headings automatically allow longer
-        ///       lengths to avoid misclassification.
-        ///       </description></item>
-        ///     </list>
-        ///     </description>
-        ///   </item>
-        /// 
-        ///   <item>
-        ///     <description><b>Dialog grouping</b>  
-        ///     Tracks brackets (“「」”, “『』”, '“”', etc.) to keep dialog paragraphs together.
-        ///     </description>
-        ///   </item>
-        /// 
-        ///   <item>
-        ///     <description><b>Paragraph join/reject heuristics</b>  
-        ///     Uses punctuation, indentation, heading signals, CJK rules, and colon-continuation
-        ///     logic to determine whether a line should join the previous paragraph or start a new one.
-        ///     </description>
-        ///   </item>
-        /// 
-        ///   <item>
-        ///     <description><b>Output formatting</b>  
-        ///     Normalizes whitespace, enforces compact or novel layout, removes or preserves
-        ///     PDF page markers, and ensures consistent paragraph boundaries.
-        ///     </description>
-        ///   </item>
-        /// </list>
-        /// 
-        /// <para>
-        /// This reflow pipeline is designed specifically for CJK text but also handles
-        /// mixed CJK/Latin PDFs reliably.  
-        /// </para>
-        /// </remarks>
         internal static string ReflowCjkParagraphs(
             string text,
-            bool addPdfPageHeader,
-            bool compact = false,
-            ShortHeadingSettings? shortHeading = null,
+            PdfOptions pdfOptions,
             int sentenceBoundaryLevel = 2)
         {
-            shortHeading ??= ShortHeadingSettings.Default;
-
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
 
@@ -293,7 +252,7 @@ namespace OpenccNetLibGui.Models
             var buffer = new StringBuilder();
             var dialogState = new DialogState();
 
-            var customTitleRx = shortHeading.CustomTitleHeadingRegexCompiled;
+            var customTitleRx = pdfOptions.ShortHeadingSettings.CustomTitleHeadingRegexCompiled;
             var hasCustomTitleRegex = customTitleRx != null;
 
             foreach (var rawLine in lines)
@@ -329,7 +288,7 @@ namespace OpenccNetLibGui.Models
                 var isCustomTitleHeading = hasCustomTitleRegex && customTitleRx!.IsMatch(probe);
                 var isTitleHeading = TitleHeadingRegex.IsMatch(probe);
                 // Structural heuristics should also use probe (indent-insensitive)
-                var isShortHeading = IsHeadingLike(probe, shortHeading);
+                var isShortHeading = IsHeadingLike(probe, pdfOptions.ShortHeadingSettings);
                 var isMetadata = IsMetadataLine(probe); // 〈── New
 
                 var hasBuffer = buffer.Length > 0;
@@ -359,7 +318,7 @@ namespace OpenccNetLibGui.Models
                 // 1) Empty line
                 if (stripped.Length == 0)
                 {
-                    if (!addPdfPageHeader && buffer.Length > 0)
+                    if (!pdfOptions.AddPdfPageHeader && buffer.Length > 0)
                     {
                         // NEW: If dialog is unclosed, always treat blank line as soft (cross-page artifact).
                         // Never flush mid-dialog just because we saw a blank line.
@@ -680,7 +639,7 @@ namespace OpenccNetLibGui.Models
             // Formatting:
             // compact → "p1\np2\np3"
             // novel   → "p1\n\np2\n\np3"
-            return compact
+            return pdfOptions.CompactPdfText
                 ? string.Join("\n", segments)
                 : string.Join("\n\n", segments);
 

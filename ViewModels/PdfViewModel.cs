@@ -11,11 +11,8 @@ namespace OpenccNetLibGui.ViewModels
         private CancellationTokenSource? _pdfCts;
         private int _pdfRequestId;
 
+        public PdfOptions PdfOptions { get; init; } = new();
         public PdfEngine PdfEngine { get; set; }
-        public bool IsAddPdfPageHeader { get; set; }
-        public bool IsCompactPdfText { get; set; }
-        public bool IsAutoReflow { get; set; }
-        public ShortHeadingSettings? ShortHeading { get; set; }
         public int SentenceBoundaryLevel { get; init; } = 2;
         public bool IsIgnoreUntrustedPdfText { get; set; }
 
@@ -63,7 +60,7 @@ namespace OpenccNetLibGui.ViewModels
                     // Original logic：PdfiumModel.LoadPdfTextAsync(...)
                     extract = await PdfiumModel.ExtractTextAsync(
                         filePath,
-                        IsAddPdfPageHeader,
+                        PdfOptions.AddPdfPageHeader,
                         IsIgnoreUntrustedPdfText,
                         progressCallback,
                         cancellationToken);
@@ -75,7 +72,7 @@ namespace OpenccNetLibGui.ViewModels
                     // statusCallback?.Invoke("📄 Extracting PDF text (PdfPig)...");
                     extract = await PdfPigModel.LoadPdfTextAsync(
                         filePath,
-                        IsAddPdfPageHeader,
+                        PdfOptions.AddPdfPageHeader,
                         progressCallback,
                         cancellationToken);
                     break;
@@ -86,7 +83,7 @@ namespace OpenccNetLibGui.ViewModels
 
             // 2) Auto reflow (keep)
             var reflowApplied = false;
-            if (!IsAutoReflow || string.IsNullOrWhiteSpace(text))
+            if (!PdfOptions.AutoReflowPdfText || string.IsNullOrWhiteSpace(text))
                 return new PdfVmResult(
                     Text: text,
                     EngineUsed: PdfEngine,
@@ -95,9 +92,7 @@ namespace OpenccNetLibGui.ViewModels
                 );
             text = ReflowModel.ReflowCjkParagraphs(
                 text,
-                addPdfPageHeader: IsAddPdfPageHeader,
-                compact: IsCompactPdfText,
-                shortHeading: ShortHeading,
+                PdfOptions,
                 sentenceBoundaryLevel: SentenceBoundaryLevel
             );
 

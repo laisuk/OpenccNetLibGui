@@ -171,7 +171,6 @@ public class MainWindowViewModel : ViewModelBase
         IsCompactPdfText = po.CompactPdfText;
         IsAutoReflow = po.AutoReflowPdfText;
         IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText;
-
         ShortHeading = po.ShortHeadingSettings;
         // ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
 
@@ -196,34 +195,39 @@ public class MainWindowViewModel : ViewModelBase
         // Create PDF VM (single source of truth)
         PdfVm = new PdfViewModel
         {
+            PdfOptions = po,
             PdfEngine = PdfEngine,
-            IsAddPdfPageHeader = IsAddPdfPageHeader,
-            IsCompactPdfText = IsCompactPdfText,
-            IsAutoReflow = IsAutoReflow,
             IsIgnoreUntrustedPdfText = IsIgnoreUntrustedPdfText,
-            ShortHeading = ShortHeading,
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
 
         // Show the .NET runtime version and current dictionary in the status bar
         var runtimeVersion = RuntimeInformation.FrameworkDescription;
+        var openccVer = GetOpenccNetLibAssemblyVersion();
 
         switch (_languageSettings.Dictionary)
         {
             case "dicts":
                 Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
-                LblStatusBarContent = $"Runtime: {runtimeVersion} Using folder [dicts] dictionary";
+                LblStatusBarContent =
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using folder [dicts] dictionary";
                 break;
+
             case "json":
                 Opencc.UseCustomDictionary(DictionaryLib.FromJson());
-                LblStatusBarContent = $"Runtime: {runtimeVersion} Using JSON dictionary";
+                LblStatusBarContent =
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using JSON dictionary";
                 break;
+
             case "cbor":
                 Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
-                LblStatusBarContent = $"Runtime: {runtimeVersion} Using CBOR dictionary";
+                LblStatusBarContent =
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using CBOR dictionary";
                 break;
+
             default:
-                LblStatusBarContent = $"Runtime: {runtimeVersion} Using default ZSTD dictionary";
+                LblStatusBarContent =
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using default ZSTD dictionary";
                 break;
         }
 
@@ -272,6 +276,14 @@ public class MainWindowViewModel : ViewModelBase
         UpdateEncodeInfo(codeText);
         LblFileNameContent = string.Empty;
         CurrentOpenFilename = string.Empty;
+    }
+
+    private static string GetOpenccNetLibAssemblyVersion()
+    {
+        return typeof(DictionaryLib).Assembly
+            .GetName()
+            .Version?
+            .ToString() ?? "Unknown";
     }
 
     private async Task BtnCopy()
@@ -447,7 +459,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var result =
-            ReflowModel.ReflowCjkParagraphs(sourceText, IsAddPdfPageHeader, IsCompactPdfText, ShortHeading,
+            ReflowModel.ReflowCjkParagraphs(sourceText, PdfVm.PdfOptions,
                 _sentenceBoundaryLevel);
 
         // ⭐ If only reflowing a selection → ensure trailing newline
@@ -1607,13 +1619,13 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsAddPdfPageHeader
     {
-        get => PdfVm.IsAddPdfPageHeader;
+        get => PdfVm.PdfOptions.AddPdfPageHeader;
         set
         {
-            if (PdfVm.IsAddPdfPageHeader == value)
+            if (PdfVm.PdfOptions.AddPdfPageHeader == value)
                 return;
 
-            PdfVm.IsAddPdfPageHeader = value;
+            PdfVm.PdfOptions.AddPdfPageHeader = value;
             _languageSettings!.PdfOptions.AddPdfPageHeader = value;
 
             this.RaisePropertyChanged();
@@ -1623,13 +1635,13 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsCompactPdfText
     {
-        get => PdfVm.IsCompactPdfText;
+        get => PdfVm.PdfOptions.CompactPdfText;
         set
         {
-            if (PdfVm.IsCompactPdfText == value)
+            if (PdfVm.PdfOptions.CompactPdfText == value)
                 return;
 
-            PdfVm.IsCompactPdfText = value;
+            PdfVm.PdfOptions.CompactPdfText = value;
             _languageSettings!.PdfOptions.CompactPdfText = value;
 
             this.RaisePropertyChanged();
@@ -1639,13 +1651,13 @@ public class MainWindowViewModel : ViewModelBase
 
     public bool IsAutoReflow
     {
-        get => PdfVm.IsAutoReflow;
+        get => PdfVm.PdfOptions.AutoReflowPdfText;
         set
         {
-            if (PdfVm.IsAutoReflow == value)
+            if (PdfVm.PdfOptions.AutoReflowPdfText == value)
                 return;
 
-            PdfVm.IsAutoReflow = value;
+            PdfVm.PdfOptions.AutoReflowPdfText = value;
             _languageSettings!.PdfOptions.AutoReflowPdfText = value;
 
             this.RaisePropertyChanged();
@@ -1728,11 +1740,11 @@ public class MainWindowViewModel : ViewModelBase
 
     public ShortHeadingSettings? ShortHeading
     {
-        get => PdfVm.ShortHeading;
+        get => PdfVm.PdfOptions.ShortHeadingSettings;
         set
         {
-            if (Equals(PdfVm.ShortHeading, value)) return; // ✅ optional, avoids spam
-            PdfVm.ShortHeading = value;
+            if (Equals(PdfVm.PdfOptions.ShortHeadingSettings, value)) return; // ✅ optional, avoids spam
+            PdfVm.PdfOptions.ShortHeadingSettings = value ??  ShortHeadingSettings.Default;
 
             if (_languageSettings is not null)
             {

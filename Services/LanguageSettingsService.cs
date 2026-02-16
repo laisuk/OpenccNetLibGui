@@ -81,13 +81,13 @@ public class LanguageSettingsService
     // ------ Save Diff settings only------
     private static readonly string[] DiffRootPaths =
     {
-        "pdfOptions",
-        "sentenceBoundaryMode",
-        "punctuation",
+        "charCheck",
         "convertFilename",
         "dictionary",
         "locale",
-        "charCheck"
+        "pdfOptions",
+        "punctuation",
+        "sentenceBoundaryMode"
     };
 
     private static readonly JsonSerializerSettings JsonSaveSettings =
