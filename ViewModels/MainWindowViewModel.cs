@@ -176,8 +176,6 @@ public class MainWindowViewModel : ViewModelBase
                 "You can set default pdfOptions.pdfEngine to 1 in LanguageSettings.json for PdfPig.";
         }
 
-        // PdfEngine = engine;
-
         // 1 = lenient, 2 = balanced (default), 3 = strict
         _sentenceBoundaryLevel = Math.Clamp(
             _languageSettings!.SentenceBoundaryMode!.Value,
