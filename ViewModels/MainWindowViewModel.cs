@@ -166,13 +166,11 @@ public class MainWindowViewModel : ViewModelBase
 
         // PDF Options (from pdfOptions)
         var po = _languageSettings.PdfOptions;
-
-        IsAddPdfPageHeader = po.AddPdfPageHeader;
-        IsCompactPdfText = po.CompactPdfText;
-        IsAutoReflow = po.AutoReflowPdfText;
-        IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText;
-        ShortHeading = po.ShortHeadingSettings;
-        // ShortHeadingMaxLen = ShortHeading.MaxLen; // ✅ use nested maxLen
+        // IsAddPdfPageHeader = po.AddPdfPageHeader;
+        // IsCompactPdfText = po.CompactPdfText;
+        // IsAutoReflow = po.AutoReflowPdfText;
+        // IsIgnoreUntrustedPdfText = po.IgnoreUntrustedPdfText;
+        // ShortHeading = po.ShortHeadingSettings;
 
         // Read user PdfEngine preference (1 = PdfPig, 2 = Pdfium) and verify compatibility
         var engine = PdfEngineHelper.InitPdfEngine(po.PdfEngine);
