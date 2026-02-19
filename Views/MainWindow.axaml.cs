@@ -116,23 +116,48 @@ public partial class MainWindow : Window
 
             case ListBox:
             {
-                var newItems = new HashSet<string>(vm.LbxSourceItems!); // Ensure uniqueness
-                var currentCount = newItems.Count;
+                // 1) Collect existing items (keep order)
+                var items = vm.LbxSourceItems?.ToList() ?? new List<string>();
+                var beforeCount = items.Count;
+
+                // Fast de-dupe check (case-insensitive)
+                var seen = new HashSet<string>(items, StringComparer.OrdinalIgnoreCase);
+
+                // 2) Add dropped items
                 foreach (var file in fileList)
                 {
                     filePath = NormalizeFilePath(file);
-                    if (!string.IsNullOrEmpty(filePath))
-                        newItems.Add(filePath);
+                    if (string.IsNullOrWhiteSpace(filePath))
+                        continue;
+
+                    if (seen.Add(filePath))
+                        items.Add(filePath);
                 }
 
-                var newCount = newItems.Count;
+                // 3) Partition: non-PDF (to be sorted) + PDF (kept at bottom, preserve relative order)
+                static bool IsPdf(string p) =>
+                    p.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
 
-                // Clear & update ObservableCollection in bulk to minimize UI updates
+                var pdfList = new List<string>();
+                var nonPdfList = new List<string>();
+
+                foreach (var p in items)
+                {
+                    if (IsPdf(p)) pdfList.Add(p);
+                    else nonPdfList.Add(p);
+                }
+
+                // 4) Sort list
+                nonPdfList.Sort(StringComparer.OrdinalIgnoreCase);
+                pdfList.Sort(StringComparer.OrdinalIgnoreCase);
+
+                // 5) Bulk update ObservableCollection
                 vm.LbxSourceItems!.Clear();
-                foreach (var item in newItems.OrderBy(item => item))
-                    vm.LbxSourceItems.Add(item);
-                vm.LblStatusBarContent = $"File(s) dropped: {newCount - currentCount}";
+                foreach (var p in nonPdfList) vm.LbxSourceItems.Add(p);
+                foreach (var p in pdfList) vm.LbxSourceItems.Add(p);
 
+                var afterCount = nonPdfList.Count + pdfList.Count;
+                vm.LblStatusBarContent = $"File(s) dropped: {afterCount - beforeCount}";
                 break;
             }
         }

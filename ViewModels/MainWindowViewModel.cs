@@ -27,8 +27,8 @@ public class MainWindowViewModel : ViewModelBase
     private readonly LanguageSettingsService? _languageSettingsService;
     private readonly Language _selectedLanguage = new();
     private readonly List<string> _codeNames = new();
-    private readonly List<string>? _textFileTypes;
-    private readonly List<string>? _officeFileTypes;
+    private readonly HashSet<string>? _textFileTypes;
+    private readonly HashSet<string>? _officeFileTypes;
     private readonly ITopLevelService? _topLevelService;
     private bool _isBtnBatchStartVisible;
     private bool _isBtnOpenFileVisible = true;
@@ -159,8 +159,10 @@ public class MainWindowViewModel : ViewModelBase
 
         SelectedItem =
             CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
-        _textFileTypes = _languageSettings.TextFileTypes ?? new List<string>();
-        _officeFileTypes = _languageSettings.OfficeFileTypes ?? new List<string>();
+
+        _textFileTypes = BuildExtSet(_languageSettings!.TextFileTypes);
+        _officeFileTypes = BuildExtSet(_languageSettings!.OfficeFileTypes);
+
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
 
@@ -223,6 +225,17 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         _opencc = opencc;
+    }
+
+    private static HashSet<string> BuildExtSet(IEnumerable<string>? src)
+    {
+        return new HashSet<string>(
+            (src ?? Enumerable.Empty<string>())
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .Select(s => s[0] == '.' ? s : "." + s),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     #region Reactive Command Region
@@ -691,7 +704,7 @@ public class MainWindowViewModel : ViewModelBase
         foreach (var sourceFilePath in LbxSourceItems)
         {
             count++;
-            var fileExt = Path.GetExtension(sourceFilePath).ToLower();
+            var fileExt = Path.GetExtension(sourceFilePath);
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(sourceFilePath);
 
             if (!File.Exists(sourceFilePath))
@@ -700,8 +713,8 @@ public class MainWindowViewModel : ViewModelBase
                 continue;
             }
 
-            var isText = _textFileTypes != null && _textFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
-            var isOffice = _officeFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase);
+            var isText = _textFileTypes!.Contains(fileExt);
+            var isOffice = _officeFileTypes!.Contains(fileExt);
             // var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase);
             var isPdf = fileExt.Equals(".pdf", StringComparison.OrdinalIgnoreCase) && PdfHelper.IsPdf(sourceFilePath);
 
@@ -909,7 +922,7 @@ public class MainWindowViewModel : ViewModelBase
         var filename = LbxSourceSelectedItem;
         var extension = Path.GetExtension(filename);
 
-        if (extension.Length > 1 && !_textFileTypes!.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        if (extension.Length > 1 && !_textFileTypes!.Contains(extension))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + extension + "] ❌ Preview not supported");
@@ -951,7 +964,7 @@ public class MainWindowViewModel : ViewModelBase
 
             var fileExt = Path.GetExtension(item);
 
-            if (_textFileTypes!.Contains(fileExt, StringComparer.OrdinalIgnoreCase))
+            if (_textFileTypes!.Contains(fileExt))
             {
                 string inputText;
                 try
