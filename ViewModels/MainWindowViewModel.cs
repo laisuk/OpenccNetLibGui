@@ -922,7 +922,11 @@ public class MainWindowViewModel : ViewModelBase
         var filename = LbxSourceSelectedItem;
         var extension = Path.GetExtension(filename);
 
-        if (extension.Length > 1 && !_textFileTypes!.Contains(extension))
+        if (extension.Length > 1 &&
+            !_textFileTypes!.Contains(extension) &&
+            !extension.Equals(".docx", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".odt", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".epub", StringComparison.OrdinalIgnoreCase))
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add("File type [" + extension + "] ❌ Preview not supported");
@@ -931,10 +935,11 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            var displayText = await File.ReadAllTextAsync(filename!);
+            // var displayText = await File.ReadAllTextAsync(filename!);
+            var displayText = await FileOpenViewModel.OpenAsync(filename);
             IsTabPreview = true;
             // TbPreviewText = displayText;
-            TbPreviewTextDocument!.Text = displayText;
+            TbPreviewTextDocument!.Text = displayText.Text;
             LblStatusBarContent = $"File preview: {filename}";
         }
         catch (Exception)

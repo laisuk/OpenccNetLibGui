@@ -48,7 +48,7 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageReference Include="OpenccNetLib" Version="1.4.1"/>
         <PackageReference Include="PdfPig" Version="0.1.13"/>
-        <PackageReference Include="ReactiveUI.Avalonia" Version="11.3.8"/>
+        <PackageReference Include="ReactiveUI.Avalonia" Version="11.4.7" />
         <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.9.2"/>
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9.5" />
     </ItemGroup>
@@ -92,6 +92,14 @@
         </None>
     </ItemGroup>
 
+    <!-- Linux arm64 -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'linux-arm64'">
+        <None Update="runtimes\linux-arm64\native\libpdfium.so">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <TargetPath>libpdfium.so</TargetPath>
+        </None>
+    </ItemGroup>
+
     <!-- macOS arm64 -->
     <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'osx-arm64'">
         <None Update="runtimes\osx-arm64\native\libpdfium.dylib">
@@ -125,6 +133,9 @@
         <None Update="runtimes\linux-x64\native\libpdfium.so">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="runtimes\linux-arm64\native\libpdfium.so">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="runtimes\osx-arm64\native\libpdfium.dylib">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -138,13 +149,6 @@
 
     <ItemGroup>
         <Folder Include="Assets\Icons\"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <!-- Inform IDE：ShortHeadingDialog.axaml.cs is ShortHeadingDialog.axaml related code-behind -->
-        <Compile Update="Views\ShortHeadingDialog.axaml.cs">
-            <DependentUpon>ShortHeadingDialog.axaml</DependentUpon>
-        </Compile>
     </ItemGroup>
 
 </Project>
