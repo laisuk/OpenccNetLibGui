@@ -578,8 +578,8 @@ public static class OpenXmlHelper
 
         public (int? numId, int? ilvl) ResolveNum(int? directNumId, int? directIlvl, string? styleId)
         {
-            if (directNumId.HasValue && directIlvl.HasValue)
-                return (directNumId, directIlvl);
+            if (directNumId.HasValue)
+                return (directNumId, directIlvl ?? 0);
 
             if (!string.IsNullOrEmpty(styleId) && _styleNum.TryGetValue(styleId, out var s))
                 return (s.numId, s.ilvl);
@@ -601,16 +601,21 @@ public static class OpenXmlHelper
             for (var d = ilvl + 1; d < counters.Length; d++) counters[d] = 0;
 
             if (def.NumFmt.Equals("bullet", StringComparison.OrdinalIgnoreCase))
-                return "• ";
+            {
+                var bullet = ResolveBulletGlyph(def.LvlText, def.FontHint);
+                return bullet + " ";
+            }
 
             var lvlText = string.IsNullOrEmpty(def.LvlText) ? "%1." : def.LvlText;
 
             var prefix = Regex.Replace(lvlText, @"%([1-9])", m =>
             {
-                var k = (m.Groups[1].Value[0] - '1');
+                var k = (m.Groups[1].Value[0] - '1'); // %1 => level 0
                 var v = counters[k];
-                if (v <= 0) v = 1;
-                return v.ToString(CultureInfo.InvariantCulture);
+
+                // Use the referenced level's NumFmt (not the current ilvl)
+                var fmt = lvls.TryGetValue(k, out var refDef) ? refDef.NumFmt : "decimal";
+                return FormatCounter(v, fmt);
             });
 
             prefix = prefix.Replace("\t", " ").Replace("\u00A0", " ");
@@ -729,6 +734,18 @@ public static class OpenXmlHelper
                             }
 
                             break;
+
+                        case "rFonts":
+                            if (currentAbstractId.HasValue && currentLevel.HasValue)
+                            {
+                                var ascii = reader.GetAttribute("ascii", nsW) ?? reader.GetAttribute("w:ascii");
+                                var hansi = reader.GetAttribute("hAnsi", nsW) ?? reader.GetAttribute("w:hAnsi");
+                                var hint = !string.IsNullOrEmpty(ascii) ? ascii : hansi;
+                                if (!string.IsNullOrEmpty(hint))
+                                    _abstractLevels[currentAbstractId.Value][currentLevel.Value].FontHint = hint;
+                            }
+
+                            break;
                     }
                 }
                 else if (reader.NodeType == XmlNodeType.EndElement)
@@ -819,6 +836,112 @@ public static class OpenXmlHelper
         {
             public string NumFmt = "";
             public string LvlText = "";
+            public string? FontHint; // "Symbol", "Wingdings", "Wingdings 2", "Wingdings 3"
+        }
+
+        // New
+        private static string FormatCounter(int v, string? numFmt)
+        {
+            if (v <= 0) v = 1;
+
+            return numFmt?.Trim() switch
+            {
+                "lowerLetter" => ToLetters(v, upper: false),
+                "upperLetter" => ToLetters(v, upper: true),
+                "lowerRoman" => ToRoman(v).ToLowerInvariant(),
+                "upperRoman" => ToRoman(v),
+                "decimalZero" => v < 10
+                    ? "0" + v.ToString(CultureInfo.InvariantCulture)
+                    : v.ToString(CultureInfo.InvariantCulture),
+                _ => v.ToString(CultureInfo.InvariantCulture)
+            };
+        }
+
+        private static string ToLetters(int v, bool upper)
+        {
+            // 1->a, 26->z, 27->aa ...
+            var sb = new StringBuilder();
+            while (v > 0)
+            {
+                v--; // 1-based
+                var c = (char)('a' + (v % 26));
+                sb.Insert(0, c);
+                v /= 26;
+            }
+
+            var s = sb.ToString();
+            return upper ? s.ToUpperInvariant() : s;
+        }
+
+        private static string ToRoman(int v)
+        {
+            if (v <= 0) return "I";
+            var map = new (int n, string s)[]
+            {
+                (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
+                (100, "C"), (90, "XC"), (50, "L"), (40, "XL"),
+                (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I")
+            };
+            var sb = new StringBuilder();
+            foreach (var (n, s) in map)
+            {
+                while (v >= n)
+                {
+                    sb.Append(s);
+                    v -= n;
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static string ResolveBulletGlyph(string? lvlText, string? fontHint)
+        {
+            var t = (lvlText ?? "").Replace("\t", "").Replace("\u00A0", " ").Trim();
+            if (t.Length == 0) return "•";
+
+            var ch = t[0];
+            var font = (fontHint ?? "").Trim();
+
+            // If it's already a normal Unicode bullet/check/arrow, keep it.
+            if (IsGoodUnicodeGlyph(ch))
+                return ch.ToString();
+
+            // Symbol: Word uses "" (U+F0B7 in many cases) + Symbol font to mean "•"
+            if (font.Equals("Symbol", StringComparison.OrdinalIgnoreCase))
+            {
+                if (ch == '') return "•";
+                // sometimes "o" etc. appear, but safest fallback:
+                return "•";
+            }
+
+            // Wingdings: your doc uses
+            //   "" => check mark
+            //   "" => arrow
+            if (font.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase))
+            {
+                return ch switch
+                {
+                    '' => "✓", // check
+                    '' => "➤", // arrow
+                    '' => "▪", // small square
+                    'n' => "■", // sometimes appears as square bullet in Wingdings docs
+                    'u' => "◆", // often used for diamond bullets
+                    'v' => "◇", // sometimes hollow diamond-ish
+                    _ => "•"
+                };
+            }
+
+            // Courier New "o" bullets in your numbering.xml: treat as hollow circle
+            if (!font.Equals("Courier New", StringComparison.OrdinalIgnoreCase)) return "•";
+            return ch == 'o' ? "○" : "•";
+        }
+
+        private static bool IsGoodUnicodeGlyph(char c)
+        {
+            // common bullets and symbols that render correctly everywhere
+            return c is '•' or '●' or '○' or '■' or '▪' or '◆' or '◇'
+                or '✓' or '✔' or '➤' or '➔' or '➢';
         }
     }
 }
