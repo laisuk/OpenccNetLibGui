@@ -572,9 +572,7 @@ namespace OpenccNetLibGui.Models
                     //   not a complete sentence, and must not trigger a split.
                     if (!dialogState.IsUnclosed &&
                         punctBeforeCloserIsStrong &&
-                        (!bufferHasBracketIssue ||
-                         lineHasBracketIssue ||
-                         (punctBeforeCloserIsStrong && buffer.Length > 60)))
+                        (!bufferHasBracketIssue || lineHasBracketIssue || buffer.Length > 60))
                     {
                         segments.Add(buffer.ToString()); // use updated buffer content
                         buffer.Clear();
