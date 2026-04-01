@@ -671,7 +671,7 @@ namespace OpenccNetLibGui.Models
                     return false;
 
                 // Reject headings with unclosed brackets
-                if (PunctSets.HasUnclosedBracket(s))
+                if (PunctSets.HasUnclosedBracket(s) || PunctSets.HasUnclosedDialogQuote(s))
                     return false;
 
                 // Get last meaningful character (robust against whitespace changes)
