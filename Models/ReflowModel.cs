@@ -479,7 +479,7 @@ namespace OpenccNetLibGui.Models
                     // If the current line completes a strong sentence, append it and flush immediately.
                     case > 0
                         when !dialogState.IsUnclosed
-                             && !HasUnclosedBracket()
+                             && (buffer.Length > 120 || !HasUnclosedBracket())
                              && PunctSets.EndsWithStrongSentenceEnd(stripped):
                         buffer.Append(stripped); // buffer now has new value
                         segments.Add(buffer.ToString()); // This is not old bufferText (it had been updated)
