@@ -24,6 +24,24 @@ public static class OfficeDocModel
     };
 
     /// <summary>
+    /// Matches an XLSX inline-string cell:
+    /// <![CDATA[<c ... t="inlineStr" ...>...</c>]]>
+    /// </summary>
+    private static readonly Regex XlsxInlineStringCellRegex = new(
+        "<c\\b(?=[^>]*\\bt=(?:\"inlineStr\"|'inlineStr'))[^>]*>.*?</c>",
+        RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
+    /// <summary>
+    /// Matches a text node inside XLSX inline-string content:
+    /// <![CDATA[<t ...>TEXT</t>]]>
+    /// </summary>
+    private static readonly Regex XlsxTextNodeRegex = new(
+        "(<t\\b[^>]*>)(.*?)(</t>)",
+        RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
+    /// <summary>
     /// Determines whether the given file format is a supported Office or EPUB document format.
     /// </summary>
     /// <param name="format">
@@ -31,7 +49,7 @@ public static class OfficeDocModel
     /// The comparison is case-insensitive.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the format is one of the supported values ("docx", "xlsx", "pptx", "odt", "ods", "odp", "epub"); 
+    /// <c>true</c> if the format is one of the supported values ("docx", "xlsx", "pptx", "odt", "ods", "odp", "epub");
     /// otherwise, <c>false</c>.
     /// </returns>
     public static bool IsValidOfficeFormat(string? format)
@@ -103,7 +121,7 @@ public static class OfficeDocModel
 
                     await using var entryStream = entry.Open();
                     await using var fileStream = File.Create(destPath);
-                    await entryStream.CopyToAsync(fileStream);
+                    await entryStream.CopyToAsync(fileStream).ConfigureAwait(false);
                 }
             }
 
@@ -112,7 +130,7 @@ public static class OfficeDocModel
             {
                 "docx" => new List<string> { Path.Combine("word", "document.xml") },
 
-                "xlsx" => new List<string> { Path.Combine("xl", "sharedStrings.xml") },
+                "xlsx" => CollectXlsxTargetXmlPaths(tempDir),
 
                 "pptx" => Directory.Exists(Path.Combine(tempDir, "ppt"))
                     ? Directory.GetFiles(Path.Combine(tempDir, "ppt"), "*.xml", SearchOption.AllDirectories)
@@ -143,7 +161,6 @@ public static class OfficeDocModel
                 _ => null
             };
 
-            // Check for unsupported or missing format
             if (targetXmlPaths == null || targetXmlPaths.Count == 0)
             {
                 return (false, $"❌ Unsupported or invalid format: {format}", null);
@@ -155,7 +172,8 @@ public static class OfficeDocModel
             foreach (var relativePath in targetXmlPaths)
             {
                 var fullPath = Path.Combine(tempDir, relativePath);
-                if (!File.Exists(fullPath)) continue;
+                if (!File.Exists(fullPath))
+                    continue;
 
                 var xmlContent = await File.ReadAllTextAsync(fullPath, Encoding.UTF8)
                     .ConfigureAwait(false);
@@ -163,7 +181,7 @@ public static class OfficeDocModel
                 Dictionary<string, string> fontMap = new();
 
                 // Pre-process: replace font names with unique markers if keepFont is enabled
-                if (keepFont)
+                if (keepFont && ShouldMaskFonts(normalizedFormat, relativePath))
                 {
                     var fontCounter = 0;
                     var pattern = normalizedFormat switch
@@ -171,14 +189,13 @@ public static class OfficeDocModel
                         "docx" => @"(w:eastAsia=""|w:ascii=""|w:hAnsi=""|w:cs="")(.*?)("")",
                         "xlsx" => @"(val="")(.*?)("")",
                         "pptx" => @"(typeface="")(.*?)("")",
-                        // Handle odt, ods, odp
                         "odt" or "ods" or "odp" =>
                             @"((?:style:font-name(?:-asian|-complex)?|svg:font-family|style:name)=[""'])([^""']+)([""'])",
-                        "epub" => @"(font-family\s*:\s*)([^;""']+)",
+                        "epub" => @"(font-family\s*:\s*)([^;""']+)([;""'])?",
                         _ => null
                     };
 
-                    if (pattern != null)
+                    if (pattern is not null)
                     {
                         xmlContent = Regex.Replace(xmlContent, pattern, match =>
                         {
@@ -186,36 +203,39 @@ public static class OfficeDocModel
                             var marker = $"__F_O_N_T_{fontCounter++}__";
                             fontMap[marker] = originalFont;
 
-                            return normalizedFormat switch
-                            {
-                                "epub" =>
-                                    match.Groups[1].Value + marker,
-                                _ =>
-                                    match.Groups[1].Value + marker + match.Groups[3].Value
-                            };
+                            var suffix = match.Groups.Count >= 4 ? match.Groups[3].Value : string.Empty;
+                            return match.Groups[1].Value + marker + suffix;
                         });
                     }
                 }
 
-                // Run OpenCC conversion on the XML content
-                var convertedXml = converter.Convert(xmlContent, punctuation);
+                string convertedXml;
+
+                if (normalizedFormat == "xlsx")
+                {
+                    convertedXml = ConvertXlsxXmlPart(xmlContent, relativePath, converter, punctuation);
+                }
+                else
+                {
+                    convertedXml = converter.Convert(xmlContent, punctuation);
+                }
 
                 // Post-process: restore font names from markers
-                if (keepFont)
+                if (fontMap.Count > 0)
                 {
                     foreach (var kvp in fontMap)
                     {
-                        convertedXml = convertedXml.Replace(kvp.Key, kvp.Value);
+                        convertedXml = convertedXml.Replace(kvp.Key, kvp.Value, StringComparison.Ordinal);
                     }
                 }
 
                 // Overwrite the file with the converted content
                 await File.WriteAllTextAsync(fullPath, convertedXml, Encoding.UTF8)
                     .ConfigureAwait(false);
+
                 convertedCount++;
             }
 
-            // Return if no valid XML fragments found
             if (convertedCount == 0)
             {
                 return (false,
@@ -310,6 +330,87 @@ public static class OfficeDocModel
 
         await File.WriteAllBytesAsync(outputPath, outputBytes).ConfigureAwait(false);
         return (true, message);
+    }
+
+    /// <summary>
+    /// Collects XLSX XML parts that may contain user-visible text.
+    /// Includes the shared string table and worksheet XML files for inline strings.
+    /// </summary>
+    private static List<string> CollectXlsxTargetXmlPaths(string tempDir)
+    {
+        var results = new List<string>();
+
+        var sharedStringsPath = Path.Combine(tempDir, "xl", "sharedStrings.xml");
+        if (File.Exists(sharedStringsPath))
+            results.Add(Path.Combine("xl", "sharedStrings.xml"));
+
+        var worksheetsDir = Path.Combine(tempDir, "xl", "worksheets");
+        if (Directory.Exists(worksheetsDir))
+        {
+            results.AddRange(
+                Directory.GetFiles(worksheetsDir, "*.xml", SearchOption.AllDirectories)
+                    .Select(path => Path.GetRelativePath(tempDir, path))
+            );
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Returns whether font masking should be applied for the given part.
+    /// For XLSX, masking is limited to sharedStrings.xml only.
+    /// </summary>
+    private static bool ShouldMaskFonts(string normalizedFormat, string relativePath)
+    {
+        if (!string.Equals(normalizedFormat, "xlsx", StringComparison.Ordinal))
+            return true;
+
+        var normalizedPath = relativePath.Replace('\\', '/');
+        return string.Equals(normalizedPath, "xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Converts an XLSX XML part using narrow rules:
+    /// sharedStrings.xml is converted as a whole file,
+    /// worksheet XML converts only inline-string cell text nodes,
+    /// and all other XLSX XML parts are left unchanged.
+    /// </summary>
+    private static string ConvertXlsxXmlPart(
+        string xmlContent,
+        string relativePath,
+        Opencc converter,
+        bool punctuation)
+    {
+        var normalizedPath = relativePath.Replace('\\', '/');
+
+        if (string.Equals(normalizedPath, "xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase))
+        {
+            return converter.Convert(xmlContent, punctuation);
+        }
+
+        if (normalizedPath.StartsWith("xl/worksheets/", StringComparison.OrdinalIgnoreCase) &&
+            normalizedPath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        {
+            return XlsxInlineStringCellRegex.Replace(xmlContent, cellMatch =>
+            {
+                var cellXml = cellMatch.Value;
+
+                return XlsxTextNodeRegex.Replace(cellXml, textMatch =>
+                {
+                    var openTag = textMatch.Groups[1].Value;
+                    var innerText = textMatch.Groups[2].Value;
+                    var closeTag = textMatch.Groups[3].Value;
+
+                    if (string.IsNullOrEmpty(innerText))
+                        return textMatch.Value;
+
+                    var convertedText = converter.Convert(innerText, punctuation);
+                    return openTag + convertedText + closeTag;
+                });
+            });
+        }
+
+        return xmlContent;
     }
 
     /// <summary>
