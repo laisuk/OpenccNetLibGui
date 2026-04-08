@@ -8,10 +8,12 @@
         <ApplicationIcon>Assets/openccnetlib.ico</ApplicationIcon>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>10</LangVersion>
-        <AssemblyVersion>1.4.1.0</AssemblyVersion>
-        <FileVersion>1.4.1.0</FileVersion>
-        <AssemblyInformationalVersion>1.4.1.0</AssemblyInformationalVersion>
-        <Version>1.4.1.0</Version>
+        <AssemblyVersion>1.4.2.0</AssemblyVersion>
+        <FileVersion>1.4.2.0</FileVersion>
+        <Copyright>© 2026 Laisuk Lai. All rights reserved.</Copyright>
+        <AssemblyInformationalVersion>1.4.2.0</AssemblyInformationalVersion>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <Version>1.4.2.0</Version>
         <Title>OpenccNetLibGui</Title>
         <Authors>laisuk</Authors>
         <IsPackable>false</IsPackable>

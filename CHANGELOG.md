@@ -17,7 +17,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - Optimized `ReflowModel` 
 - Optimized Reflow for handling typo of dialog quote
-- Optimized Word `Numbering Context` extracted as text
+- Optimized MS Word `Numbering Context` extracted as text
 - Updated `OpenccNetLib` to v1.4.2
 
 ### Fixed
