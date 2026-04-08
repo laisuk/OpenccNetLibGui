@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.2] – 2026-04-03
+## [1.4.2] – 2026-04-08
 
 ### Added
 
@@ -18,11 +18,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Optimized `ReflowModel` 
 - Optimized Reflow for handling typo of dialog quote
 - Optimized Word `Numbering Context` extracted as text
+- Updated `OpenccNetLib` to v1.4.2
 
 ### Fixed
 
-- Fixed XLSX conversion to also process worksheet inline strings (t="inlineStr"), preventing missed text conversion in
-  hybrid workbooks that contain both shared strings and inline strings.
+- Fixed XLSX conversion to also process worksheet inline strings (`t="inlineStr"`), preventing missed text conversion in
+  hybrid workbooks that contain both `shared strings` and `inline strings`.
 
 ---
 
