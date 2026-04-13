@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -99,7 +98,20 @@ namespace OpenccNetLibGui.Models
         // NOTE:
         // MaxMetadataKeyLength is derived from MetadataKeys (single policy owner).
         // Do NOT hardcode or duplicate this limit elsewhere.
-        private static readonly int MaxMetadataKeyLength = MetadataKeys.Max(k => k.Length);
+        private static readonly int MaxMetadataKeyLength = GetMaxMetadataKeyLength();
+
+        private static int GetMaxMetadataKeyLength()
+        {
+            var max = 0;
+
+            foreach (var key in MetadataKeys)
+            {
+                if (key.Length > max)
+                    max = key.Length;
+            }
+
+            return max;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsMetadataKey(ReadOnlySpan<char> keySpan)

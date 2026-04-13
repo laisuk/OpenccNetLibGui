@@ -1,37 +1,48 @@
-﻿using System.Diagnostics;
-// using System.Reactive.Disposables.Fluent;
+﻿using System;
+using System.Diagnostics;
 using Avalonia.Input;
+using Avalonia.Controls;
 using AvaloniaEdit.Utils;
 using OpenccNetLibGui.ViewModels;
-using ReactiveUI;
-using ReactiveUI.Avalonia;
 
 namespace OpenccNetLibGui.Views;
 
-public partial class AboutDialog : ReactiveWindow<AboutViewModel>
+public partial class AboutDialog : Window
 {
     public AboutDialog()
     {
         InitializeComponent();
 
-        // this.WhenActivated(d =>
-        // {
-        //     if (ViewModel is { } vm)
-        //         vm.CloseCommand.Subscribe(_ => Close()).DisposeWith(d);
-        // });
-        this.WhenActivated(d =>
+        Opened += OnOpened;
+        Closed += OnClosed;
+    }
+
+    private IDisposable? _closeSubscription;
+
+    private void OnOpened(object? sender, EventArgs e)
+    {
+        if (DataContext is AboutViewModel vm)
         {
-            if (ViewModel is { } vm)
-                d.Add(vm.CloseCommand.Subscribe(_ => Close()));
-        });
+            _closeSubscription = ExtensionMethods.Subscribe(vm.CloseCommand, _ => Close());
+        }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        _closeSubscription?.Dispose();
+        _closeSubscription = null;
+
+        Opened -= OnOpened;
+        Closed -= OnClosed;
     }
 
     private void OnGitHubLinkClicked(object? sender, PointerPressedEventArgs e)
     {
         e.Handled = true;
+
         Process.Start(new ProcessStartInfo
         {
-            FileName = "https://github.com/laisuk/OpenccNetLibGui",
+            FileName = "https://github.com/laisuk/ZhoConverterGui",
             UseShellExecute = true
         });
     }
