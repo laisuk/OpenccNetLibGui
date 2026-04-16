@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reactive.Concurrency;
 using Avalonia;
-using ReactiveUI.Avalonia;
+using Avalonia.Threading;
+using ReactiveUI;
 
 namespace OpenccNetLibGui;
 
@@ -17,12 +19,25 @@ internal static class Program
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
+    // private static AppBuilder BuildAvaloniaApp()
+    // {
+    //     return AppBuilder.Configure<App>()
+    //         .UsePlatformDetect()
+    //         .WithInterFont()
+    //         .LogToTrace()
+    //         .UseReactiveUI(_ => { });
+    // }
     private static AppBuilder BuildAvaloniaApp()
     {
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .AfterSetup(_ =>
+            {
+                AvaloniaSynchronizationContext.InstallIfNeeded();
+                RxSchedulers.MainThreadScheduler =
+                    new SynchronizationContextScheduler(new AvaloniaSynchronizationContext());
+            })
             .WithInterFont()
-            .LogToTrace()
-            .UseReactiveUI(_ => { });
+            .LogToTrace();
     }
 }
