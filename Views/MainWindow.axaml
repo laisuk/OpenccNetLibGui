@@ -644,7 +644,7 @@
                         <Button x:Name="BtnAdd" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center" ToolTip.Tip="Add file to Source List Box."
                                 Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
-                                FontSize="18" Command="{Binding BtnAddCommand}">
+                                FontSize="20" Command="{Binding BtnAddCommand}">
                             <!-- <StackPanel Orientation="Horizontal"> -->
                             <!--     <controls:SymbolIcon Symbol="Add" FontSize="20" /> -->
                             <!-- </StackPanel> -->
@@ -653,7 +653,7 @@
                         <Button x:Name="BtnRemove" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center" Margin="125,2,0,2"
                                 Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
-                                FontSize="18" ToolTip.Tip="Remove selected item in Source List Box."
+                                FontSize="20" ToolTip.Tip="Remove selected item in Source List Box."
                                 Command="{Binding BtnRemoveCommand}">
                             <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Remove}" />
                         </Button>
