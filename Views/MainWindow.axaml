@@ -478,7 +478,7 @@
                                     </MenuItem>
 
                                     <!-- 🔃 Auto-Reflow PDF text -->
-                                    <MenuItem ToggleType="CheckBox" 
+                                    <MenuItem ToggleType="CheckBox"
                                               ToolTip.Tip="Auto-Reflow extracted CJK text when open PDF file."
                                               IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}">
                                         <MenuItem.Header>
@@ -643,19 +643,19 @@
                                BorderThickness="3,0,0,2" />
                         <Button x:Name="BtnAdd" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center" ToolTip.Tip="Add file to Source List Box."
-                                Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
-                                FontWeight="Bold" Command="{Binding BtnAddCommand}">
+                                Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
+                                FontSize="18" Command="{Binding BtnAddCommand}">
                             <!-- <StackPanel Orientation="Horizontal"> -->
                             <!--     <controls:SymbolIcon Symbol="Add" FontSize="20" /> -->
                             <!-- </StackPanel> -->
-                            <ContentControl Content="{DynamicResource Icon.Add}" />
+                            <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Add}" />
                         </Button>
                         <Button x:Name="BtnRemove" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center" Margin="125,2,0,2"
                                 Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
-                                FontSize="14" ToolTip.Tip="Remove selected item in Source List Box."
-                                FontWeight="Bold" Command="{Binding BtnRemoveCommand}">
-                            <ContentControl Content="{DynamicResource Icon.Remove}" />
+                                FontSize="18" ToolTip.Tip="Remove selected item in Source List Box."
+                                Command="{Binding BtnRemoveCommand}">
+                            <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Remove}" />
                         </Button>
                         <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
                                   FontSize="13" FontWeight="SemiBold" Padding="5,0" Margin="180,2,0,2"
@@ -744,7 +744,8 @@
         </Button>
 
         <Button x:Name="BtnOpenFile" Padding="5 2" HorizontalAlignment="Left"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsVisible="{Binding IsBtnOpenFileVisible}"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                IsVisible="{Binding IsBtnOpenFileVisible}"
                 Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Height="30"
                 ToolTip.Tip="Open file for source text box contents."
                 Command="{Binding BtnOpenFileCommand}" Classes="outline-button">
@@ -768,7 +769,8 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <Button x:Name="BtnSaveFile" Padding="5 2" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsVisible="{Binding IsBtnSaveFileVisible}"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                IsVisible="{Binding IsBtnSaveFileVisible}"
                 Margin="0,0,80,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Classes="outline-button"
                 Height="30"
                 ToolTip.Tip="Save selected target as text file."
