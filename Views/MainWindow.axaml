@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:helpers="clr-namespace:OpenccNetLibGui.Helpers"
-        xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+        xmlns:local="clr-namespace:OpenccNetLibGui.Constants"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="OpenccNetLibGui.Views.MainWindow"
         x:Name="MainWindowRoot"
@@ -296,7 +296,7 @@
                                                   ToolTip.Tip="Writes UserLanguageSettings.json (advanced users only)">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <controls:SymbolIcon Symbol="Save" FontSize="20" />
+                                                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
                                                     <TextBlock Text="Save advanced settings…" />
                                                 </StackPanel>
                                             </MenuItem.Header>
@@ -361,12 +361,13 @@
                                 Command="{Binding BtnReflowCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <!-- <controls:SymbolIcon Symbol="Refresh" FontSize="20" /> -->
-                                <PathIcon Classes="toolbar-icon"
-                                          Data="{StaticResource Icon.Refresh}">
-                                    <PathIcon.RenderTransform>
-                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
-                                    </PathIcon.RenderTransform>
-                                </PathIcon>
+                                <!-- <PathIcon Classes="toolbar-icon" -->
+                                <!--           Data="{StaticResource Icon.Refresh}"> -->
+                                <!--     <PathIcon.RenderTransform> -->
+                                <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
+                                <!--     </PathIcon.RenderTransform> -->
+                                <!-- </PathIcon> -->
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Refresh}" />
                             </StackPanel>
                         </Button>
                         <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
@@ -381,31 +382,47 @@
                                 Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 Command="{Binding BtnClearTbSourceCommand}"
                                 FontWeight="Bold">
-                            <controls:SymbolIcon Symbol="Delete" FontSize="20" />
+                            <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
+                            <!-- <PathIcon Classes="toolbar-icon" -->
+                            <!--           Data="{StaticResource Icon.Delete}"> -->
+                            <!--     <PathIcon.RenderTransform> -->
+                            <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
+                            <!--     </PathIcon.RenderTransform> -->
+                            <!-- </PathIcon> -->
+                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
                         </Button>
                         <Button x:Name="BtnPaste" Padding="5 2" Width="80" HorizontalAlignment="Right"
                                 HorizontalContentAlignment="Center" FontWeight="SemiBold"
-                                Margin="0,2,5,0" Grid.Row="1" Height="26"
+                                Margin="0,2,5,0" Grid.Row="1" Height="28"
                                 Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 Command="{Binding BtnPasteCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="3">
-                                <controls:SymbolIcon Symbol="Paste" FontSize="20" />
-                                <TextBlock Text="Paste" />
+                                <!-- <controls:SymbolIcon Symbol="Paste" FontSize="20" /> -->
+                                <!-- <PathIcon Classes="toolbar-icon" -->
+                                <!--           Data="{StaticResource Icon.Paste}"> -->
+                                <!--     <PathIcon.RenderTransform> -->
+                                <!--         <ScaleTransform ScaleX="0.75" ScaleY="0.75"/> -->
+                                <!--     </PathIcon.RenderTransform> -->
+                                <!-- </PathIcon> -->
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Paste}" />
+                                <TextBlock Text="Paste" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnClearDestination" Grid.Column="1" Padding="0 2" Width="40"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,90,0"
                                 Grid.Row="1" VerticalAlignment="Center" ToolTip.Tip="Clear destination text box."
                                 FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold">
-                            <controls:SymbolIcon Symbol="Delete" FontSize="20" />
+                            <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
+                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
                         </Button>
                         <Button x:Name="BtnCopy" Grid.Column="1" Padding="5 2" Width="80"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,5,0"
                                 Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold"
                                 FontSize="14" Command="{Binding BtnCopyCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="3">
-                                <controls:SymbolIcon Symbol="Copy" FontSize="20" />
-                                <TextBlock Text="Copy" />
+                                <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}" />
+                                <TextBlock Text="Copy" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -581,7 +598,7 @@
                                               ToolTip.Tip="Writes UserLanguageSettings.json (advanced users only)">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <controls:SymbolIcon Symbol="Save" FontSize="20" />
+                                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
                                                 <TextBlock Text="Save advanced settings…" />
                                             </StackPanel>
                                         </MenuItem.Header>
@@ -651,17 +668,20 @@
                                 HorizontalContentAlignment="Center" ToolTip.Tip="Add file to Source List Box."
                                 Margin="70,2,0,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
                                 FontSize="20" Command="{Binding BtnAddCommand}">
-                            <!-- <StackPanel Orientation="Horizontal"> -->
-                            <!--     <controls:SymbolIcon Symbol="Add" FontSize="20" /> -->
-                            <!-- </StackPanel> -->
-                            <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Add}" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.AddTo}" />
+                            </StackPanel>
+                            <!-- <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Add}" /> -->
                         </Button>
                         <Button x:Name="BtnRemove" Padding="0 2" Width="50" HorizontalAlignment="Left"
                                 HorizontalContentAlignment="Center" Margin="125,2,0,2"
                                 Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
                                 FontSize="20" ToolTip.Tip="Remove selected item in Source List Box."
                                 Command="{Binding BtnRemoveCommand}">
-                            <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Remove}" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.RemoveFrom}" />
+                            </StackPanel>
+                            <!-- <PathIcon Classes="toolbar-icon" Data="{StaticResource Icon.Remove}" /> -->
                         </Button>
                         <CheckBox x:Name="CbConvertFilename" Grid.Row="1" Grid.Column="0" Content="Filename"
                                   FontSize="13" FontWeight="SemiBold" Padding="5,0" Margin="180,2,0,2"
@@ -683,7 +703,8 @@
                                 Margin="0,2,5,2" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnClearLbxSourceCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="Delete" FontSize="20" />
+                                <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
                             </StackPanel>
                         </Button>
                         <TextBox x:Name="TbOutFolder" Grid.Row="1" Grid.Column="1" Width="290"
@@ -696,7 +717,7 @@
                                 Margin="0,2,60,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" FontSize="14"
                                 FontWeight="Bold" Command="{Binding BtnSelectOutFolderCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="OpenFolder" FontSize="20" />
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.FolderOpen}" />
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnOutClear" Padding="0 2" Width="50" HorizontalAlignment="Right"
@@ -705,7 +726,8 @@
                                 ToolTip.Tip="Clear current display box."
                                 FontWeight="Bold" Command="{Binding BtnMessagePreviewClearCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="Delete" FontSize="20" />
+                                <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
                             </StackPanel>
                         </Button>
 
@@ -726,7 +748,8 @@
                 Command="{Binding BtnProcessCommand}"
                 Classes="accent-button">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <controls:SymbolIcon Symbol="Play" FontSize="22" />
+                <!-- <controls:SymbolIcon Symbol="Play" FontSize="22" /> -->
+                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Play}" FontSize="22" />
                 <TextBlock Text="Process" />
             </StackPanel>
         </Button>
@@ -744,7 +767,8 @@
                 Command="{Binding BtnBatchStartCommand}"
                 Classes="accent-button">
             <StackPanel Orientation="Horizontal" Spacing="6">
-                <controls:SymbolIcon Symbol="Play" FontSize="22" />
+                <!-- <controls:SymbolIcon Symbol="Play" FontSize="22" /> -->
+                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Play}" FontSize="22" />
                 <TextBlock Text="Batch Start" />
             </StackPanel>
         </Button>
@@ -756,7 +780,8 @@
                 ToolTip.Tip="Open file for source text box contents."
                 Command="{Binding BtnOpenFileCommand}" Classes="outline-button">
             <StackPanel Orientation="Horizontal" Spacing="0">
-                <controls:SymbolIcon Symbol="OpenFile" FontSize="20" />
+                <!-- <controls:SymbolIcon Symbol="OpenFile" FontSize="20" /> -->
+                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.OpenFile}" />
                 <TextBlock Text="Open File" />
             </StackPanel>
         </Button>
@@ -782,7 +807,8 @@
                 ToolTip.Tip="Save selected target as text file."
                 Command="{Binding BtnSaveFileCommand}">
             <StackPanel Orientation="Horizontal" Spacing="0">
-                <controls:SymbolIcon Symbol="SaveAs" FontSize="20" />
+                <!-- <controls:SymbolIcon Symbol="SaveAs" FontSize="20" /> -->
+                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.SaveAs}" />
                 <TextBlock Text="Save As" />
             </StackPanel>
         </Button>
