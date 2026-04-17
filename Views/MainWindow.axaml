@@ -360,7 +360,13 @@
                                 ToolTip.Tip="Reflow CJK paragraphs extracted from PDF text."
                                 Command="{Binding BtnReflowCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <controls:SymbolIcon Symbol="Refresh" FontSize="20" />
+                                <!-- <controls:SymbolIcon Symbol="Refresh" FontSize="20" /> -->
+                                <PathIcon Classes="toolbar-icon"
+                                          Data="{StaticResource Icon.Refresh}">
+                                    <PathIcon.RenderTransform>
+                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
+                                    </PathIcon.RenderTransform>
+                                </PathIcon>
                             </StackPanel>
                         </Button>
                         <Label Grid.Column="1" Content="Destination:" HorizontalAlignment="Left" Margin="5,0,0,0"
