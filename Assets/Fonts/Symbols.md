@@ -575,3 +575,5 @@ public enum Symbol
     ZoomOutFilled = 0xF8133,
 }
 ```
+
+[Microsoft Segoe Fluent Icons font](https://learn.microsoft.com/en-us/windows/apps/design/iconography/segoe-fluent-icons-font)
