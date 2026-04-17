@@ -123,7 +123,7 @@
                     </StackPanel>
 
                     <TextBox MinHeight="30"
-                             Watermark="(Optional) Leave blank to disable"
+                             PlaceholderText="(Optional) Leave blank to disable"
                              Text="{Binding CustomTitleHeadingRegex, Mode=TwoWay}" />
 
                     <TextBlock Text="Applied immediately after built-in title detection (before other heuristics)."

@@ -7,6 +7,15 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.4.3-beta1] - 2026-04-18
+
+### Changed
+
+- Update Avalonia to version 12
+- Refined Fluent UI icons
+
+---
+
 ## [1.4.2] – 2026-04-08
 
 ### Added

@@ -40,11 +40,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.13" />
-        <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.4.1" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.13" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.13" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.13" />
+        <PackageReference Include="Avalonia" Version="12.0.1" />
+        <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.0.1" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.1" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.1" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.11"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
@@ -52,7 +52,7 @@
         <PackageReference Include="OpenccNetLib" Version="1.4.2" />
         <PackageReference Include="PdfPig" Version="0.1.14" />
         <PackageReference Include="ReactiveUI" Version="23.2.1" />
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9.5" />
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.0" />
     </ItemGroup>
 
     <!-- Shared files always copied -->
