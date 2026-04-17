@@ -84,7 +84,7 @@
             <Setter Property="FontFamily"
                     Value="avares://OpenccNetLibGui/Assets/Fonts/FluentAvalonia.ttf#Symbols"/>
             <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="Light"/>
+            <Setter Property="FontWeight" Value="Regular"/>
 
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="NoWrap"/>
