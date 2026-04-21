@@ -203,24 +203,24 @@ public class MainWindowViewModel : ViewModelBase
             case "dicts":
                 Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
                 LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using folder [dicts] dictionary";
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Folder [dicts] dictionary";
                 break;
 
             case "json":
                 Opencc.UseCustomDictionary(DictionaryLib.FromJson());
                 LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using JSON dictionary";
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | JSON dictionary";
                 break;
 
             case "cbor":
                 Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
                 LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using CBOR dictionary";
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | CBOR dictionary";
                 break;
 
             default:
                 LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Using default ZSTD dictionary";
+                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Default dictionary";
                 break;
         }
 

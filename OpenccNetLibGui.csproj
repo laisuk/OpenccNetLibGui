@@ -149,4 +149,12 @@
         </None>
     </ItemGroup>
 
+    <Target Name="CleanPublishArtifacts" AfterTargets="Publish">
+        <ItemGroup>
+            <FilesToDelete Include="$(PublishDir)**\*.pdb" />
+            <FilesToDelete Include="$(PublishDir)**\*.xml" />
+        </ItemGroup>
+        <Delete Files="@(FilesToDelete)" />
+    </Target>
+
 </Project>
