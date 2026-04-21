@@ -812,11 +812,13 @@
                 <TextBlock Text="Save As" />
             </StackPanel>
         </Button>
-        <Button x:Name="BtnExit" Content=" Exit " Padding="5 2" Width="50" HorizontalAlignment="Right"
+        <Button x:Name="BtnExit"  Padding="5 2" Width="50" HorizontalAlignment="Right"
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Classes="outline-button"
-                Height="30"
+                Height="30" ToolTip.Tip="Exit program"
                 Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
-                FontWeight="SemiBold" Click="BtnExit_Click" />
+                FontWeight="SemiBold" Click="BtnExit_Click">
+            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.PowerButton}" FontWeight="SemiBold" />
+        </Button>
         <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">
             <Label x:Name="LblStatusBar" Content="{Binding LblStatusBarContent}" Padding="0 2" Margin="10,0,0,0"
                    HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" />
