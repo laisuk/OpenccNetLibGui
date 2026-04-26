@@ -5,8 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Styling;
 using AvaloniaEdit.Document;
 using OpenccNetLib;
 using ReactiveUI;
@@ -25,7 +27,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly LanguageSettings? _languageSettings;
     private readonly LanguageSettingsService? _languageSettingsService;
-    private readonly Language _selectedLanguage = new();
+    private Language _selectedLanguage = new();
     private readonly List<string> _codeNames = new();
     private readonly HashSet<string>? _textFileTypes;
     private readonly HashSet<string>? _officeFileTypes;
@@ -47,6 +49,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isRbZhtw;
     private bool _isTabBatch;
     private bool _isTabMain = true;
+    private bool _isTabSettings;
     private bool _isTabMessage = true;
     private bool _isTabPreview;
     private bool _isTbOutFolderFocus;
@@ -69,7 +72,10 @@ public class MainWindowViewModel : ViewModelBase
     private string? _cbPunctuationContent = "Punctuation (标点)";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
+    private FontWeight _tabSettingsFontWeight = FontWeight.Normal;
     private string? _tbOutFolderText = "./output/";
+    private int _selectedUiLanguageIndex;
+    private string _selectedThemeMode = "System";
 
     // private string? _tbPreviewText = string.Empty;
     private TextDocument? _tbPreviewTextDocument;
@@ -88,10 +94,68 @@ public class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
+    public IReadOnlyList<string> ThemeModeOptions { get; } =
+        new[] { "System", "Light", "Dark" };
+
     public string? SelectedItem
     {
         get => _selectedItem;
         set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+    }
+
+    public string UiLanguageOption0Content =>
+        GetUiSelectionLabel(0, "简体中文");
+
+    public string UiLanguageOption1Content =>
+        GetUiSelectionLabel(1, "繁體中文");
+
+    public int SelectedUiLanguageIndex
+    {
+        get => _selectedUiLanguageIndex;
+        set
+        {
+            var normalizedIndex = value <= 0 ? 0 : 1;
+            if (_selectedUiLanguageIndex == normalizedIndex)
+                return;
+
+            var targetLocale = normalizedIndex == 0 ? 2 : 1;
+
+            this.RaiseAndSetIfChanged(ref _selectedUiLanguageIndex, normalizedIndex);
+            ApplySelectedLanguage(ResolveLanguageByLocale(targetLocale), syncLocale: true);
+        }
+    }
+
+    public Language SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set
+        {
+            if (ReferenceEquals(_selectedLanguage, value))
+                return;
+
+            ApplySelectedLanguage(value, syncLocale: true);
+        }
+    }
+
+    public string SelectedThemeMode
+    {
+        get => _selectedThemeMode;
+        set
+        {
+            var normalized = NormalizeThemeMode(value);
+            if (string.Equals(_selectedThemeMode, normalized, StringComparison.Ordinal))
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedThemeMode, normalized);
+            ApplyThemeMode(normalized);
+
+            if (_languageSettings is null ||
+                string.Equals(_languageSettings.ThemeMode, normalized, StringComparison.Ordinal))
+                return;
+
+            _languageSettings.ThemeMode = normalized;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
     }
 
     public MainWindowViewModel()
@@ -131,37 +195,15 @@ public class MainWindowViewModel : ViewModelBase
         _topLevelService = topLevelService;
         _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
-        var locale = Math.Clamp(_languageSettings.Locale, 0, 2);
-        var languages = _languageSettings.Languages;
-        _selectedLanguage = languages != null && locale < languages.Count
-            ? languages[locale]
-            : new Language
-            {
-                Name = new List<string>
-                {
-                    "Non-zho (Others)",
-                    "zh-Hant (Traditional)",
-                    "zh-Hans (Simplified)"
-                }
-            };
-        _codeNames = _selectedLanguage.Name;
-        _rbT2SContent = _selectedLanguage.T2SContent;
-        _rbS2TContent = _selectedLanguage.S2TContent;
-        _rbCustomContent = _selectedLanguage.CustomContent;
-        _rbStdContent = _selectedLanguage.StdContent;
-        _rbZhtwContent = _selectedLanguage.ZhtwContent;
-        _rbHkContent = _selectedLanguage.HkContent;
-        _cbZhtwContent = _selectedLanguage.CbZhtwContent;
-        _cbPunctuationContent = _selectedLanguage.CbPunctuationContent;
-        CustomOptions.Clear();
-        foreach (var opt in _selectedLanguage.CustomOptions)
-            CustomOptions.Add(opt);
-
-        SelectedItem =
-            CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)"; // Set "Option 1" as default
+        _selectedLanguage = ResolveSelectedLanguage(_languageSettings);
+        _selectedUiLanguageIndex = NormalizeLanguageLocale(_selectedLanguage) == 2 ? 0 : 1;
+        ApplySelectedLanguage(_selectedLanguage, syncLocale: false);
 
         _textFileTypes = BuildExtSet(_languageSettings!.TextFileTypes);
         _officeFileTypes = BuildExtSet(_languageSettings!.OfficeFileTypes);
+
+        _selectedThemeMode = NormalizeThemeMode(_languageSettings.ThemeMode);
+        ApplyThemeMode(_selectedThemeMode);
 
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
@@ -194,37 +236,23 @@ public class MainWindowViewModel : ViewModelBase
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
 
-        // Show the .NET runtime version and current dictionary in the status bar
-        var runtimeVersion = RuntimeInformation.FrameworkDescription;
-        var openccVer = GetOpenccNetLibAssemblyVersion();
-
         switch (_languageSettings.Dictionary)
         {
             case "dicts":
                 Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
-                LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Folder [dicts] dictionary";
                 break;
 
             case "json":
                 Opencc.UseCustomDictionary(DictionaryLib.FromJson());
-                LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | JSON dictionary";
                 break;
 
             case "cbor":
                 Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
-                LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | CBOR dictionary";
-                break;
-
-            default:
-                LblStatusBarContent =
-                    $"Runtime: {runtimeVersion} | OpenccNetLib {openccVer} | Default dictionary";
                 break;
         }
 
         _opencc = opencc;
+        RefreshRuntimeStatus();
     }
 
     private static HashSet<string> BuildExtSet(IEnumerable<string>? src)
@@ -236,6 +264,186 @@ public class MainWindowViewModel : ViewModelBase
             .Select(s => s[0] == '.' ? s : "." + s),
             StringComparer.OrdinalIgnoreCase
         );
+    }
+
+    private static string NormalizeThemeMode(string? value)
+    {
+        return value switch
+        {
+            "Light" => "Light",
+            "Dark" => "Dark",
+            _ => "System"
+        };
+    }
+
+    private static void ApplyThemeMode(string themeMode)
+    {
+        var app = Application.Current;
+        if (app is null)
+            return;
+
+        app.RequestedThemeVariant = NormalizeThemeMode(themeMode) switch
+        {
+            "Light" => ThemeVariant.Light,
+            "Dark" => ThemeVariant.Dark,
+            _ => ThemeVariant.Default
+        };
+    }
+
+    private static Language CreateFallbackLanguage()
+    {
+        return new Language
+        {
+            Id = 2,
+            Locale = 2,
+            Code = "zh-Hans",
+            Name = new List<string>
+            {
+                "Non-zho (Others)",
+                "zh-Hant (Traditional)",
+                "zh-Hans (Simplified)"
+            },
+            T2SContent = "zh-Hant (繁) to zh-Hans (简)",
+            S2TContent = "zh-Hans (简) to zh-Hant (繁)",
+            CustomContent = "Manual (自定义)",
+            StdContent = "General (通用简繁)",
+            ZhtwContent = "ZH-TW (中台简繁)",
+            HkContent = "ZH-HK (中港简繁)",
+            CbZhtwContent = "ZH-TW Idioms (中台惯用语)",
+            CbPunctuationContent = "Punctuation (标点)",
+            CustomOptions = new List<string> { "s2t (zh-Hans->zh-Hant)" },
+            Runtimes = new RuntimeContents()
+        };
+    }
+
+    private static int NormalizeLanguageLocale(Language language)
+    {
+        var locale = language.Locale != 0 ? language.Locale : language.Id;
+        return Math.Clamp(locale, 0, 2);
+    }
+
+    private static Language ResolveSelectedLanguage(LanguageSettings settings)
+    {
+        var locale = Math.Clamp(settings.Locale, 0, 2);
+        var languages = settings.Languages ?? new List<Language>();
+
+        return languages.FirstOrDefault(language => NormalizeLanguageLocale(language) == locale)
+               ?? languages.FirstOrDefault(language => language.Id == locale)
+               ?? languages.FirstOrDefault(language => language.Id != 0)
+               ?? CreateFallbackLanguage();
+    }
+
+    private Language ResolveLanguageByLocale(int locale)
+    {
+        var languages = _languageSettings?.Languages ?? new List<Language>();
+        return languages.FirstOrDefault(language => NormalizeLanguageLocale(language) == locale)
+               ?? languages.FirstOrDefault(language => language.Id == locale)
+               ?? _selectedLanguage;
+    }
+
+    private void ApplySelectedLanguage(Language language, bool syncLocale)
+    {
+        if (syncLocale && _languageSettings is not null)
+        {
+            var normalizedLocale = NormalizeLanguageLocale(language);
+            if (_languageSettings.Locale != normalizedLocale)
+            {
+                _languageSettings.Locale = normalizedLocale;
+                this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            }
+        }
+
+        _codeNames.Clear();
+        foreach (var codeName in language.Name)
+            _codeNames.Add(codeName);
+
+        while (_codeNames.Count < 3)
+            _codeNames.Add(string.Empty);
+
+        RbT2SContent = language.T2SContent;
+        RbS2TContent = language.S2TContent;
+        RbCustomContent = language.CustomContent;
+        RbStdContent = language.StdContent;
+        RbZhtwContent = language.ZhtwContent;
+        RbHkContent = language.HkContent;
+        CbZhtwContent = language.CbZhtwContent;
+        CbPunctuationContent = language.CbPunctuationContent;
+
+        var selectedConfigKey = GetCustomConfigKey(SelectedItem);
+        CustomOptions.Clear();
+        foreach (var option in language.CustomOptions)
+            CustomOptions.Add(option);
+
+        var matchingOption = CustomOptions.FirstOrDefault(option =>
+            string.Equals(GetCustomConfigKey(option), selectedConfigKey, StringComparison.OrdinalIgnoreCase));
+        SelectedItem = matchingOption
+                       ?? (CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)");
+
+        _selectedLanguage = language;
+        _selectedUiLanguageIndex = NormalizeLanguageLocale(language) == 2 ? 0 : 1;
+
+        RefreshLanguageDependentUi();
+        RefreshRuntimeStatus();
+        this.RaisePropertyChanged(nameof(SelectedLanguage));
+        this.RaisePropertyChanged(nameof(SelectedUiLanguageIndex));
+        this.RaisePropertyChanged(nameof(UiLanguageOption0Content));
+        this.RaisePropertyChanged(nameof(UiLanguageOption1Content));
+    }
+
+    private static string GetCustomConfigKey(string? option)
+    {
+        if (string.IsNullOrWhiteSpace(option))
+            return string.Empty;
+
+        var index = option.IndexOf(' ');
+        return index > 0 ? option[..index] : option;
+    }
+
+    private string GetUiSelectionLabel(int index, string fallback)
+    {
+        return _selectedLanguage.UiSelectionContent.Count > index &&
+               !string.IsNullOrWhiteSpace(_selectedLanguage.UiSelectionContent[index])
+            ? _selectedLanguage.UiSelectionContent[index]
+            : fallback;
+    }
+
+    private void RefreshLanguageDependentUi()
+    {
+        if (!string.IsNullOrEmpty(TbSourceTextDocument?.Text))
+            UpdateEncodeInfo(Opencc.ZhoCheck(TbSourceTextDocument.Text));
+
+        if (string.IsNullOrEmpty(LblSourceCodeContent))
+            return;
+
+        if (LblSourceCodeContent.Contains("Non", StringComparison.OrdinalIgnoreCase))
+        {
+            LblDestinationCodeContent = LblSourceCodeContent;
+            return;
+        }
+
+        LblDestinationCodeContent = IsRbT2S
+            ? _selectedLanguage.Name[2]
+            : IsRbS2T
+                ? _selectedLanguage.Name[1]
+                : $"Manual ( {GetCurrentConfig()} )";
+    }
+
+    private void RefreshRuntimeStatus()
+    {
+        var runtimeVersion = RuntimeInformation.FrameworkDescription;
+        var openccVer = GetOpenccNetLibAssemblyVersion();
+        var runtimes = _selectedLanguage.Runtimes;
+        var runtimeLabel = string.IsNullOrWhiteSpace(runtimes.Label)
+            ? new RuntimeContents().Label
+            : runtimes.Label;
+        var dictionaryKey = string.IsNullOrWhiteSpace(_languageSettings?.Dictionary)
+            ? "default"
+            : _languageSettings.Dictionary;
+        var dictionaryLabel = runtimes.Dictionaries.TryGetValue(dictionaryKey, out var label)
+            ? label
+            : runtimes.Dictionaries.GetValueOrDefault("default", dictionaryKey);
+
+        LblStatusBarContent = $"{runtimeLabel}: {runtimeVersion} | OpenccNetLib {openccVer} | {dictionaryLabel}";
     }
 
     #region Reactive Command Region
@@ -1474,6 +1682,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isTabMain, value);
             if (!value) return;
             IsTabBatch = false;
+            IsTabSettings = false;
             IsBtnOpenFileVisible = true;
             IsLblFileNameVisible = true;
             IsCmbSaveTargetVisible = true;
@@ -1482,6 +1691,7 @@ public class MainWindowViewModel : ViewModelBase
             IsBtnBatchStartVisible = false;
             TabMainFontWeight = FontWeight.Black;
             TabBatchFontWeight = FontWeight.Normal;
+            TabSettingsFontWeight = FontWeight.Normal;
         }
     }
 
@@ -1493,6 +1703,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isTabBatch, value);
             if (!value) return;
             IsTabMain = false;
+            IsTabSettings = false;
             IsBtnOpenFileVisible = false;
             IsLblFileNameVisible = false;
             IsCmbSaveTargetVisible = false;
@@ -1501,6 +1712,28 @@ public class MainWindowViewModel : ViewModelBase
             IsBtnBatchStartVisible = true;
             TabMainFontWeight = FontWeight.Normal;
             TabBatchFontWeight = FontWeight.Black;
+            TabSettingsFontWeight = FontWeight.Normal;
+        }
+    }
+
+    public bool IsTabSettings
+    {
+        get => _isTabSettings;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isTabSettings, value);
+            if (!value) return;
+            IsTabMain = false;
+            IsTabBatch = false;
+            IsBtnOpenFileVisible = false;
+            IsLblFileNameVisible = false;
+            IsCmbSaveTargetVisible = false;
+            IsBtnSaveFileVisible = false;
+            IsBtnProcessVisible = false;
+            IsBtnBatchStartVisible = false;
+            TabMainFontWeight = FontWeight.Normal;
+            TabBatchFontWeight = FontWeight.Normal;
+            TabSettingsFontWeight = FontWeight.Black;
         }
     }
 
@@ -1596,6 +1829,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _tabBatchFontWeight;
         set => this.RaiseAndSetIfChanged(ref _tabBatchFontWeight, value);
+    }
+
+    public FontWeight TabSettingsFontWeight
+    {
+        get => _tabSettingsFontWeight;
+        set => this.RaiseAndSetIfChanged(ref _tabSettingsFontWeight, value);
     }
 
     #endregion

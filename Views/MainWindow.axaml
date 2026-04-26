@@ -102,8 +102,15 @@
             </Grid.ColumnDefinitions>
 
             <TabControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="10,0,10,0">
-                <TabItem x:Name="TabMain" Header="Main Conversion" IsSelected="{Binding IsTabMain}"
+                <TabItem x:Name="TabMain" IsSelected="{Binding IsTabMain}"
                          FontSize="14" FontWeight="{Binding TabMainFontWeight}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Classes="icon-font"
+                                       Text="{x:Static local:Icons.Sync}" />
+                            <TextBlock Text="Main Conversion" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <!-- <Grid Background="#FFE5E5E5"> -->
                     <Grid>
                         <Grid.RowDefinitions>
@@ -427,8 +434,15 @@
                         </Button>
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TabBatch" Header="Batch Conversion" IsSelected="{Binding IsTabBatch}" FontSize="14"
+                <TabItem x:Name="TabBatch" IsSelected="{Binding IsTabBatch}" FontSize="14"
                          FontWeight="{Binding TabBatchFontWeight}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Classes="icon-font"
+                                       Text="{x:Static local:Icons.MoveToFolder}" />
+                            <TextBlock Text="Batch Conversion" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <!-- <Grid Background="#FFE5E5E5"> -->
                     <Grid>
                         <Grid.RowDefinitions>
@@ -733,6 +747,169 @@
 
                     </Grid>
                 </TabItem>
+                <TabItem x:Name="TabSettings" IsSelected="{Binding IsTabSettings}" FontSize="14"
+                         FontWeight="{Binding TabSettingsFontWeight}">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Classes="icon-font"
+                                       Text="{x:Static local:Icons.Settings}" />
+                            <TextBlock Text="Settings" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Border Margin="8"
+                            Padding="18"
+                            Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            BorderThickness="2"
+                            CornerRadius="6">
+                        <Grid RowDefinitions="*,Auto">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel Spacing="18"
+                                            Margin="0,0,18,0">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Conversion Settings"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <CheckBox Content="Convert filename"
+                                                  FontSize="14"
+                                                  IsChecked="{Binding IsCbConvertFilename, Mode=TwoWay}"
+                                                  ToolTip.Tip="Convert output filename using current configuration." />
+                                    </StackPanel>
+
+                                    <Separator />
+
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="UI Language"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <Grid ColumnDefinitions="*,*">
+                                            <ComboBox SelectedIndex="{Binding SelectedUiLanguageIndex, Mode=TwoWay}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="14">
+                                                <ComboBoxItem Content="{Binding UiLanguageOption0Content}" />
+                                                <ComboBoxItem Content="{Binding UiLanguageOption1Content}" />
+                                            </ComboBox>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <Separator />
+
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Theme Mode"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <Grid ColumnDefinitions="*,*">
+                                            <ComboBox ItemsSource="{Binding ThemeModeOptions}"
+                                                      SelectedItem="{Binding SelectedThemeMode, Mode=TwoWay}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="14"
+                                                      ToolTip.Tip="System follows the operating system theme." />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <Separator />
+
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="PDF Options"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <CheckBox Content="Add page header"
+                                                  FontSize="14"
+                                                  IsChecked="{Binding IsAddPdfPageHeader, Mode=TwoWay}" />
+                                        <CheckBox Content="Compact PDF text"
+                                                  FontSize="14"
+                                                  IsChecked="{Binding IsCompactPdfText, Mode=TwoWay}" />
+                                        <CheckBox Content="Auto-Reflow PDF text"
+                                                  FontSize="14"
+                                                  IsChecked="{Binding IsAutoReflow, Mode=TwoWay}"
+                                                  ToolTip.Tip="Auto-Reflow extracted CJK text when open PDF file." />
+                                        <CheckBox Content="Ignore untrusted PDF text"
+                                                  FontSize="14"
+                                                  IsEnabled="{Binding CanIgnoreUntrustedPdfText}"
+                                                  IsChecked="{Binding IsIgnoreUntrustedPdfText, Mode=TwoWay}"
+                                                  ToolTip.Tip="Ignores repeated or overlaid text commonly used for watermarks or visual noise. Enable this only if extracted text contains obvious duplicates or interference." />
+                                    </StackPanel>
+
+                                    <Separator />
+
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="PDF Engine"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <RadioButton Content="Use PdfPig engine"
+                                                     FontSize="14"
+                                                     GroupName="SettingsPdfEngine"
+                                                     IsChecked="{Binding IsPdfPigEngine, Mode=TwoWay}"
+                                                     ToolTip.Tip="Managed PdfPig engine - fast and great for simple text-based PDFs." />
+                                        <RadioButton Content="Use Pdfium (native) engine"
+                                                     FontSize="14"
+                                                     GroupName="SettingsPdfEngine"
+                                                     IsChecked="{Binding IsPdfiumEngine, Mode=TwoWay}"
+                                                     ToolTip.Tip="Native Pdfium engine - better for complex layout, rotated text, and tricky PDFs." />
+                                    </StackPanel>
+
+                                    <Separator />
+
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Heading Rules"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold" />
+                                        <Button HorizontalAlignment="Left"
+                                                Height="34"
+                                                Padding="12,0"
+                                                Command="{Binding ShowShortHeadingDialogCommand}"
+                                                ToolTip.Tip="Configure short heading detection rules, including maximum length and allowed character patterns.">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}" />
+                                                <TextBlock Text="Short heading settings..."
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <Grid Grid.Row="1"
+                                  ColumnDefinitions="*,Auto"
+                                  Margin="0,16,0,0"
+                                  ColumnSpacing="16"
+                                  VerticalAlignment="Bottom">
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}"
+                                               IsVisible="{Binding IsSettingsDirty}" />
+                                    <TextBlock Text="Unsaved changes"
+                                               FontWeight="Medium"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding IsSettingsDirty}" />
+                                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Completed}"
+                                               Opacity="0.8"
+                                               IsVisible="{Binding !IsSettingsDirty}" FontSize="22" />
+                                    <TextBlock Text="All settings saved"
+                                               Opacity="0.8"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding !IsSettingsDirty}" />
+                                </StackPanel>
+
+                                <Button Grid.Column="1"
+                                        MinWidth="180"
+                                        Height="36"
+                                        Padding="14,0"
+                                        HorizontalAlignment="Right"
+                                        Command="{Binding SaveLanguageSettingsCommand}"
+                                        IsEnabled="{Binding IsSettingsDirty}"
+                                        ToolTip.Tip="Writes UserLanguageSettings.json (advanced users only)">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
+                                        <TextBlock Text="Save advanced settings" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </TabItem>
             </TabControl>
         </Grid>
         <!-- <Button x:Name="BtnProcess" Content="Process" Padding="0 2" Width="100" HorizontalAlignment="Center" -->
@@ -812,7 +989,7 @@
                 <TextBlock Text="Save As" />
             </StackPanel>
         </Button>
-        <Button x:Name="BtnExit"  Padding="5 2" Width="50" HorizontalAlignment="Right"
+        <Button x:Name="BtnExit" Padding="5 2" Width="50" HorizontalAlignment="Right"
                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Classes="outline-button"
                 Height="30" ToolTip.Tip="Exit program"
                 Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"

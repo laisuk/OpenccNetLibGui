@@ -87,7 +87,8 @@ public class LanguageSettingsService
         "locale",
         "pdfOptions",
         "punctuation",
-        "sentenceBoundaryMode"
+        "sentenceBoundaryMode",
+        "themeMode"
     };
 
     private static readonly JsonSerializerSettings JsonSaveSettings =
@@ -270,6 +271,15 @@ public class LanguageSettingsService
         ""punctuations"": ""Punctuations"",
         ""convertFilename"": ""Convert filename"",
         ""outputFolder"": ""Output folder""
+      },
+      ""runtimes"": {
+        ""label"": ""Runtime"",
+        ""dictionaries"": {
+          ""default"": ""Default dictionary"",
+          ""dicts"": ""Folder [dicts] dictionary"",
+          ""json"": ""JSON dictionary"",
+          ""cbor"": ""CBOR dictionary""
+        }
       }
     },
     {
@@ -313,6 +323,15 @@ public class LanguageSettingsService
         ""punctuations"": ""Punctuations (標點)"",
         ""convertFilename"": ""Convert filename (轉換文件名)"",
         ""outputFolder"": ""Output folder (輸出文件夾)""
+      },
+      ""runtimes"": {
+        ""label"": ""執行環境"",
+        ""dictionaries"": {
+          ""default"": ""預設字典"",
+          ""dicts"": ""資料夾 [dicts] 字典"",
+          ""json"": ""JSON 字典"",
+          ""cbor"": ""CBOR 字典""
+        }
       }
     },
     {
@@ -356,6 +375,15 @@ public class LanguageSettingsService
         ""punctuations"": ""Punctuations (标点)"",
         ""convertFilename"": ""Convert filename (转换文件名)"",
         ""outputFolder"": ""Output folder (输出文件夹)""
+      },
+      ""runtimes"": {
+        ""label"": ""运行环境"",
+        ""dictionaries"": {
+          ""default"": ""默认字典"",
+          ""dicts"": ""文件夹 [dicts] 字典"",
+          ""json"": ""JSON 字典"",
+          ""cbor"": ""CBOR 字典""
+        }
       }
     }
   ],
@@ -413,6 +441,7 @@ public class LanguageSettingsService
   ""punctuation"": true,
   ""convertFilename"": false,
   ""dictionary"": ""zstd"",
+  ""themeMode"": ""System"",
   ""locale"": 2
 }
 ";

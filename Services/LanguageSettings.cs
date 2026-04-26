@@ -15,6 +15,7 @@ public class LanguageSettings
     public List<string>? OfficeFileTypes { get; set; }
     public string? Dictionary { get; set; }
     public int Locale { get; set; }
+    public string ThemeMode { get; set; } = "System";
     public bool Punctuation { get; set; }
     public bool ConvertFilename { get; set; }
 
@@ -41,6 +42,7 @@ public sealed class PdfOptions
 public class Language
 {
     public int Id { get; set; }
+    public int Locale { get; set; }
     public string Code { get; set; } = "";
     public List<string> Name { get; set; } = new();
     public string T2SContent { get; set; } = "";
@@ -52,7 +54,22 @@ public class Language
     public string CbZhtwContent { get; set; } = "";
     public string CbPunctuationContent { get; set; } = "";
     public List<string> CustomOptions { get; set; } = new();
+    public List<string> UiSelectionContent { get; set; } = new();
+    public RuntimeContents Runtimes { get; set; } = new();
     public BatchLogContents BatchLogContents { get; set; } = new();
+}
+
+[Serializable]
+public sealed class RuntimeContents
+{
+    public string Label { get; set; } = "Runtime";
+    public Dictionary<string, string> Dictionaries { get; set; } = new()
+    {
+        ["default"] = "Default dictionary",
+        ["dicts"] = "Folder [dicts] dictionary",
+        ["json"] = "JSON dictionary",
+        ["cbor"] = "CBOR dictionary"
+    };
 }
 
 [Serializable]
