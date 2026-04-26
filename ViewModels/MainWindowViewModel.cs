@@ -70,11 +70,21 @@ public class MainWindowViewModel : ViewModelBase
     private string? _rbHkContent = "ZH-HK (中港简繁)";
     private string? _cbZhtwContent = "ZH-TW Idioms (中台惯用语)";
     private string? _cbPunctuationContent = "Punctuation (标点)";
+    private string? _btnPasteContent = "Paste";
+    private string? _btnCopyContent = "Copy";
+    private string? _btnPreviewContent = "Preview";
+    private string? _btnDetectContent = "Detect";
+    private string? _uiLanguageContent = "UI Language";
+    private string? _themeModeContent = "Theme Mode";
+    private string? _tabMainContent = "Main Conversion";
+    private string? _tabBatchContent = "Batch Conversion";
+    private string? _tabSettingsContent = "Settings";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
     private FontWeight _tabSettingsFontWeight = FontWeight.Normal;
     private string? _tbOutFolderText = "./output/";
     private int _selectedUiLanguageIndex;
+    private int _selectedThemeModeIndex;
     private string _selectedThemeMode = "System";
 
     // private string? _tbPreviewText = string.Empty;
@@ -94,8 +104,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
-    public IReadOnlyList<string> ThemeModeOptions { get; } =
-        new[] { "System", "Light", "Dark" };
+    private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
 
     public string? SelectedItem
     {
@@ -104,24 +113,34 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public string UiLanguageOption0Content =>
-        GetUiSelectionLabel(0, "简体中文");
+        GetUiSelectionLabel(0, "English");
 
     public string UiLanguageOption1Content =>
         GetUiSelectionLabel(1, "繁體中文");
+
+    public string UiLanguageOption2Content =>
+        GetUiSelectionLabel(2, "简体中文");
+
+    public string ThemeModeOption0Content =>
+        GetThemeModeSelectionLabel(0, ThemeModeValues[0]);
+
+    public string ThemeModeOption1Content =>
+        GetThemeModeSelectionLabel(1, ThemeModeValues[1]);
+
+    public string ThemeModeOption2Content =>
+        GetThemeModeSelectionLabel(2, ThemeModeValues[2]);
 
     public int SelectedUiLanguageIndex
     {
         get => _selectedUiLanguageIndex;
         set
         {
-            var normalizedIndex = value <= 0 ? 0 : 1;
+            var normalizedIndex = Math.Clamp(value, 0, 2);
             if (_selectedUiLanguageIndex == normalizedIndex)
                 return;
 
-            var targetLocale = normalizedIndex == 0 ? 2 : 1;
-
             this.RaiseAndSetIfChanged(ref _selectedUiLanguageIndex, normalizedIndex);
-            ApplySelectedLanguage(ResolveLanguageByLocale(targetLocale), syncLocale: true);
+            ApplySelectedLanguage(ResolveLanguageByLocale(normalizedIndex), syncLocale: true);
         }
     }
 
@@ -147,6 +166,9 @@ public class MainWindowViewModel : ViewModelBase
                 return;
 
             this.RaiseAndSetIfChanged(ref _selectedThemeMode, normalized);
+            var normalizedIndex = GetThemeModeIndex(normalized);
+            SetSelectedThemeModeIndex(normalizedIndex);
+
             ApplyThemeMode(normalized);
 
             if (_languageSettings is null ||
@@ -156,6 +178,35 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings.ThemeMode = normalized;
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
+    }
+
+    public int SelectedThemeModeIndex
+    {
+        get => _selectedThemeModeIndex;
+        set
+        {
+            if (value < 0)
+                return;
+
+            var normalizedIndex = Math.Clamp(value, 0, ThemeModeValues.Length - 1);
+            if (_selectedThemeModeIndex == normalizedIndex)
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedThemeModeIndex, normalizedIndex);
+            SelectedThemeMode = ThemeModeValues[normalizedIndex];
+        }
+    }
+
+    private void SetSelectedThemeModeIndex(int index)
+    {
+        var normalizedIndex = Math.Clamp(index, 0, ThemeModeValues.Length - 1);
+        if (_selectedThemeModeIndex == normalizedIndex)
+        {
+            this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+            return;
+        }
+
+        this.RaiseAndSetIfChanged(ref _selectedThemeModeIndex, normalizedIndex, nameof(SelectedThemeModeIndex));
     }
 
     public MainWindowViewModel()
@@ -196,13 +247,14 @@ public class MainWindowViewModel : ViewModelBase
         _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
         _selectedLanguage = ResolveSelectedLanguage(_languageSettings);
-        _selectedUiLanguageIndex = NormalizeLanguageLocale(_selectedLanguage) == 2 ? 0 : 1;
+        _selectedUiLanguageIndex = NormalizeLanguageLocale(_selectedLanguage);
         ApplySelectedLanguage(_selectedLanguage, syncLocale: false);
 
         _textFileTypes = BuildExtSet(_languageSettings!.TextFileTypes);
         _officeFileTypes = BuildExtSet(_languageSettings!.OfficeFileTypes);
 
         _selectedThemeMode = NormalizeThemeMode(_languageSettings.ThemeMode);
+        _selectedThemeModeIndex = GetThemeModeIndex(_selectedThemeMode);
         ApplyThemeMode(_selectedThemeMode);
 
         IsCbPunctuation = _languageSettings.Punctuation;
@@ -276,6 +328,13 @@ public class MainWindowViewModel : ViewModelBase
         };
     }
 
+    private static int GetThemeModeIndex(string? value)
+    {
+        var normalized = NormalizeThemeMode(value);
+        var index = Array.IndexOf(ThemeModeValues, normalized);
+        return index >= 0 ? index : 0;
+    }
+
     private static void ApplyThemeMode(string themeMode)
     {
         var app = Application.Current;
@@ -311,8 +370,49 @@ public class MainWindowViewModel : ViewModelBase
             HkContent = "ZH-HK (中港简繁)",
             CbZhtwContent = "ZH-TW Idioms (中台惯用语)",
             CbPunctuationContent = "Punctuation (标点)",
+            BtnPasteContent = "Paste",
+            BtnCopyContent = "Copy",
+            BtnPreviewContent = "Preview",
+            BtnDetectContent = "Detect",
+            UiLanguageContent = "UI Language",
+            ThemeModeContent = "Theme Mode",
+            ThemeModeSelectionContent = new List<string>
+            {
+                "System",
+                "Light",
+                "Dark"
+            },
+            TabMainContent = "Main Conversion",
+            TabBatchContent = "Batch Conversion",
+            TabSettingsContent = "Settings",
+            UiSelectionContent = new List<string>
+            {
+                "English",
+                "繁體中文",
+                "简体中文"
+            },
             CustomOptions = new List<string> { "s2t (zh-Hans->zh-Hant)" },
             Runtimes = new RuntimeContents()
+        };
+    }
+
+    private static string GetListItem(IList<string>? items, int index, string fallback)
+    {
+        return items is not null &&
+               index >= 0 &&
+               index < items.Count &&
+               !string.IsNullOrWhiteSpace(items[index])
+            ? items[index]
+            : fallback;
+    }
+
+    private static string GetLanguageName(Language language, int index)
+    {
+        return index switch
+        {
+            1 => GetListItem(language.Name, 1, "zh-Hant"),
+            2 => GetListItem(language.Name, 2, "zh-Hans"),
+            _ => GetListItem(language.Name, 0, "Non-zho")
         };
     }
 
@@ -358,7 +458,7 @@ public class MainWindowViewModel : ViewModelBase
             _codeNames.Add(codeName);
 
         while (_codeNames.Count < 3)
-            _codeNames.Add(string.Empty);
+            _codeNames.Add(GetLanguageName(language, _codeNames.Count));
 
         RbT2SContent = language.T2SContent;
         RbS2TContent = language.S2TContent;
@@ -368,6 +468,34 @@ public class MainWindowViewModel : ViewModelBase
         RbHkContent = language.HkContent;
         CbZhtwContent = language.CbZhtwContent;
         CbPunctuationContent = language.CbPunctuationContent;
+        BtnPasteContent = string.IsNullOrWhiteSpace(language.BtnPasteContent)
+            ? "Paste"
+            : language.BtnPasteContent;
+        BtnCopyContent = string.IsNullOrWhiteSpace(language.BtnCopyContent)
+            ? "Copy"
+            : language.BtnCopyContent;
+        BtnPreviewContent = string.IsNullOrWhiteSpace(language.BtnPreviewContent)
+            ? "Preview"
+            : language.BtnPreviewContent;
+        BtnDetectContent = string.IsNullOrWhiteSpace(language.BtnDetectContent)
+            ? "Detect"
+            : language.BtnDetectContent;
+        UiLanguageContent = string.IsNullOrWhiteSpace(language.UiLanguageContent)
+            ? "UI Language"
+            : language.UiLanguageContent;
+        ThemeModeContent = string.IsNullOrWhiteSpace(language.ThemeModeContent)
+            ? "Theme Mode"
+            : language.ThemeModeContent;
+        TabMainContent = string.IsNullOrWhiteSpace(language.TabMainContent)
+            ? "Main Conversion"
+            : language.TabMainContent;
+        TabBatchContent = string.IsNullOrWhiteSpace(language.TabBatchContent)
+            ? "Batch Conversion"
+            : language.TabBatchContent;
+        TabSettingsContent = string.IsNullOrWhiteSpace(language.TabSettingsContent)
+            ? "Settings"
+            : language.TabSettingsContent;
+        SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
         var selectedConfigKey = GetCustomConfigKey(SelectedItem);
         CustomOptions.Clear();
@@ -380,7 +508,7 @@ public class MainWindowViewModel : ViewModelBase
                        ?? (CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)");
 
         _selectedLanguage = language;
-        _selectedUiLanguageIndex = NormalizeLanguageLocale(language) == 2 ? 0 : 1;
+        _selectedUiLanguageIndex = NormalizeLanguageLocale(language);
 
         RefreshLanguageDependentUi();
         RefreshRuntimeStatus();
@@ -388,6 +516,12 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(SelectedUiLanguageIndex));
         this.RaisePropertyChanged(nameof(UiLanguageOption0Content));
         this.RaisePropertyChanged(nameof(UiLanguageOption1Content));
+        this.RaisePropertyChanged(nameof(UiLanguageOption2Content));
+        this.RaisePropertyChanged(nameof(ThemeModeOption0Content));
+        this.RaisePropertyChanged(nameof(ThemeModeOption1Content));
+        this.RaisePropertyChanged(nameof(ThemeModeOption2Content));
+        this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+        ReselectThemeModeIndex();
     }
 
     private static string GetCustomConfigKey(string? option)
@@ -401,10 +535,25 @@ public class MainWindowViewModel : ViewModelBase
 
     private string GetUiSelectionLabel(int index, string fallback)
     {
-        return _selectedLanguage.UiSelectionContent.Count > index &&
-               !string.IsNullOrWhiteSpace(_selectedLanguage.UiSelectionContent[index])
-            ? _selectedLanguage.UiSelectionContent[index]
-            : fallback;
+        return GetListItem(_selectedLanguage.UiSelectionContent, index, fallback);
+    }
+
+    private string GetThemeModeSelectionLabel(int index, string fallback)
+    {
+        return GetListItem(_selectedLanguage.ThemeModeSelectionContent, index, fallback);
+    }
+
+    private void ReselectThemeModeIndex()
+    {
+        var selectedIndex = GetThemeModeIndex(_selectedThemeMode);
+        _selectedThemeModeIndex = -1;
+        this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            _selectedThemeModeIndex = selectedIndex;
+            this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+        });
     }
 
     private void RefreshLanguageDependentUi()
@@ -422,9 +571,9 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         LblDestinationCodeContent = IsRbT2S
-            ? _selectedLanguage.Name[2]
+            ? GetLanguageName(_selectedLanguage, 2)
             : IsRbS2T
-                ? _selectedLanguage.Name[1]
+                ? GetLanguageName(_selectedLanguage, 1)
                 : $"Manual ( {GetCurrentConfig()} )";
     }
 
@@ -827,9 +976,9 @@ public class MainWindowViewModel : ViewModelBase
         LblDestinationCodeContent = LblSourceCodeContent!.Contains("Non")
             ? LblSourceCodeContent
             : IsRbT2S
-                ? _selectedLanguage.Name[2]
+                ? GetLanguageName(_selectedLanguage, 2)
                 : IsRbS2T
-                    ? _selectedLanguage.Name[1]
+                    ? GetLanguageName(_selectedLanguage, 1)
                     : $"Manual ( {config} )";
 
         LblStatusBarContent = $"Process completed: {config} —> {stopwatch.ElapsedMilliseconds} ms";
@@ -1190,7 +1339,7 @@ public class MainWindowViewModel : ViewModelBase
                     continue;
                 }
 
-                var textCode = _selectedLanguage.Name[Opencc.ZhoCheck(inputText)];
+                var textCode = GetLanguageName(_selectedLanguage, Opencc.ZhoCheck(inputText));
                 LbxDestinationItems.Add($"({counter}) [{textCode}] {item}");
             }
             else
@@ -1252,17 +1401,17 @@ public class MainWindowViewModel : ViewModelBase
         switch (codeText)
         {
             case 1:
-                LblSourceCodeContent = _codeNames[codeText];
+                LblSourceCodeContent = GetListItem(_codeNames, codeText, GetLanguageName(_selectedLanguage, codeText));
                 if (!IsRbT2S) IsRbT2S = true;
                 break;
 
             case 2:
-                LblSourceCodeContent = _codeNames[codeText];
+                LblSourceCodeContent = GetListItem(_codeNames, codeText, GetLanguageName(_selectedLanguage, codeText));
                 if (!IsRbS2T) IsRbS2T = true;
                 break;
 
             default:
-                LblSourceCodeContent = _codeNames[0];
+                LblSourceCodeContent = GetListItem(_codeNames, 0, GetLanguageName(_selectedLanguage, 0));
                 break;
         }
     }
@@ -1569,6 +1718,60 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _cbPunctuationContent, value);
     }
 
+    public string? BtnPasteContent
+    {
+        get => _btnPasteContent;
+        set => this.RaiseAndSetIfChanged(ref _btnPasteContent, value);
+    }
+
+    public string? BtnCopyContent
+    {
+        get => _btnCopyContent;
+        set => this.RaiseAndSetIfChanged(ref _btnCopyContent, value);
+    }
+
+    public string? BtnPreviewContent
+    {
+        get => _btnPreviewContent;
+        set => this.RaiseAndSetIfChanged(ref _btnPreviewContent, value);
+    }
+
+    public string? BtnDetectContent
+    {
+        get => _btnDetectContent;
+        set => this.RaiseAndSetIfChanged(ref _btnDetectContent, value);
+    }
+
+    public string? UiLanguageContent
+    {
+        get => _uiLanguageContent;
+        set => this.RaiseAndSetIfChanged(ref _uiLanguageContent, value);
+    }
+
+    public string? ThemeModeContent
+    {
+        get => _themeModeContent;
+        set => this.RaiseAndSetIfChanged(ref _themeModeContent, value);
+    }
+
+    public string? TabMainContent
+    {
+        get => _tabMainContent;
+        set => this.RaiseAndSetIfChanged(ref _tabMainContent, value);
+    }
+
+    public string? TabBatchContent
+    {
+        get => _tabBatchContent;
+        set => this.RaiseAndSetIfChanged(ref _tabBatchContent, value);
+    }
+
+    public string? TabSettingsContent
+    {
+        get => _tabSettingsContent;
+        set => this.RaiseAndSetIfChanged(ref _tabSettingsContent, value);
+    }
+
     #endregion
 
     #region Save Target Region
@@ -1604,7 +1807,7 @@ public class MainWindowViewModel : ViewModelBase
             IsRbT2S = false;
             // IsRbSegment = false;
             // IsRbTag = false;
-            LblSourceCodeContent = _selectedLanguage.Name[2];
+            LblSourceCodeContent = GetLanguageName(_selectedLanguage, 2);
         }
     }
 
@@ -1616,7 +1819,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isRbT2S, value);
             if (!value) return;
             IsRbS2T = false;
-            LblSourceCodeContent = _selectedLanguage.Name[1];
+            LblSourceCodeContent = GetLanguageName(_selectedLanguage, 1);
         }
     }
 

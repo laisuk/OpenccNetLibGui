@@ -108,7 +108,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.Sync}" />
-                            <TextBlock Text="Main Conversion" />
+                            <TextBlock Text="{Binding TabMainContent}" />
                         </StackPanel>
                     </TabItem.Header>
                     <!-- <Grid Background="#FFE5E5E5"> -->
@@ -412,7 +412,7 @@
                                 <!--     </PathIcon.RenderTransform> -->
                                 <!-- </PathIcon> -->
                                 <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Paste}" />
-                                <TextBlock Text="Paste" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding BtnPasteContent}" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
                         <Button x:Name="BtnClearDestination" Grid.Column="1" Padding="0 2" Width="40"
@@ -429,7 +429,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="3">
                                 <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
                                 <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}" />
-                                <TextBlock Text="Copy" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding BtnCopyContent}" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -440,7 +440,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.MoveToFolder}" />
-                            <TextBlock Text="Batch Conversion" />
+                            <TextBlock Text="{Binding TabBatchContent}" />
                         </StackPanel>
                     </TabItem.Header>
                     <!-- <Grid Background="#FFE5E5E5"> -->
@@ -702,12 +702,12 @@
                                   VerticalAlignment="Center"
                                   ToolTip.Tip="Convert output filename using current configuration."
                                   HorizontalAlignment="Left" IsChecked="{Binding IsCbConvertFilename}" />
-                        <Button x:Name="BtnPreview" Content="Preview" Padding="0 2" Width="70"
+                        <Button x:Name="BtnPreview" Content="{Binding BtnPreviewContent}" Padding="0 2" Width="70"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,135,2"
                                 Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26"
                                 ToolTip.Tip="Preview selected file in Preview Box."
                                 VerticalAlignment="Center" FontSize="14" Command="{Binding BtnPreviewCommand}" />
-                        <Button x:Name="BtnDetect" Content="Detect" Padding="0 2" Width="70"
+                        <Button x:Name="BtnDetect" Content="{Binding BtnDetectContent}" Padding="0 2" Width="70"
                                 HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,60,2"
                                 Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26"
                                 ToolTip.Tip="Detect Chinese variants (zho code) for files in List Box."
@@ -753,7 +753,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.Settings}" />
-                            <TextBlock Text="Settings" />
+                            <TextBlock Text="{Binding TabSettingsContent}" />
                         </StackPanel>
                     </TabItem.Header>
                     <Border Margin="8"
@@ -780,7 +780,7 @@
                                     <Separator />
 
                                     <StackPanel Spacing="10">
-                                        <TextBlock Text="UI Language"
+                                        <TextBlock Text="{Binding UiLanguageContent}"
                                                    FontSize="16"
                                                    FontWeight="SemiBold" />
                                         <Grid ColumnDefinitions="*,*">
@@ -789,6 +789,7 @@
                                                       FontSize="14">
                                                 <ComboBoxItem Content="{Binding UiLanguageOption0Content}" />
                                                 <ComboBoxItem Content="{Binding UiLanguageOption1Content}" />
+                                                <ComboBoxItem Content="{Binding UiLanguageOption2Content}" />
                                             </ComboBox>
                                         </Grid>
                                     </StackPanel>
@@ -796,15 +797,18 @@
                                     <Separator />
 
                                     <StackPanel Spacing="10">
-                                        <TextBlock Text="Theme Mode"
+                                        <TextBlock Text="{Binding ThemeModeContent}"
                                                    FontSize="16"
                                                    FontWeight="SemiBold" />
                                         <Grid ColumnDefinitions="*,*">
-                                            <ComboBox ItemsSource="{Binding ThemeModeOptions}"
-                                                      SelectedItem="{Binding SelectedThemeMode, Mode=TwoWay}"
+                                            <ComboBox SelectedIndex="{Binding SelectedThemeModeIndex, Mode=TwoWay}"
                                                       HorizontalAlignment="Stretch"
                                                       FontSize="14"
-                                                      ToolTip.Tip="System follows the operating system theme." />
+                                                      ToolTip.Tip="System follows the operating system theme.">
+                                                <ComboBoxItem Content="{Binding ThemeModeOption0Content}" />
+                                                <ComboBoxItem Content="{Binding ThemeModeOption1Content}" />
+                                                <ComboBoxItem Content="{Binding ThemeModeOption2Content}" />
+                                            </ComboBox>
                                         </Grid>
                                     </StackPanel>
 
@@ -990,9 +994,10 @@
             </StackPanel>
         </Button>
         <Button x:Name="BtnExit" Padding="5 2" Width="50" HorizontalAlignment="Right"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Classes="outline-button"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                Classes="outline-button danger-outline-button"
                 Height="30" ToolTip.Tip="Exit program"
-                Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Foreground="Red"
+                Margin="0,0,20,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14"
                 FontWeight="SemiBold" Click="BtnExit_Click">
             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.PowerButton}" FontWeight="SemiBold" />
         </Button>

@@ -11,11 +11,30 @@
       "t2sContent": "zh-Hant (TRAD) to zh-Hans (SIMP)",
       "s2tContent": "zh-Hans (SIMP) to zh-Hant (TRAD)",
       "customContent": "Custom Config",
+      "uiLanguageContent": "UI Language",
+      "tabMainContent": "Main Conversion",
+      "tabBatchContent": "Batch Conversion",
+      "tabSettingsContent": "Settings",
       "stdContent": "General Region",
       "zhtwContent": "zh-CN / zh-TW Region",
       "hkContent": "zh-CN / zh-HK Region",
       "cbZhtwContent": "zh-CN / zh-TW Idioms",
       "cbPunctuationContent": "Punctuation",
+      "btnPasteContent": "Paste",
+      "btnCopyContent": "Copy",
+      "btnPreviewContent": "Preview",
+      "btnDetectContent": "Detect",
+      "themeModeContent": "Theme Mode",
+      "themeModeSelectionContent": [
+        "System",
+        "Light",
+        "Dark"
+      ],
+      "uiSelectionContent": [
+        "English",
+        "Traditional Chinese",
+        "Simplified Chinese"
+      ],
       "customOptions": [
         "s2t",
         "s2tw",
@@ -63,11 +82,30 @@
       "t2sContent": "zh-Hant (繁體) to zh-Hans (簡體)",
       "s2tContent": "zh-Hans (簡體) to zh-Hant (繁體)",
       "customContent": "Manual (自定義)",
+      "uiLanguageContent": "介面語言",
+      "tabMainContent": "主要轉換",
+      "tabBatchContent": "批次轉換",
+      "tabSettingsContent": "設定",
       "stdContent": "General (通用簡繁)",
       "zhtwContent": "ZH-TW (中臺簡繁)",
       "hkContent": "ZH-HK (中港簡繁)",
       "cbZhtwContent": "ZH-TW Idioms (中臺慣用語)",
       "cbPunctuationContent": "Punctuation (標點)",
+      "btnPasteContent": "貼上",
+      "btnCopyContent": "複製",
+      "btnPreviewContent": "預覽",
+      "btnDetectContent": "偵測",
+      "themeModeContent": "主題模式",
+      "themeModeSelectionContent": [
+        "跟隨系統",
+        "淺色",
+        "深色"
+      ],
+      "uiSelectionContent": [
+        "英文",
+        "正體中文",
+        "簡體中文"
+      ],
       "customOptions": [
         "s2t (簡→繁)",
         "s2tw (簡→繁臺)",
@@ -115,11 +153,30 @@
       "t2sContent": "zh-Hant (繁体) to zh-Hans (简体)",
       "S2tContent": "zh-Hans (简体) to zh-Hant (繁体)",
       "customContent": "Manual (自定义)",
+      "uiLanguageContent": "界面语言",
+      "tabMainContent": "主要转换",
+      "tabBatchContent": "批量转换",
+      "tabSettingsContent": "设置",
       "stdContent": "General (通用简繁)",
       "zhtwContent": "ZH-TW (中台简繁)",
       "hkContent": "ZH-HK (中港简繁)",
       "cbZhtwContent": "ZH-TW Idioms (中台惯用语)",
       "cbPunctuationContent": "Punctuation (标点)",
+      "btnPasteContent": "粘贴",
+      "btnCopyContent": "复制",
+      "btnPreviewContent": "预览",
+      "btnDetectContent": "检测",
+      "themeModeContent": "主题模式",
+      "themeModeSelectionContent": [
+        "跟随系统",
+        "浅色",
+        "深色"
+      ],
+      "uiSelectionContent": [
+        "英文",
+        "繁体中文",
+        "简体中文"
+      ],
       "customOptions": [
         "s2t (简→繁)",
         "s2tw (简→繁台)",

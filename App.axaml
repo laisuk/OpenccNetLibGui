@@ -71,8 +71,8 @@
         <Style Selector="Button.outline-button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
-            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Padding" Value="12 6" />
             <Setter Property="FontSize" Value="18" />
@@ -81,10 +81,83 @@
 
         <Style Selector="Button.outline-button:pointerover">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
         </Style>
 
         <Style Selector="Button.outline-button:pressed">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseMediumBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button:disabled">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlDisabledBaseMediumLowBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlDisabledBaseMediumLowBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseMediumBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlDisabledBaseMediumLowBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlDisabledBaseMediumLowBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button.danger-outline-button">
+            <Setter Property="Foreground" Value="{DynamicResource DangerOutlineForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerOutlineForegroundBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button.danger-outline-button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DangerOutlinePointerOverForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerOutlinePointerOverForegroundBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button.danger-outline-button:pressed">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseMediumBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DangerOutlinePressedForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerOutlinePressedForegroundBrush}" />
+        </Style>
+
+        <Style Selector="Button.outline-button.danger-outline-button /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource DangerOutlineForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerOutlineForegroundBrush}" />
+        </Style>
+
+        <Style
+            Selector="Button.outline-button.danger-outline-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DangerOutlinePointerOverForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerOutlinePointerOverForegroundBrush}" />
+        </Style>
+
+        <Style
+            Selector="Button.outline-button.danger-outline-button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseMediumBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DangerOutlinePressedForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerOutlinePressedForegroundBrush}" />
         </Style>
 
         <!-- 包住 TextEditor 的外層容器 -->
@@ -130,7 +203,19 @@
 
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Theme-specific resources live here -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="DangerOutlineForegroundBrush" Color="#C42B1C" />
+                    <SolidColorBrush x:Key="DangerOutlinePointerOverForegroundBrush" Color="#A4262C" />
+                    <SolidColorBrush x:Key="DangerOutlinePressedForegroundBrush" Color="#8E1F25" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="DangerOutlineForegroundBrush" Color="#F1707B" />
+                    <SolidColorBrush x:Key="DangerOutlinePointerOverForegroundBrush" Color="#FF99A4" />
+                    <SolidColorBrush x:Key="DangerOutlinePressedForegroundBrush" Color="#F1707B" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
             <StreamGeometry x:Key="Icon.Add">
                 M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 16.6944 7.30558 20.5 12 20.5C16.6944 20.5 20.5 16.6944 20.5 12C20.5 7.30558 16.6944 3.5 12 3.5ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z
             </StreamGeometry>
