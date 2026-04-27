@@ -88,8 +88,10 @@ public class Language
     public string ShortHeadingSettingsContent { get; set; } = "Short heading settings...";
     public string ThemeModeContent { get; set; } = "Theme Mode";
     public List<string> ThemeModeSelectionContent { get; set; } = new();
+    public List<string> SaveTargetSelectionContent { get; set; } = new();
     public List<string> CustomOptions { get; set; } = new();
     public List<string> UiSelectionContent { get; set; } = new();
+    public Dictionary<string, string> Hints { get; set; } = new();
     public RuntimeContents Runtimes { get; set; } = new();
     public BatchLogContents BatchLogContents { get; set; } = new();
 }

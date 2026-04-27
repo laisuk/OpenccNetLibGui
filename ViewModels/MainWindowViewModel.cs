@@ -123,13 +123,44 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbConvertFilename;
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
+    private SaveTargetOption? _selectedSaveTargetOption;
 
     public bool IsSettingsDirty =>
         _languageSettingsService!.IsDirty;
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
+    public ObservableCollection<SaveTargetOption> SaveTargetOptions { get; } = new();
+
     private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
+
+    private static readonly string[] HintPropertyNames =
+    {
+        nameof(CbZhtwHint),
+        nameof(CbPunctuationHint),
+        nameof(AutoReflowPdfTextHint),
+        nameof(IgnoreUntrustedPdfTextHint),
+        nameof(UsePdfPigEngineHint),
+        nameof(UsePdfiumEngineHint),
+        nameof(ShortHeadingSettingsHint),
+        nameof(SaveAdvancedSettingsHint),
+        nameof(ReflowHint),
+        nameof(ClearSourceHint),
+        nameof(ClearDestinationHint),
+        nameof(AddFileHint),
+        nameof(RemoveFileHint),
+        nameof(ConvertFilenameHint),
+        nameof(PreviewHint),
+        nameof(DetectHint),
+        nameof(ClearSourceListHint),
+        nameof(SelectOutputFolderHint),
+        nameof(ClearDisplayHint),
+        nameof(ThemeModeHint),
+        nameof(OpenFileHint),
+        nameof(SaveTargetHint),
+        nameof(SaveFileHint),
+        nameof(ExitHint)
+    };
 
     public string? SelectedItem
     {
@@ -241,6 +272,9 @@ public class MainWindowViewModel : ViewModelBase
         TbPreviewTextDocument = new TextDocument();
         LbxSourceItems = new ObservableCollection<string>();
         LbxDestinationItems = new ObservableCollection<string>();
+        SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Destination, "Destination"));
+        SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Source, "Source"));
+        SelectedSaveTargetOption = SaveTargetOptions[0];
         PdfVm = new PdfViewModel();
         BtnPasteCommand = ReactiveCommand.CreateFromTask(BtnPaste);
         BtnCopyCommand = ReactiveCommand.CreateFromTask(BtnCopy);
@@ -430,6 +464,11 @@ public class MainWindowViewModel : ViewModelBase
                 "Light",
                 "Dark"
             },
+            SaveTargetSelectionContent = new List<string>
+            {
+                "Destination",
+                "Source"
+            },
             TabMainContent = "Main Conversion",
             TabBatchContent = "Batch Conversion",
             TabSettingsContent = "Settings",
@@ -441,6 +480,7 @@ public class MainWindowViewModel : ViewModelBase
                 "繁體中文",
                 "简体中文"
             },
+            Hints = new Dictionary<string, string>(),
             CustomOptions = new List<string> { "s2t (zh-Hans->zh-Hant)" },
             Runtimes = new RuntimeContents()
         };
@@ -622,6 +662,17 @@ public class MainWindowViewModel : ViewModelBase
             : language.TabPreviewContent;
         SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
+        SaveTargetOptions.Clear();
+        SaveTargetOptions.Add(new SaveTargetOption(
+            SaveTarget.Destination,
+            GetListItem(language.SaveTargetSelectionContent, 0, "Destination")));
+        SaveTargetOptions.Add(new SaveTargetOption(
+            SaveTarget.Source,
+            GetListItem(language.SaveTargetSelectionContent, 1, "Source")));
+        SelectedSaveTargetOption = MatchOption(
+            SaveTargetOptions,
+            option => option.Target == SaveTarget.Destination);
+
         var selectedConfigKey = GetCustomConfigKey(SelectedItem);
         CustomOptions.Clear();
         foreach (var option in language.CustomOptions)
@@ -646,6 +697,8 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(ThemeModeOption1Content));
         this.RaisePropertyChanged(nameof(ThemeModeOption2Content));
         this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+        foreach (var propertyName in HintPropertyNames)
+            this.RaisePropertyChanged(propertyName);
         ReselectThemeModeIndex();
     }
 
@@ -658,6 +711,12 @@ public class MainWindowViewModel : ViewModelBase
         return index > 0 ? option[..index] : option;
     }
 
+    private static T? MatchOption<T>(IEnumerable<T> list, Func<T, bool> predicate)
+    {
+        var options = list as IList<T> ?? list.ToList();
+        return options.FirstOrDefault(predicate) ?? options.FirstOrDefault();
+    }
+
     private string GetUiSelectionLabel(int index, string fallback)
     {
         return GetListItem(_selectedLanguage.UiSelectionContent, index, fallback);
@@ -667,6 +726,89 @@ public class MainWindowViewModel : ViewModelBase
     {
         return GetListItem(_selectedLanguage.ThemeModeSelectionContent, index, fallback);
     }
+
+    private string GetHint(string key, string fallback)
+    {
+        return _selectedLanguage.Hints.TryGetValue(key, out var hint) &&
+               !string.IsNullOrWhiteSpace(hint)
+            ? hint
+            : fallback;
+    }
+
+    public string CbZhtwHint =>
+        GetHint("cbZhtwHint", "Using zh-CN and zh-TW idioms in conversion.");
+
+    public string CbPunctuationHint =>
+        GetHint("cbPunctuationHint", "Convert CJK punctuations between Simplified/Traditional Chinese.");
+
+    public string AutoReflowPdfTextHint =>
+        GetHint("autoReflowPdfTextHint", "Auto-Reflow extracted CJK text when open PDF file.");
+
+    public string IgnoreUntrustedPdfTextHint =>
+        GetHint("ignoreUntrustedPdfTextHint",
+            "Ignores repeated or overlaid text commonly used for watermarks or visual noise. Enable this only if extracted text contains obvious duplicates or interference.");
+
+    public string UsePdfPigEngineHint =>
+        GetHint("usePdfPigEngineHint", "Managed PdfPig engine - fast and great for simple text-based PDFs.");
+
+    public string UsePdfiumEngineHint =>
+        GetHint("usePdfiumEngineHint",
+            "Native Pdfium engine - better for complex layout, rotated text, and tricky PDFs.");
+
+    public string ShortHeadingSettingsHint =>
+        GetHint("shortHeadingSettingsHint",
+            "Configure short heading detection rules, including maximum length and allowed character patterns.");
+
+    public string SaveAdvancedSettingsHint =>
+        GetHint("saveAdvancedSettingsHint", "Writes UserLanguageSettings.json (advanced users only)");
+
+    public string ReflowHint =>
+        GetHint("reflowHint", "Reflow CJK paragraphs extracted from PDF text.");
+
+    public string ClearSourceHint =>
+        GetHint("clearSourceHint", "Clear source text box.");
+
+    public string ClearDestinationHint =>
+        GetHint("clearDestinationHint", "Clear destination text box.");
+
+    public string AddFileHint =>
+        GetHint("addFileHint", "Add file to Source List Box.");
+
+    public string RemoveFileHint =>
+        GetHint("removeFileHint", "Remove selected item in Source List Box.");
+
+    public string ConvertFilenameHint =>
+        GetHint("convertFilenameHint", "Convert output filename using current configuration.");
+
+    public string PreviewHint =>
+        GetHint("previewHint", "Preview selected file in Preview Box.");
+
+    public string DetectHint =>
+        GetHint("detectHint", "Detect Chinese variants (zho code) for files in List Box.");
+
+    public string ClearSourceListHint =>
+        GetHint("clearSourceListHint", "Clear all items in Source List Box.");
+
+    public string SelectOutputFolderHint =>
+        GetHint("selectOutputFolderHint", "Select output folder.");
+
+    public string ClearDisplayHint =>
+        GetHint("clearDisplayHint", "Clear current display box.");
+
+    public string ThemeModeHint =>
+        GetHint("themeModeHint", "System follows the operating system theme.");
+
+    public string OpenFileHint =>
+        GetHint("openFileHint", "Open file for source text box contents.");
+
+    public string SaveTargetHint =>
+        GetHint("saveTargetHint", "Select target textbox contents to save as text file.");
+
+    public string SaveFileHint =>
+        GetHint("saveFileHint", "Save selected target as text file.");
+
+    public string ExitHint =>
+        GetHint("exitHint", "Exit program");
 
     private void ReselectThemeModeIndex()
     {
@@ -2057,15 +2199,69 @@ public class MainWindowViewModel : ViewModelBase
         Source
     }
 
-    public IReadOnlyList<SaveTarget> SaveTargets { get; } =
-        Enum.GetValues<SaveTarget>().ToList();
+    public sealed class SaveTargetOption
+    {
+        public SaveTargetOption(SaveTarget target, string content)
+        {
+            Target = target;
+            Content = content;
+        }
+
+        public SaveTarget Target { get; }
+        public string Content { get; }
+
+        public override string ToString() => Content;
+    }
 
     private SaveTarget _selectedSaveTarget = SaveTarget.Destination;
 
     public SaveTarget SelectedSaveTarget
     {
         get => _selectedSaveTarget;
-        set => this.RaiseAndSetIfChanged(ref _selectedSaveTarget, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedSaveTarget, value);
+            var option = MatchOption(SaveTargetOptions, candidate => candidate.Target == value);
+            if (!ReferenceEquals(_selectedSaveTargetOption, option))
+            {
+                _selectedSaveTargetOption = option;
+                this.RaisePropertyChanged(nameof(SelectedSaveTargetOption));
+            }
+
+            this.RaisePropertyChanged(nameof(SelectedSaveTargetIndex));
+        }
+    }
+
+    public int SelectedSaveTargetIndex
+    {
+        get => SelectedSaveTarget == SaveTarget.Source ? 1 : 0;
+        set
+        {
+            var normalizedIndex = Math.Clamp(value, 0, 1);
+            var target = normalizedIndex == 1
+                ? SaveTarget.Source
+                : SaveTarget.Destination;
+            SelectedSaveTargetOption = MatchOption(SaveTargetOptions, option => option.Target == target);
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public SaveTargetOption? SelectedSaveTargetOption
+    {
+        get => _selectedSaveTargetOption;
+        set
+        {
+            var option = value ?? MatchOption(
+                SaveTargetOptions,
+                candidate => candidate.Target == SaveTarget.Destination);
+            if (ReferenceEquals(_selectedSaveTargetOption, option))
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedSaveTargetOption, option);
+            if (option is not null)
+                SelectedSaveTarget = option.Target;
+            this.RaisePropertyChanged(nameof(SelectedSaveTargetIndex));
+        }
     }
 
     #endregion
