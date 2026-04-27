@@ -68,6 +68,24 @@ public class Language
     public string UnsavedChangesContent { get; set; } = "Unsaved changes";
     public string AllSettingsSavedContent { get; set; } = "All settings saved";
     public string BtnSaveAdvancedSettingsContent { get; set; } = "Save Advanced Settings";
+    public string ProcessContent { get; set; } = "Process";
+    public string BatchStartContent { get; set; } = "Batch Start";
+    public string SourceContent { get; set; } = "Source:";
+    public string DestinationContent { get; set; } = "Destination:";
+    public string OutputContent { get; set; } = "Output:";
+    public string FilenameContent { get; set; } = "Filename";
+    public string ConversionSettingsContent { get; set; } = "Conversion Settings";
+    public string ConvertFilenameContent { get; set; } = "Convert filename";
+    public string PdfOptionsContent { get; set; } = "PDF Options";
+    public string AddPdfPageHeaderContent { get; set; } = "Add page header";
+    public string CompactPdfTextContent { get; set; } = "Compact PDF text";
+    public string AutoReflowPdfTextContent { get; set; } = "Auto-Reflow PDF text";
+    public string IgnoreUntrustedPdfTextContent { get; set; } = "Ignore untrusted PDF text";
+    public string PdfEngineContent { get; set; } = "PDF Engine";
+    public string UsePdfPigEngineContent { get; set; } = "Use PdfPig engine";
+    public string UsePdfiumEngineContent { get; set; } = "Use Pdfium (native) engine";
+    public string HeadingRulesContent { get; set; } = "Heading Rules";
+    public string ShortHeadingSettingsContent { get; set; } = "Short heading settings...";
     public string ThemeModeContent { get; set; } = "Theme Mode";
     public List<string> ThemeModeSelectionContent { get; set; } = new();
     public List<string> CustomOptions { get; set; } = new();
@@ -80,6 +98,7 @@ public class Language
 public sealed class RuntimeContents
 {
     public string Label { get; set; } = "Runtime";
+
     public Dictionary<string, string> Dictionaries { get; set; } = new()
     {
         ["default"] = "Default dictionary",

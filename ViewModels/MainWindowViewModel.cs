@@ -79,6 +79,24 @@ public class MainWindowViewModel : ViewModelBase
     private string? _unsavedChangesContent = "Unsaved changes";
     private string? _allSettingsSavedContent = "All settings saved";
     private string? _btnSaveAdvancedSettingsContent = "Save Advanced Settings";
+    private string? _processContent = "Process";
+    private string? _batchStartContent = "Batch Start";
+    private string? _sourceContent = "Source:";
+    private string? _destinationContent = "Destination:";
+    private string? _outputContent = "Output:";
+    private string? _filenameContent = "Filename";
+    private string? _conversionSettingsContent = "Conversion Settings";
+    private string? _convertFilenameContent = "Convert filename";
+    private string? _pdfOptionsContent = "PDF Options";
+    private string? _addPdfPageHeaderContent = "Add page header";
+    private string? _compactPdfTextContent = "Compact PDF text";
+    private string? _autoReflowPdfTextContent = "Auto-Reflow PDF text";
+    private string? _ignoreUntrustedPdfTextContent = "Ignore untrusted PDF text";
+    private string? _pdfEngineContent = "PDF Engine";
+    private string? _usePdfPigEngineContent = "Use PdfPig engine";
+    private string? _usePdfiumEngineContent = "Use Pdfium (native) engine";
+    private string? _headingRulesContent = "Heading Rules";
+    private string? _shortHeadingSettingsContent = "Short heading settings...";
     private string? _uiLanguageContent = "UI Language";
     private string? _themeModeContent = "Theme Mode";
     private string? _tabMainContent = "Main Conversion";
@@ -386,6 +404,24 @@ public class MainWindowViewModel : ViewModelBase
             UnsavedChangesContent = "Unsaved changes",
             AllSettingsSavedContent = "All settings saved",
             BtnSaveAdvancedSettingsContent = "Save Advanced Settings",
+            ProcessContent = "Process",
+            BatchStartContent = "Batch Start",
+            SourceContent = "Source:",
+            DestinationContent = "Destination:",
+            OutputContent = "Output:",
+            FilenameContent = "Filename",
+            ConversionSettingsContent = "Conversion Settings",
+            ConvertFilenameContent = "Convert filename",
+            PdfOptionsContent = "PDF Options",
+            AddPdfPageHeaderContent = "Add page header",
+            CompactPdfTextContent = "Compact PDF text",
+            AutoReflowPdfTextContent = "Auto-Reflow PDF text",
+            IgnoreUntrustedPdfTextContent = "Ignore untrusted PDF text",
+            PdfEngineContent = "PDF Engine",
+            UsePdfPigEngineContent = "Use PdfPig engine",
+            UsePdfiumEngineContent = "Use Pdfium (native) engine",
+            HeadingRulesContent = "Heading Rules",
+            ShortHeadingSettingsContent = "Short heading settings...",
             UiLanguageContent = "UI Language",
             ThemeModeContent = "Theme Mode",
             ThemeModeSelectionContent = new List<string>
@@ -501,14 +537,68 @@ public class MainWindowViewModel : ViewModelBase
             ? "Save As"
             : language.BtnSaveAsContent;
         UnsavedChangesContent = string.IsNullOrWhiteSpace(language.UnsavedChangesContent)
-            ? "Save As"
+            ? "Unsaved changes"
             : language.UnsavedChangesContent;
         AllSettingsSavedContent = string.IsNullOrWhiteSpace(language.AllSettingsSavedContent)
-            ? "Save As"
+            ? "All settings saved"
             : language.AllSettingsSavedContent;
         BtnSaveAdvancedSettingsContent = string.IsNullOrWhiteSpace(language.BtnSaveAdvancedSettingsContent)
-            ? "Save As"
+            ? "Save Advanced Settings"
             : language.BtnSaveAdvancedSettingsContent;
+        ProcessContent = string.IsNullOrWhiteSpace(language.ProcessContent)
+            ? "Process"
+            : language.ProcessContent;
+        BatchStartContent = string.IsNullOrWhiteSpace(language.BatchStartContent)
+            ? "Batch Start"
+            : language.BatchStartContent;
+        SourceContent = string.IsNullOrWhiteSpace(language.SourceContent)
+            ? "Source:"
+            : language.SourceContent;
+        DestinationContent = string.IsNullOrWhiteSpace(language.DestinationContent)
+            ? "Destination:"
+            : language.DestinationContent;
+        OutputContent = string.IsNullOrWhiteSpace(language.OutputContent)
+            ? "Output:"
+            : language.OutputContent;
+        FilenameContent = string.IsNullOrWhiteSpace(language.FilenameContent)
+            ? "Filename"
+            : language.FilenameContent;
+        ConversionSettingsContent = string.IsNullOrWhiteSpace(language.ConversionSettingsContent)
+            ? "Conversion Settings"
+            : language.ConversionSettingsContent;
+        ConvertFilenameContent = string.IsNullOrWhiteSpace(language.ConvertFilenameContent)
+            ? "Convert filename"
+            : language.ConvertFilenameContent;
+        PdfOptionsContent = string.IsNullOrWhiteSpace(language.PdfOptionsContent)
+            ? "PDF Options"
+            : language.PdfOptionsContent;
+        AddPdfPageHeaderContent = string.IsNullOrWhiteSpace(language.AddPdfPageHeaderContent)
+            ? "Add page header"
+            : language.AddPdfPageHeaderContent;
+        CompactPdfTextContent = string.IsNullOrWhiteSpace(language.CompactPdfTextContent)
+            ? "Compact PDF text"
+            : language.CompactPdfTextContent;
+        AutoReflowPdfTextContent = string.IsNullOrWhiteSpace(language.AutoReflowPdfTextContent)
+            ? "Auto-Reflow PDF text"
+            : language.AutoReflowPdfTextContent;
+        IgnoreUntrustedPdfTextContent = string.IsNullOrWhiteSpace(language.IgnoreUntrustedPdfTextContent)
+            ? "Ignore untrusted PDF text"
+            : language.IgnoreUntrustedPdfTextContent;
+        PdfEngineContent = string.IsNullOrWhiteSpace(language.PdfEngineContent)
+            ? "PDF Engine"
+            : language.PdfEngineContent;
+        UsePdfPigEngineContent = string.IsNullOrWhiteSpace(language.UsePdfPigEngineContent)
+            ? "Use PdfPig engine"
+            : language.UsePdfPigEngineContent;
+        UsePdfiumEngineContent = string.IsNullOrWhiteSpace(language.UsePdfiumEngineContent)
+            ? "Use Pdfium (native) engine"
+            : language.UsePdfiumEngineContent;
+        HeadingRulesContent = string.IsNullOrWhiteSpace(language.HeadingRulesContent)
+            ? "Heading Rules"
+            : language.HeadingRulesContent;
+        ShortHeadingSettingsContent = string.IsNullOrWhiteSpace(language.ShortHeadingSettingsContent)
+            ? "Short heading settings..."
+            : language.ShortHeadingSettingsContent;
         UiLanguageContent = string.IsNullOrWhiteSpace(language.UiLanguageContent)
             ? "UI Language"
             : language.UiLanguageContent;
@@ -525,10 +615,10 @@ public class MainWindowViewModel : ViewModelBase
             ? "Settings"
             : language.TabSettingsContent;
         TabMessageContent = string.IsNullOrWhiteSpace(language.TabMessageContent)
-            ? "Settings"
+            ? "Message"
             : language.TabMessageContent;
         TabPreviewContent = string.IsNullOrWhiteSpace(language.TabPreviewContent)
-            ? "Settings"
+            ? "Preview"
             : language.TabPreviewContent;
         SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
@@ -1776,35 +1866,143 @@ public class MainWindowViewModel : ViewModelBase
         get => _btnDetectContent;
         set => this.RaiseAndSetIfChanged(ref _btnDetectContent, value);
     }
-    
+
     public string? BtnOpenFileContent
     {
         get => _btnOpenFileContent;
         set => this.RaiseAndSetIfChanged(ref _btnOpenFileContent, value);
     }
-    
+
     public string? BtnSaveAsContent
     {
         get => _btnSaveAsContent;
         set => this.RaiseAndSetIfChanged(ref _btnSaveAsContent, value);
     }
-    
+
     public string? UnsavedChangesContent
     {
         get => _unsavedChangesContent;
         set => this.RaiseAndSetIfChanged(ref _unsavedChangesContent, value);
     }
-    
+
     public string? AllSettingsSavedContent
     {
         get => _allSettingsSavedContent;
         set => this.RaiseAndSetIfChanged(ref _allSettingsSavedContent, value);
     }
-    
+
     public string? BtnSaveAdvancedSettingsContent
     {
         get => _btnSaveAdvancedSettingsContent;
         set => this.RaiseAndSetIfChanged(ref _btnSaveAdvancedSettingsContent, value);
+    }
+
+    public string? ProcessContent
+    {
+        get => _processContent;
+        set => this.RaiseAndSetIfChanged(ref _processContent, value);
+    }
+
+    public string? BatchStartContent
+    {
+        get => _batchStartContent;
+        set => this.RaiseAndSetIfChanged(ref _batchStartContent, value);
+    }
+
+    public string? SourceContent
+    {
+        get => _sourceContent;
+        set => this.RaiseAndSetIfChanged(ref _sourceContent, value);
+    }
+
+    public string? DestinationContent
+    {
+        get => _destinationContent;
+        set => this.RaiseAndSetIfChanged(ref _destinationContent, value);
+    }
+
+    public string? OutputContent
+    {
+        get => _outputContent;
+        set => this.RaiseAndSetIfChanged(ref _outputContent, value);
+    }
+
+    public string? FilenameContent
+    {
+        get => _filenameContent;
+        set => this.RaiseAndSetIfChanged(ref _filenameContent, value);
+    }
+
+    public string? ConversionSettingsContent
+    {
+        get => _conversionSettingsContent;
+        set => this.RaiseAndSetIfChanged(ref _conversionSettingsContent, value);
+    }
+
+    public string? ConvertFilenameContent
+    {
+        get => _convertFilenameContent;
+        set => this.RaiseAndSetIfChanged(ref _convertFilenameContent, value);
+    }
+
+    public string? PdfOptionsContent
+    {
+        get => _pdfOptionsContent;
+        set => this.RaiseAndSetIfChanged(ref _pdfOptionsContent, value);
+    }
+
+    public string? AddPdfPageHeaderContent
+    {
+        get => _addPdfPageHeaderContent;
+        set => this.RaiseAndSetIfChanged(ref _addPdfPageHeaderContent, value);
+    }
+
+    public string? CompactPdfTextContent
+    {
+        get => _compactPdfTextContent;
+        set => this.RaiseAndSetIfChanged(ref _compactPdfTextContent, value);
+    }
+
+    public string? AutoReflowPdfTextContent
+    {
+        get => _autoReflowPdfTextContent;
+        set => this.RaiseAndSetIfChanged(ref _autoReflowPdfTextContent, value);
+    }
+
+    public string? IgnoreUntrustedPdfTextContent
+    {
+        get => _ignoreUntrustedPdfTextContent;
+        set => this.RaiseAndSetIfChanged(ref _ignoreUntrustedPdfTextContent, value);
+    }
+
+    public string? PdfEngineContent
+    {
+        get => _pdfEngineContent;
+        set => this.RaiseAndSetIfChanged(ref _pdfEngineContent, value);
+    }
+
+    public string? UsePdfPigEngineContent
+    {
+        get => _usePdfPigEngineContent;
+        set => this.RaiseAndSetIfChanged(ref _usePdfPigEngineContent, value);
+    }
+
+    public string? UsePdfiumEngineContent
+    {
+        get => _usePdfiumEngineContent;
+        set => this.RaiseAndSetIfChanged(ref _usePdfiumEngineContent, value);
+    }
+
+    public string? HeadingRulesContent
+    {
+        get => _headingRulesContent;
+        set => this.RaiseAndSetIfChanged(ref _headingRulesContent, value);
+    }
+
+    public string? ShortHeadingSettingsContent
+    {
+        get => _shortHeadingSettingsContent;
+        set => this.RaiseAndSetIfChanged(ref _shortHeadingSettingsContent, value);
     }
 
     public string? UiLanguageContent
@@ -1836,13 +2034,13 @@ public class MainWindowViewModel : ViewModelBase
         get => _tabSettingsContent;
         set => this.RaiseAndSetIfChanged(ref _tabSettingsContent, value);
     }
-    
+
     public string? TabMessageContent
     {
         get => _tabMessageContent;
         set => this.RaiseAndSetIfChanged(ref _tabMessageContent, value);
     }
-    
+
     public string? TabPreviewContent
     {
         get => _tabPreviewContent;
