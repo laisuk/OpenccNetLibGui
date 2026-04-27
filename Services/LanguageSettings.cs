@@ -16,6 +16,8 @@ public class LanguageSettings
     public string? Dictionary { get; set; }
     public int Locale { get; set; }
     public string ThemeMode { get; set; } = "System";
+    public string EditorFont { get; set; } = "Consolas";
+    public double EditorFontSize { get; set; } = 14;
     public bool Punctuation { get; set; }
     public bool ConvertFilename { get; set; }
 
@@ -76,6 +78,8 @@ public class Language
     public string FilenameContent { get; set; } = "Filename";
     public string ConversionSettingsContent { get; set; } = "Conversion Settings";
     public string ConvertFilenameContent { get; set; } = "Convert filename";
+    public string EditorFontContent { get; set; } = "Editor Font";
+    public string EditorFontSizeContent { get; set; } = "Font Size";
     public string PdfOptionsContent { get; set; } = "PDF Options";
     public string AddPdfPageHeaderContent { get; set; } = "Add page header";
     public string CompactPdfTextContent { get; set; } = "Compact PDF text";

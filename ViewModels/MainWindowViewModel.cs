@@ -87,6 +87,8 @@ public class MainWindowViewModel : ViewModelBase
     private string? _filenameContent = "Filename";
     private string? _conversionSettingsContent = "Conversion Settings";
     private string? _convertFilenameContent = "Convert filename";
+    private string? _editorFontContent = "Editor Font";
+    private string? _editorFontSizeContent = "Font Size";
     private string? _pdfOptionsContent = "PDF Options";
     private string? _addPdfPageHeaderContent = "Add page header";
     private string? _compactPdfTextContent = "Compact PDF text";
@@ -124,6 +126,8 @@ public class MainWindowViewModel : ViewModelBase
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
     private SaveTargetOption? _selectedSaveTargetOption;
+    private FontFamily _editorFontFamily = FontFamily.Default;
+    private double _editorFontSize = 14;
 
     public bool IsSettingsDirty =>
         _languageSettingsService!.IsDirty;
@@ -131,6 +135,7 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<string> CustomOptions { get; } = new();
 
     public ObservableCollection<SaveTargetOption> SaveTargetOptions { get; } = new();
+    public IReadOnlyList<FontFamily> SystemFonts { get; } = FontManager.Current.SystemFonts;
 
     private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
 
@@ -315,6 +320,8 @@ public class MainWindowViewModel : ViewModelBase
         _selectedThemeMode = NormalizeThemeMode(_languageSettings.ThemeMode);
         _selectedThemeModeIndex = GetThemeModeIndex(_selectedThemeMode);
         ApplyThemeMode(_selectedThemeMode);
+        _editorFontFamily = ResolveEditorFontFamily(_languageSettings.EditorFont);
+        _editorFontSize = NormalizeEditorFontSize(_languageSettings.EditorFontSize);
 
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
@@ -394,6 +401,26 @@ public class MainWindowViewModel : ViewModelBase
         return index >= 0 ? index : 0;
     }
 
+    private FontFamily ResolveEditorFontFamily(string? fontName)
+    {
+        if (!string.IsNullOrWhiteSpace(fontName))
+        {
+            var matchingFont = SystemFonts.FirstOrDefault(font =>
+                string.Equals(font.Name, fontName, StringComparison.OrdinalIgnoreCase));
+            if (matchingFont != default)
+                return matchingFont;
+        }
+
+        return SystemFonts.FirstOrDefault(font =>
+                   string.Equals(font.Name, "Consolas", StringComparison.OrdinalIgnoreCase))
+               ?? FontFamily.Default;
+    }
+
+    private static double NormalizeEditorFontSize(double value)
+    {
+        return Math.Clamp(value <= 0 ? 14 : value, 8, 72);
+    }
+
     private static void ApplyThemeMode(string themeMode)
     {
         var app = Application.Current;
@@ -446,6 +473,8 @@ public class MainWindowViewModel : ViewModelBase
             FilenameContent = "Filename",
             ConversionSettingsContent = "Conversion Settings",
             ConvertFilenameContent = "Convert filename",
+            EditorFontContent = "Editor Font",
+            EditorFontSizeContent = "Font Size",
             PdfOptionsContent = "PDF Options",
             AddPdfPageHeaderContent = "Add page header",
             CompactPdfTextContent = "Compact PDF text",
@@ -609,6 +638,12 @@ public class MainWindowViewModel : ViewModelBase
         ConvertFilenameContent = string.IsNullOrWhiteSpace(language.ConvertFilenameContent)
             ? "Convert filename"
             : language.ConvertFilenameContent;
+        EditorFontContent = string.IsNullOrWhiteSpace(language.EditorFontContent)
+            ? "Editor Font"
+            : language.EditorFontContent;
+        EditorFontSizeContent = string.IsNullOrWhiteSpace(language.EditorFontSizeContent)
+            ? "Font Size"
+            : language.EditorFontSizeContent;
         PdfOptionsContent = string.IsNullOrWhiteSpace(language.PdfOptionsContent)
             ? "PDF Options"
             : language.PdfOptionsContent;
@@ -2093,6 +2128,18 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _convertFilenameContent, value);
     }
 
+    public string? EditorFontContent
+    {
+        get => _editorFontContent;
+        set => this.RaiseAndSetIfChanged(ref _editorFontContent, value);
+    }
+
+    public string? EditorFontSizeContent
+    {
+        get => _editorFontSizeContent;
+        set => this.RaiseAndSetIfChanged(ref _editorFontSizeContent, value);
+    }
+
     public string? PdfOptionsContent
     {
         get => _pdfOptionsContent;
@@ -2550,6 +2597,43 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
             this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
+    }
+
+    public FontFamily EditorFontFamily
+    {
+        get => _editorFontFamily;
+        set
+        {
+            var normalized = value;
+            if (_editorFontFamily == normalized)
+                return;
+
+            this.RaiseAndSetIfChanged(ref _editorFontFamily, normalized);
+            _languageSettings!.EditorFont = normalized.Name;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    public double EditorFontSize
+    {
+        get => _editorFontSize;
+        set
+        {
+            var normalized = NormalizeEditorFontSize(value);
+            if (Math.Abs(_editorFontSize - normalized) < 0.001)
+                return;
+
+            this.RaiseAndSetIfChanged(ref _editorFontSize, normalized);
+            _languageSettings!.EditorFontSize = normalized;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            this.RaisePropertyChanged(nameof(EditorFontSizeValue));
+        }
+    }
+
+    public decimal EditorFontSizeValue
+    {
+        get => (decimal)EditorFontSize;
+        set => EditorFontSize = (double)value;
     }
 
     public bool IsAddPdfPageHeader

@@ -6,6 +6,7 @@
         xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:helpers="clr-namespace:OpenccNetLibGui.Helpers"
         xmlns:local="clr-namespace:OpenccNetLibGui.Constants"
+        xmlns:media="using:Avalonia.Media"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="OpenccNetLibGui.Views.MainWindow"
         x:Name="MainWindowRoot"
@@ -136,8 +137,8 @@
                                 Background="{DynamicResource ThemeBackgroundBrush}"
                                 Foreground="{DynamicResource ThemeForegroundBrush}"
                                 Document="{Binding TbSourceTextDocument, Mode=TwoWay}"
-                                FontFamily="Noto Sans SC"
-                                FontSize="16"
+                                FontFamily="{Binding EditorFontFamily}"
+                                FontSize="{Binding EditorFontSize}"
                                 ShowLineNumbers="True"
                                 WordWrap="True"
                                 VerticalScrollBarVisibility="Visible"
@@ -353,8 +354,8 @@
                                 Background="{DynamicResource ThemeBackgroundBrush}"
                                 Foreground="{DynamicResource ThemeForegroundBrush}"
                                 Document="{Binding TbDestinationTextDocument}"
-                                FontFamily="Noto Sans SC"
-                                FontSize="16"
+                                FontFamily="{Binding EditorFontFamily}"
+                                FontSize="{Binding EditorFontSize}"
                                 ShowLineNumbers="True"
                                 WordWrap="True"
                                 VerticalScrollBarVisibility="Visible"
@@ -706,8 +707,10 @@
                                                              Document="{Binding TbPreviewTextDocument}"
                                                              WordWrap="True"
                                                              VerticalScrollBarVisibility="Visible"
-                                                             ShowLineNumbers="False" FontFamily="Noto Sans SC"
-                                                             FontSize="16" IsReadOnly="True" />
+                                                             ShowLineNumbers="False"
+                                                             FontFamily="{Binding EditorFontFamily}"
+                                                             FontSize="{Binding EditorFontSize}"
+                                                             IsReadOnly="True" />
                                 </Grid>
                             </TabItem>
                         </TabControl>
@@ -814,6 +817,38 @@
                                                   FontSize="14"
                                                   IsChecked="{Binding IsCbConvertFilename, Mode=TwoWay}"
                                                   ToolTip.Tip="{Binding ConvertFilenameHint}" />
+                                        <Grid ColumnDefinitions="220,100"
+                                              RowDefinitions="Auto,Auto"
+                                              ColumnSpacing="8"
+                                              RowSpacing="4"
+                                              Margin="0,8,0,0">
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Text="{Binding EditorFontContent}"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="1"
+                                                       Text="{Binding EditorFontSizeContent}"
+                                                       FontWeight="SemiBold" />
+                                            <ComboBox Width="220"
+                                                      Grid.Row="1"
+                                                      Grid.Column="0"
+                                                      ItemsSource="{Binding SystemFonts}"
+                                                      SelectedItem="{Binding EditorFontFamily, Mode=TwoWay}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate x:DataType="media:FontFamily">
+                                                        <TextBlock Text="{Binding Name}" FontFamily="{Binding}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                            <NumericUpDown Grid.Row="1"
+                                                           Grid.Column="1"
+                                                           Width="100"
+                                                           Minimum="8"
+                                                           Maximum="72"
+                                                           Increment="1"
+                                                           Value="{Binding EditorFontSizeValue, Mode=TwoWay}" />
+                                        </Grid>
                                     </StackPanel>
 
                                     <Separator />
@@ -824,7 +859,8 @@
                                                    FontWeight="Bold" />
                                         <Grid ColumnDefinitions="*,*">
                                             <ComboBox SelectedIndex="{Binding SelectedUiLanguageIndex, Mode=TwoWay}"
-                                                      HorizontalAlignment="Stretch"
+                                                      Width="220"
+                                                      HorizontalAlignment="Left"
                                                       FontSize="14">
                                                 <ComboBoxItem Content="{Binding UiLanguageOption0Content}" />
                                                 <ComboBoxItem Content="{Binding UiLanguageOption1Content}" />
@@ -841,7 +877,8 @@
                                                    FontWeight="Bold" />
                                         <Grid ColumnDefinitions="*,*">
                                             <ComboBox SelectedIndex="{Binding SelectedThemeModeIndex, Mode=TwoWay}"
-                                                      HorizontalAlignment="Stretch"
+                                                      Width="220"
+                                                      HorizontalAlignment="Left"
                                                       FontSize="14"
                                                       ToolTip.Tip="{Binding ThemeModeHint}">
                                                 <ComboBoxItem Content="{Binding ThemeModeOption0Content}" />
