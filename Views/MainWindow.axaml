@@ -165,7 +165,7 @@
                                         <MenuItem IsEnabled="False" Classes="section-header">
                                             <MenuItem.Header>
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfOptionsContent}"
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfOptionsContent, FallbackValue=''}"
                                                     Foreground="Gray"
                                                     FontWeight="Bold"
                                                     LetterSpacing="0.5"
@@ -181,7 +181,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="📝" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ConvertFilenameContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ConvertFilenameContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -193,7 +193,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="📄" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AddPdfPageHeaderContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AddPdfPageHeaderContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -205,7 +205,7 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🔧" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CompactPdfTextContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CompactPdfTextContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -213,12 +213,12 @@
                                         <!-- 🔃 Auto-Reflow PDF text -->
                                         <MenuItem ToggleType="CheckBox"
                                                   IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}"
-                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextHint}">
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🔃" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -227,12 +227,12 @@
                                         <MenuItem ToggleType="CheckBox"
                                                   IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanIgnoreUntrustedPdfText, FallbackValue=false}"
                                                   IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=false}"
-                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextHint}">
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="🛡️" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -244,7 +244,7 @@
                                         <MenuItem IsEnabled="False" Classes="section-header">
                                             <MenuItem.Header>
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfEngineContent}"
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfEngineContent, FallbackValue=''}"
                                                     Foreground="Gray"
                                                     FontWeight="Bold"
                                                     LetterSpacing="0.5"
@@ -255,12 +255,12 @@
                                         <!-- ⚙️ Use PdfPig engine -->
                                         <MenuItem ToggleType="Radio"
                                                   IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay, FallbackValue=false}"
-                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineHint}">
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="⚙️" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -268,12 +268,12 @@
                                         <!-- ⚙️ Use Pdfium engine -->
                                         <MenuItem ToggleType="Radio"
                                                   IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay, FallbackValue=true}"
-                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineHint}">
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                                     <TextBlock Text="⚙️" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -285,7 +285,7 @@
                                         <MenuItem IsEnabled="False" Classes="section-header">
                                             <MenuItem.Header>
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).HeadingRulesContent}"
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).HeadingRulesContent, FallbackValue=''}"
                                                     Foreground="Gray"
                                                     FontWeight="Bold"
                                                     LetterSpacing="0.5"
@@ -295,12 +295,12 @@
 
                                         <!-- ✏️ Short heading settings -->
                                         <MenuItem Command="{Binding ShowShortHeadingDialogCommand}"
-                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsHint}">
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock Text="✏️" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -310,12 +310,12 @@
                                         <!-- 💾 Save advanced settings -->
                                         <MenuItem Command="{Binding SaveLanguageSettingsCommand}"
                                                   IsEnabled="{Binding IsSettingsDirty}"
-                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).SaveAdvancedSettingsHint}">
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).SaveAdvancedSettingsHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
                                                     <TextBlock
-                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).BtnSaveAdvancedSettingsContent}" />
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).BtnSaveAdvancedSettingsContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -487,7 +487,7 @@
                                     <MenuItem IsEnabled="False" Classes="section-header">
                                         <MenuItem.Header>
                                             <TextBlock
-                                                Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfOptionsContent}"
+                                                Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfOptionsContent, FallbackValue=''}"
                                                 Foreground="Gray"
                                                 FontWeight="Bold"
                                                 LetterSpacing="0.5"
@@ -502,7 +502,7 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="📝" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ConvertFilenameContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ConvertFilenameContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -514,7 +514,7 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="📄" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AddPdfPageHeaderContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AddPdfPageHeaderContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -526,20 +526,20 @@
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🔧" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CompactPdfTextContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CompactPdfTextContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
 
                                     <!-- 🔃 Auto-Reflow PDF text -->
                                     <MenuItem ToggleType="CheckBox"
-                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextHint}"
+                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextHint, FallbackValue=''}"
                                               IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsAutoReflow, Mode=TwoWay, FallbackValue=true}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🔃" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -548,12 +548,12 @@
                                     <MenuItem ToggleType="CheckBox"
                                               IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanIgnoreUntrustedPdfText, FallbackValue=false}"
                                               IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsIgnoreUntrustedPdfText, Mode=TwoWay, FallbackValue=false}"
-                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextHint}">
+                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="🛡️" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IgnoreUntrustedPdfTextContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -565,7 +565,7 @@
                                     <MenuItem IsEnabled="False" Classes="section-header">
                                         <MenuItem.Header>
                                             <TextBlock
-                                                Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfEngineContent}"
+                                                Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).PdfEngineContent, FallbackValue=''}"
                                                 Foreground="Gray"
                                                 FontWeight="Bold"
                                                 LetterSpacing="0.5"
@@ -576,12 +576,12 @@
                                     <!-- ⚙️ Use PdfPig engine -->
                                     <MenuItem ToggleType="Radio"
                                               IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfPigEngine, Mode=TwoWay, FallbackValue=false}"
-                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineHint}">
+                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="⚙️" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -589,12 +589,12 @@
                                     <!-- ⚙️ Use Pdfium engine -->
                                     <MenuItem ToggleType="Radio"
                                               IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsPdfiumEngine, Mode=TwoWay, FallbackValue=true}"
-                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineHint}">
+                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <TextBlock Text="⚙️" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -606,7 +606,7 @@
                                     <MenuItem IsEnabled="False" Classes="section-header">
                                         <MenuItem.Header>
                                             <TextBlock
-                                                Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).HeadingRulesContent}"
+                                                Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).HeadingRulesContent, FallbackValue=''}"
                                                 Foreground="Gray"
                                                 FontWeight="Bold"
                                                 LetterSpacing="0.5"
@@ -616,12 +616,12 @@
 
                                     <!-- ✏️ Short heading settings -->
                                     <MenuItem Command="{Binding ShowShortHeadingDialogCommand}"
-                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsHint}">
+                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="✏️" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -631,12 +631,12 @@
                                     <!-- 💾 Save advanced settings -->
                                     <MenuItem Command="{Binding SaveLanguageSettingsCommand}"
                                               IsEnabled="{Binding IsSettingsDirty}"
-                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).SaveAdvancedSettingsHint}">
+                                              ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).SaveAdvancedSettingsHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
                                                 <TextBlock
-                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).BtnSaveAdvancedSettingsContent}" />
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).BtnSaveAdvancedSettingsContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>
@@ -824,10 +824,12 @@
                                               Margin="0,8,0,0">
                                             <TextBlock Grid.Row="0"
                                                        Grid.Column="0"
+                                                       Margin="0,0,0,2"
                                                        Text="{Binding EditorFontContent}"
                                                        FontWeight="SemiBold" />
                                             <TextBlock Grid.Row="0"
                                                        Grid.Column="1"
+                                                       Margin="0,0,0,2"
                                                        Text="{Binding EditorFontSizeContent}"
                                                        FontWeight="SemiBold" />
                                             <ComboBox Width="220"

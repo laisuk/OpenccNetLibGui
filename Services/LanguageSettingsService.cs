@@ -672,7 +672,7 @@ public class LanguageSettingsService
   ""convertFilename"": false,
   ""dictionary"": ""zstd"",
   ""editorFont"": ""Consolas"",
-  ""editorFontSize"": 14,
+  ""editorFontSize"": 16,
   ""themeMode"": ""System"",
   ""locale"": 2
 }
