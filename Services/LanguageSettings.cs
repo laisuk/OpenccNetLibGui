@@ -52,6 +52,8 @@ public class Language
     public string TabMainContent { get; set; } = "Main Conversion";
     public string TabBatchContent { get; set; } = "Batch Conversion";
     public string TabSettingsContent { get; set; } = "Settings";
+    public string TabMessageContent { get; set; } = "Message";
+    public string TabPreviewContent { get; set; } = "Preview";
     public string StdContent { get; set; } = "";
     public string ZhtwContent { get; set; } = "";
     public string HkContent { get; set; } = "";
@@ -61,6 +63,11 @@ public class Language
     public string BtnCopyContent { get; set; } = "Copy";
     public string BtnPreviewContent { get; set; } = "Preview";
     public string BtnDetectContent { get; set; } = "Detect";
+    public string BtnOpenFileContent { get; set; } = "open File";
+    public string BtnSaveAsContent { get; set; } = "Save As";
+    public string UnsavedChangesContent { get; set; } = "Unsaved changes";
+    public string AllSettingsSavedContent { get; set; } = "All settings saved";
+    public string BtnSaveAdvancedSettingsContent { get; set; } = "Save Advanced Settings";
     public string ThemeModeContent { get; set; } = "Theme Mode";
     public List<string> ThemeModeSelectionContent { get; set; } = new();
     public List<string> CustomOptions { get; set; } = new();

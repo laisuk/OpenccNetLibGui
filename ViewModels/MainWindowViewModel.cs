@@ -74,11 +74,18 @@ public class MainWindowViewModel : ViewModelBase
     private string? _btnCopyContent = "Copy";
     private string? _btnPreviewContent = "Preview";
     private string? _btnDetectContent = "Detect";
+    private string? _btnOpenFileContent = "Open File";
+    private string? _btnSaveAsContent = "Save As";
+    private string? _unsavedChangesContent = "Unsaved changes";
+    private string? _allSettingsSavedContent = "All settings saved";
+    private string? _btnSaveAdvancedSettingsContent = "Save Advanced Settings";
     private string? _uiLanguageContent = "UI Language";
     private string? _themeModeContent = "Theme Mode";
     private string? _tabMainContent = "Main Conversion";
     private string? _tabBatchContent = "Batch Conversion";
     private string? _tabSettingsContent = "Settings";
+    private string? _tabMessageContent = "Message";
+    private string? _tabPreviewContent = "Preview";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
     private FontWeight _tabMainFontWeight = FontWeight.Black;
     private FontWeight _tabSettingsFontWeight = FontWeight.Normal;
@@ -374,6 +381,11 @@ public class MainWindowViewModel : ViewModelBase
             BtnCopyContent = "Copy",
             BtnPreviewContent = "Preview",
             BtnDetectContent = "Detect",
+            BtnOpenFileContent = "Open File",
+            BtnSaveAsContent = "Save As",
+            UnsavedChangesContent = "Unsaved changes",
+            AllSettingsSavedContent = "All settings saved",
+            BtnSaveAdvancedSettingsContent = "Save Advanced Settings",
             UiLanguageContent = "UI Language",
             ThemeModeContent = "Theme Mode",
             ThemeModeSelectionContent = new List<string>
@@ -385,6 +397,8 @@ public class MainWindowViewModel : ViewModelBase
             TabMainContent = "Main Conversion",
             TabBatchContent = "Batch Conversion",
             TabSettingsContent = "Settings",
+            TabMessageContent = "Message",
+            TabPreviewContent = "Preview",
             UiSelectionContent = new List<string>
             {
                 "English",
@@ -480,6 +494,21 @@ public class MainWindowViewModel : ViewModelBase
         BtnDetectContent = string.IsNullOrWhiteSpace(language.BtnDetectContent)
             ? "Detect"
             : language.BtnDetectContent;
+        BtnOpenFileContent = string.IsNullOrWhiteSpace(language.BtnOpenFileContent)
+            ? "Open File"
+            : language.BtnOpenFileContent;
+        BtnSaveAsContent = string.IsNullOrWhiteSpace(language.BtnSaveAsContent)
+            ? "Save As"
+            : language.BtnSaveAsContent;
+        UnsavedChangesContent = string.IsNullOrWhiteSpace(language.UnsavedChangesContent)
+            ? "Save As"
+            : language.UnsavedChangesContent;
+        AllSettingsSavedContent = string.IsNullOrWhiteSpace(language.AllSettingsSavedContent)
+            ? "Save As"
+            : language.AllSettingsSavedContent;
+        BtnSaveAdvancedSettingsContent = string.IsNullOrWhiteSpace(language.BtnSaveAdvancedSettingsContent)
+            ? "Save As"
+            : language.BtnSaveAdvancedSettingsContent;
         UiLanguageContent = string.IsNullOrWhiteSpace(language.UiLanguageContent)
             ? "UI Language"
             : language.UiLanguageContent;
@@ -495,6 +524,12 @@ public class MainWindowViewModel : ViewModelBase
         TabSettingsContent = string.IsNullOrWhiteSpace(language.TabSettingsContent)
             ? "Settings"
             : language.TabSettingsContent;
+        TabMessageContent = string.IsNullOrWhiteSpace(language.TabMessageContent)
+            ? "Settings"
+            : language.TabMessageContent;
+        TabPreviewContent = string.IsNullOrWhiteSpace(language.TabPreviewContent)
+            ? "Settings"
+            : language.TabPreviewContent;
         SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
         var selectedConfigKey = GetCustomConfigKey(SelectedItem);
@@ -1741,6 +1776,36 @@ public class MainWindowViewModel : ViewModelBase
         get => _btnDetectContent;
         set => this.RaiseAndSetIfChanged(ref _btnDetectContent, value);
     }
+    
+    public string? BtnOpenFileContent
+    {
+        get => _btnOpenFileContent;
+        set => this.RaiseAndSetIfChanged(ref _btnOpenFileContent, value);
+    }
+    
+    public string? BtnSaveAsContent
+    {
+        get => _btnSaveAsContent;
+        set => this.RaiseAndSetIfChanged(ref _btnSaveAsContent, value);
+    }
+    
+    public string? UnsavedChangesContent
+    {
+        get => _unsavedChangesContent;
+        set => this.RaiseAndSetIfChanged(ref _unsavedChangesContent, value);
+    }
+    
+    public string? AllSettingsSavedContent
+    {
+        get => _allSettingsSavedContent;
+        set => this.RaiseAndSetIfChanged(ref _allSettingsSavedContent, value);
+    }
+    
+    public string? BtnSaveAdvancedSettingsContent
+    {
+        get => _btnSaveAdvancedSettingsContent;
+        set => this.RaiseAndSetIfChanged(ref _btnSaveAdvancedSettingsContent, value);
+    }
 
     public string? UiLanguageContent
     {
@@ -1770,6 +1835,18 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _tabSettingsContent;
         set => this.RaiseAndSetIfChanged(ref _tabSettingsContent, value);
+    }
+    
+    public string? TabMessageContent
+    {
+        get => _tabMessageContent;
+        set => this.RaiseAndSetIfChanged(ref _tabMessageContent, value);
+    }
+    
+    public string? TabPreviewContent
+    {
+        get => _tabPreviewContent;
+        set => this.RaiseAndSetIfChanged(ref _tabPreviewContent, value);
     }
 
     #endregion

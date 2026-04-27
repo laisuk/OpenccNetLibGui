@@ -640,9 +640,16 @@
                                BorderThickness="3,0,0,2" />
 
                         <TabControl Grid.Row="0" Grid.Column="1" TabStripPlacement="Bottom">
-                            <TabItem x:Name="TabMessage" Header="Message" FontSize="14"
+                            <TabItem x:Name="TabMessage" FontSize="14"
                                      IsSelected="{Binding IsTabMessage}"
                                      FontWeight="Medium">
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <TextBlock Classes="icon-font"
+                                                   Text="{x:Static local:Icons.Message}" />
+                                        <TextBlock Text="{Binding TabMessageContent}" />
+                                    </StackPanel>
+                                </TabItem.Header>
                                 <Grid>
                                     <ListBox x:Name="LbxDestination" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0"
                                              BorderThickness="2,2,2,2" ItemsSource="{Binding LbxDestinationItems}"
@@ -654,8 +661,15 @@
                                     </ListBox>
                                 </Grid>
                             </TabItem>
-                            <TabItem x:Name="TabPreview" Header="Preview" FontSize="14" FontWeight="Medium"
+                            <TabItem x:Name="TabPreview" FontSize="14" FontWeight="Medium"
                                      IsSelected="{Binding IsTabPreview}">
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <TextBlock Classes="icon-font"
+                                                   Text="{x:Static local:Icons.Preview}" />
+                                        <TextBlock Text="{Binding TabPreviewContent}" />
+                                    </StackPanel>
+                                </TabItem.Header>
                                 <Grid>
                                     <!-- <TextBox x:Name="TbPreview" Grid.Row="0" Grid.Column="0" Margin="0,5,0,0" -->
                                     <!--          BorderThickness="2,2,2,2" FontSize="16" IsReadOnly="True" -->
@@ -884,14 +898,14 @@
                                             VerticalAlignment="Center">
                                     <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}"
                                                IsVisible="{Binding IsSettingsDirty}" />
-                                    <TextBlock Text="Unsaved changes"
+                                    <TextBlock Text="{Binding UnsavedChangesContent}"
                                                FontWeight="Medium"
                                                VerticalAlignment="Center"
                                                IsVisible="{Binding IsSettingsDirty}" />
                                     <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Completed}"
                                                Opacity="0.8"
                                                IsVisible="{Binding !IsSettingsDirty}" FontSize="22" />
-                                    <TextBlock Text="All settings saved"
+                                    <TextBlock Text="{Binding AllSettingsSavedContent}"
                                                Opacity="0.8"
                                                VerticalAlignment="Center"
                                                IsVisible="{Binding !IsSettingsDirty}" />
@@ -907,7 +921,8 @@
                                         ToolTip.Tip="Writes UserLanguageSettings.json (advanced users only)">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
-                                        <TextBlock Text="Save advanced settings" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding BtnSaveAdvancedSettingsContent}"
+                                                   VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -963,7 +978,7 @@
             <StackPanel Orientation="Horizontal" Spacing="0">
                 <!-- <controls:SymbolIcon Symbol="OpenFile" FontSize="20" /> -->
                 <TextBlock Classes="icon-font" Text="{x:Static local:Icons.OpenFile}" />
-                <TextBlock Text="Open File" />
+                <TextBlock Text="{Binding BtnOpenFileContent}" VerticalAlignment="Center" />
             </StackPanel>
         </Button>
         <Label x:Name="LblFileName" Content="{Binding LblFileNameContent}" Padding="0 2" HorizontalAlignment="Left"
@@ -990,7 +1005,7 @@
             <StackPanel Orientation="Horizontal" Spacing="0">
                 <!-- <controls:SymbolIcon Symbol="SaveAs" FontSize="20" /> -->
                 <TextBlock Classes="icon-font" Text="{x:Static local:Icons.SaveAs}" />
-                <TextBlock Text="Save As" />
+                <TextBlock Text="{Binding BtnSaveAsContent}" VerticalAlignment="Center" />
             </StackPanel>
         </Button>
         <Button x:Name="BtnExit" Padding="5 2" Width="50" HorizontalAlignment="Right"

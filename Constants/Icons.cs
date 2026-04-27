@@ -7,6 +7,7 @@ public static class Icons
     public const string Play = "\uE102";
     public const string Home = "\uE10F";
     public const string Info = "\uE946";
+    public const string Message = "\uE8BD";
     public const string PowerButton = "\uE7E8";
     public const string Settings = "\uE713";
 
@@ -24,6 +25,7 @@ public static class Icons
     public const string MoveToFolder = "\uE8DE";
     public const string CheckboxComposite = "\uE73A";
     public const string Completed = "\uE930";
+    public const string Preview = "\uE8FF";
 
     public const string AddTo = "\uECC8";
     public const string RemoveFrom = "\uECC9";
