@@ -1022,7 +1022,13 @@
                       ToolTip.Tip="{Binding SaveTargetHint}"
                       ItemsSource="{Binding SaveTargetOptions}"
                       IsVisible="{Binding IsCmbSaveTargetVisible}"
-                      SelectedItem="{Binding SelectedSaveTargetOption, Mode=TwoWay}" />
+                      SelectedItem="{Binding SelectedSaveTargetOption, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MainWindowViewModel+SaveTargetOption">
+                        <TextBlock Text="{Binding Content}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <Button x:Name="BtnSaveFile"
                     Padding="5 2"
                     HorizontalContentAlignment="Center"

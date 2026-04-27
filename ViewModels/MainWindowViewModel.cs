@@ -662,16 +662,7 @@ public class MainWindowViewModel : ViewModelBase
             : language.TabPreviewContent;
         SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
-        SaveTargetOptions.Clear();
-        SaveTargetOptions.Add(new SaveTargetOption(
-            SaveTarget.Destination,
-            GetListItem(language.SaveTargetSelectionContent, 0, "Destination")));
-        SaveTargetOptions.Add(new SaveTargetOption(
-            SaveTarget.Source,
-            GetListItem(language.SaveTargetSelectionContent, 1, "Source")));
-        SelectedSaveTargetOption = MatchOption(
-            SaveTargetOptions,
-            option => option.Target == SaveTarget.Destination);
+        RefreshSaveTargetOptionLabels(language);
 
         var selectedConfigKey = GetCustomConfigKey(SelectedItem);
         CustomOptions.Clear();
@@ -715,6 +706,21 @@ public class MainWindowViewModel : ViewModelBase
     {
         var options = list as IList<T> ?? list.ToList();
         return options.FirstOrDefault(predicate) ?? options.FirstOrDefault();
+    }
+
+    private void RefreshSaveTargetOptionLabels(Language language)
+    {
+        var destinationOption = MatchOption(
+            SaveTargetOptions,
+            option => option.Target == SaveTarget.Destination);
+        if (destinationOption is not null)
+            destinationOption.Content = GetListItem(language.SaveTargetSelectionContent, 0, "Destination");
+
+        var sourceOption = MatchOption(
+            SaveTargetOptions,
+            option => option.Target == SaveTarget.Source);
+        if (sourceOption is not null)
+            sourceOption.Content = GetListItem(language.SaveTargetSelectionContent, 1, "Source");
     }
 
     private string GetUiSelectionLabel(int index, string fallback)
@@ -2199,16 +2205,23 @@ public class MainWindowViewModel : ViewModelBase
         Source
     }
 
-    public sealed class SaveTargetOption
+    public sealed class SaveTargetOption : ReactiveObject
     {
+        private string _content;
+
         public SaveTargetOption(SaveTarget target, string content)
         {
             Target = target;
-            Content = content;
+            _content = content;
         }
 
         public SaveTarget Target { get; }
-        public string Content { get; }
+
+        public string Content
+        {
+            get => _content;
+            set => this.RaiseAndSetIfChanged(ref _content, value);
+        }
 
         public override string ToString() => Content;
     }
