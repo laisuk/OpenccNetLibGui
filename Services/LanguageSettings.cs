@@ -112,6 +112,46 @@ public sealed class RuntimeContents
         ["json"] = "JSON dictionary",
         ["cbor"] = "CBOR dictionary"
     };
+
+    public Dictionary<string, string> Statuses { get; set; } = new()
+    {
+        ["statusBtnPasteEmpty"] = "Clipboard is empty",
+        ["statusBtnPastePasted"] = "Clipboard content pasted",
+        ["statusBtnCopyDestinationEmpty"] = "Not copied: Destination content is empty.",
+        ["statusBtnCopyCopied"] = "Text copied to clipboard",
+        ["statusBtnCopyClipboardError"] = "Clipboard error: {0}",
+        ["statusOpenFileError"] = "Error opening file: {0}",
+        ["statusOpenFileLoaded"] = "File: {0}",
+        ["statusPdfLoading"] = "Loading PDF ({0})...",
+        ["statusPdfLoadingProgress"] = "Loading PDF {0}  {1}%",
+        ["statusPdfLoaded"] = "PDF loaded ({0:N0} pages, {1}{2}{3}): {4}",
+        ["statusPdfCancelled"] = "PDF loading cancelled: {0}",
+        ["statusPdfLoadFailed"] = "PDF load failed: {0}",
+        ["statusReflowEmpty"] = "Nothing to reflow",
+        ["statusReflowComplete"] = "Reflow complete (CJK-aware)",
+        ["statusSaveFileSaved"] = "{0} contents saved to file: {1}",
+        ["statusProcessSourceEmpty"] = "Source content is empty.",
+        ["statusProcessNothing"] = "Nothing to process",
+        ["statusProcessCompleted"] = "Process completed: {0} -> {1} ms",
+        ["statusBatchNothingToConvert"] = "Nothing to convert.",
+        ["statusBatchDone"] = "Batch conversion done. ( {0} )",
+        ["statusClearSource"] = "Source text box cleared",
+        ["statusClearDestination"] = "Destination contents cleared",
+        ["statusRemoveNothing"] = "Nothing to remove.",
+        ["statusRemoveItem"] = "Item ({0}) {1} removed",
+        ["statusPreviewNothing"] = "Nothing to preview.",
+        ["statusPreviewFile"] = "File preview: {0}",
+        ["statusPreviewReadError"] = "File read error ({0})",
+        ["statusDetectNothing"] = "Nothing to detect.",
+        ["statusDetectDone"] = "Batch zho code detection done.",
+        ["statusClearSourceList"] = "All source entries cleared.",
+        ["statusMessagesCleared"] = "Messages cleared.",
+        ["statusPreviewCleared"] = "Preview cleared.",
+        ["statusOutputFolderSet"] = "Output folder set: {0}",
+        ["statusSettingsSaved"] = "Saved: {0}",
+        ["statusPdfAutoReflowed"] = ", Auto-Reflowed",
+        ["statusPdfIgnoreUntrusted"] = ", Ignore-Untrusted"
+    };
 }
 
 [Serializable]

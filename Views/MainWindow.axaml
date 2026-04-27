@@ -1033,21 +1033,38 @@
             </StackPanel>
         </Button>
 
-        <Button x:Name="BtnOpenFile" Padding="5 2" HorizontalAlignment="Left"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                IsVisible="{Binding IsBtnOpenFileVisible}"
-                Margin="20,0,0,0" Grid.Row="2" VerticalAlignment="Center" FontSize="14" Height="30"
-                ToolTip.Tip="{Binding OpenFileHint}"
-                Command="{Binding BtnOpenFileCommand}" Classes="outline-button">
-            <StackPanel Orientation="Horizontal" Spacing="0">
-                <!-- <controls:SymbolIcon Symbol="OpenFile" FontSize="20" /> -->
-                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.OpenFile}" />
-                <TextBlock Text="{Binding BtnOpenFileContent}" VerticalAlignment="Center" />
-            </StackPanel>
-        </Button>
-        <Label x:Name="LblFileName" Content="{Binding LblFileNameContent}" Padding="0 2" HorizontalAlignment="Left"
-               Margin="120,0,0,0" Grid.Row="2" IsVisible="{Binding IsLblFileNameVisible}"
-               VerticalAlignment="Center" FontSize="14" />
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    Margin="20,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center">
+
+            <Button x:Name="BtnOpenFile"
+                    Padding="5 2"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    IsVisible="{Binding IsBtnOpenFileVisible}"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Height="30"
+                    ToolTip.Tip="{Binding OpenFileHint}"
+                    Command="{Binding BtnOpenFileCommand}"
+                    Classes="outline-button">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.OpenFile}" />
+                    <TextBlock Text="{Binding BtnOpenFileContent}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <Label x:Name="LblFileName"
+                   Content="{Binding LblFileNameContent}"
+                   Padding="0 2"
+                   IsVisible="{Binding IsLblFileNameVisible}"
+                   VerticalAlignment="Center"
+                   FontSize="14" />
+        </StackPanel>
+
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
                     Spacing="10"
@@ -1079,7 +1096,7 @@
                     Height="30"
                     ToolTip.Tip="{Binding SaveFileHint}"
                     Command="{Binding BtnSaveFileCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="0">
+                <StackPanel Orientation="Horizontal" Spacing="2">
                     <!-- <controls:SymbolIcon Symbol="SaveAs" FontSize="20" /> -->
                     <TextBlock Classes="icon-font" Text="{x:Static local:Icons.SaveAs}" />
                     <TextBlock Text="{Binding BtnSaveAsContent}" VerticalAlignment="Center" />

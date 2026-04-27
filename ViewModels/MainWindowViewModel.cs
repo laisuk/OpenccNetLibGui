@@ -20,6 +20,7 @@ using System.Text;
 using System.Threading;
 using OpenccNetLibGui.Models;
 using Avalonia.Threading;
+using OpenccNetLibGui.Helpers;
 
 namespace OpenccNetLibGui.ViewModels;
 
@@ -407,7 +408,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var matchingFont = SystemFonts.FirstOrDefault(font =>
                 string.Equals(font.Name, fontName, StringComparison.OrdinalIgnoreCase));
-            if (matchingFont != default)
+            if (matchingFont != null)
                 return matchingFont;
         }
 
@@ -776,6 +777,28 @@ public class MainWindowViewModel : ViewModelBase
             : fallback;
     }
 
+    private string GetRuntimeStatus(string key, string fallback)
+    {
+        var statuses = _selectedLanguage.Runtimes.Statuses;
+        return statuses.TryGetValue(key, out var status) &&
+               !string.IsNullOrWhiteSpace(status)
+            ? status
+            : fallback;
+    }
+
+    private string FormatRuntimeStatus(string key, string fallback, params object?[] args)
+    {
+        var template = GetRuntimeStatus(key, fallback);
+        try
+        {
+            return string.Format(template, args);
+        }
+        catch (FormatException)
+        {
+            return string.Format(fallback, args);
+        }
+    }
+
     public string CbZhtwHint =>
         GetHint("cbZhtwHint", "Using zh-CN and zh-TW idioms in conversion.");
 
@@ -934,13 +957,13 @@ public class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrEmpty(inputText))
         {
-            LblStatusBarContent = "Clipboard is empty.";
+            LblStatusBarContent = GetRuntimeStatus("statusBtnPasteEmpty", "Clipboard is empty");
             return;
         }
 
         TbSourceTextDocument!.UndoStack.ClearAll();
         TbSourceTextDocument!.Text = inputText;
-        LblStatusBarContent = "Clipboard content pasted";
+        LblStatusBarContent = GetRuntimeStatus("statusBtnPastePasted", "Clipboard content pasted");
         var codeText = Opencc.ZhoCheck(inputText);
         UpdateEncodeInfo(codeText);
         LblFileNameContent = string.Empty;
@@ -959,18 +982,23 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(TbDestinationTextDocument!.Text))
         {
-            LblStatusBarContent = "Not copied: Destination content is empty.";
+            LblStatusBarContent = GetRuntimeStatus(
+                "statusBtnCopyDestinationEmpty",
+                "Not copied: Destination content is empty.");
             return;
         }
 
         try
         {
             await _topLevelService!.SetClipboardTextAsync(TbDestinationTextDocument!.Text);
-            LblStatusBarContent = "Text copied to clipboard";
+            LblStatusBarContent = GetRuntimeStatus("statusBtnCopyCopied", "Text copied to clipboard");
         }
         catch (Exception ex)
         {
-            LblStatusBarContent = $"Clipboard error: {ex.Message}";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusBtnCopyClipboardError",
+                "Clipboard error: {0}",
+                ex.Message);
         }
     }
 
@@ -1017,7 +1045,10 @@ public class MainWindowViewModel : ViewModelBase
 
         if (result.Error != null)
         {
-            LblStatusBarContent = $"Error opening file: {result.Error}";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusOpenFileError",
+                "Error opening file: {0}",
+                result.Error);
             return;
         }
 
@@ -1025,13 +1056,27 @@ public class MainWindowViewModel : ViewModelBase
 
         TbSourceTextDocument!.Text = result.Text ?? "";
         TbSourceTextDocument.UndoStack.ClearAll(); // ✅ reset undo/redo for new file
-        LblStatusBarContent = $"File: {result.Path}";
+        LblStatusBarContent = FormatRuntimeStatus("statusOpenFileLoaded", "File: {0}", result.Path);
         UpdateEncodeInfo(Opencc.ZhoCheck(result.Text ?? ""));
 
         var displayName = Path.GetFileName(result.Path);
-        LblFileNameContent = displayName.Length > 50
-            ? $"{displayName[..25]}...{displayName[^15..]}"
-            : displayName;
+        // LblFileNameContent = displayName.Length > 50
+        //     ? $"{displayName[..25]}...{displayName[^15..]}"
+        //     : displayName;
+        LblFileNameContent = MiddleEllipsisFileName(displayName);
+    }
+
+    private static string MiddleEllipsisFileName(string? path, int maxLength = 50)
+    {
+        var fileName = Path.GetFileName(path);
+
+        if (string.IsNullOrEmpty(fileName) || fileName.Length <= maxLength)
+            return fileName ?? string.Empty;
+
+        const int head = 25;
+        const int tail = 15;
+
+        return StringUtils.MiddleEllipsis(fileName, maxLength, head, tail);
     }
 
     #endregion // File Open Region
@@ -1046,11 +1091,18 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            LblStatusBarContent = $"📄 Loading PDF ({PdfVm.PdfEngine.ToDisplayName()})...";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusPdfLoading",
+                "Loading PDF ({0})...",
+                PdfVm.PdfEngine.ToDisplayName());
 
             void Progress(int percent)
             {
-                var msg = $"Loading PDF {BuildProgressBar(percent)}  {percent}%";
+                var msg = FormatRuntimeStatus(
+                    "statusPdfLoadingProgress",
+                    "Loading PDF {0}  {1}%",
+                    BuildProgressBar(percent),
+                    percent);
                 Dispatcher.UIThread.Post(() => LblStatusBarContent = msg);
             }
 
@@ -1070,17 +1122,35 @@ public class MainWindowViewModel : ViewModelBase
             LblFileNameContent = displayName;
 
             UpdateEncodeInfo(Opencc.ZhoCheck(result.Text));
-            LblStatusBarContent =
-                $"✅ PDF loaded ({result.PageCount:N0} pages, {result.EngineUsed.ToDisplayName()}{(result.AutoReflowApplied ? ", Auto-Reflowed" : "")}{(IsIgnoreUntrustedPdfText ? ", Ignore-Untrusted" : "")}): {displayName}";
+            var autoReflowedStatus = result.AutoReflowApplied
+                ? GetRuntimeStatus("statusPdfAutoReflowed", ", Auto-Reflowed")
+                : string.Empty;
+            var ignoreUntrustedStatus = IsIgnoreUntrustedPdfText
+                ? GetRuntimeStatus("statusPdfIgnoreUntrusted", ", Ignore-Untrusted")
+                : string.Empty;
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusPdfLoaded",
+                "PDF loaded ({0:N0} pages, {1}{2}{3}): {4}",
+                result.PageCount,
+                result.EngineUsed.ToDisplayName(),
+                autoReflowedStatus,
+                ignoreUntrustedStatus,
+                displayName);
         }
         catch (OperationCanceledException)
         {
             // optional: keep existing behavior
-            LblStatusBarContent = $"⏹ PDF loading cancelled: {Path.GetFileName(path)}";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusPdfCancelled",
+                "PDF loading cancelled: {0}",
+                Path.GetFileName(path));
         }
         catch (Exception ex)
         {
-            LblStatusBarContent = $"❌ PDF load failed: {ex.Message}";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusPdfLoadFailed",
+                "PDF load failed: {0}",
+                ex.Message);
             // throw;
         }
     }
@@ -1092,7 +1162,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(fullText))
         {
-            LblStatusBarContent = "Nothing to reflow";
+            LblStatusBarContent = GetRuntimeStatus("statusReflowEmpty", "Nothing to reflow");
             return;
         }
 
@@ -1123,7 +1193,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(sourceText))
         {
-            LblStatusBarContent = "Nothing to reflow";
+            LblStatusBarContent = GetRuntimeStatus("statusReflowEmpty", "Nothing to reflow");
             return;
         }
 
@@ -1164,7 +1234,7 @@ public class MainWindowViewModel : ViewModelBase
             TbSourceCaretOffset = 0;
         }
 
-        LblStatusBarContent = "✅ Reflow complete (CJK-aware)";
+        LblStatusBarContent = GetRuntimeStatus("statusReflowComplete", "Reflow complete (CJK-aware)");
     }
 
     #endregion // PDF Handling Region
@@ -1190,16 +1260,16 @@ public class MainWindowViewModel : ViewModelBase
         switch (SelectedSaveTarget)
         {
             case SaveTarget.Destination:
-                target = "Destination";
+                target = GetListItem(_selectedLanguage.SaveTargetSelectionContent, 0, "Destination");
                 content = TbDestinationTextDocument!.Text;
                 break;
 
             case SaveTarget.Source:
-                target = "Source";
+                target = GetListItem(_selectedLanguage.SaveTargetSelectionContent, 1, "Source");
                 content = TbSourceTextDocument!.Text;
                 break;
             default:
-                target = "Destination";
+                target = GetListItem(_selectedLanguage.SaveTargetSelectionContent, 0, "Destination");
                 content = string.Empty;
                 break;
         }
@@ -1208,7 +1278,11 @@ public class MainWindowViewModel : ViewModelBase
         {
             var path = result.Path.LocalPath;
             await File.WriteAllTextAsync(path, content, Encoding.UTF8);
-            LblStatusBarContent = $"{target} contents saved to file: {path}";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusSaveFileSaved",
+                "{0} contents saved to file: {1}",
+                target,
+                path);
         }
     }
 
@@ -1216,7 +1290,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(TbSourceTextDocument!.Text))
         {
-            LblStatusBarContent = "Source content is empty.";
+            LblStatusBarContent = GetRuntimeStatus("statusProcessSourceEmpty", "Source content is empty.");
             return;
         }
 
@@ -1256,7 +1330,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(sourceText))
         {
-            LblStatusBarContent = "Nothing to process";
+            LblStatusBarContent = GetRuntimeStatus("statusProcessNothing", "Nothing to process");
             return;
         }
 
@@ -1289,7 +1363,11 @@ public class MainWindowViewModel : ViewModelBase
                     ? GetLanguageName(_selectedLanguage, 1)
                     : $"Manual ( {config} )";
 
-        LblStatusBarContent = $"Process completed: {config} —> {stopwatch.ElapsedMilliseconds} ms";
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusProcessCompleted",
+            "Process completed: {0} -> {1} ms",
+            config,
+            stopwatch.ElapsedMilliseconds);
     }
 
     private async Task BtnBatchStart()
@@ -1313,7 +1391,7 @@ public class MainWindowViewModel : ViewModelBase
 
         if (LbxSourceItems!.Count == 0)
         {
-            LblStatusBarContent = "Nothing to convert.";
+            LblStatusBarContent = GetRuntimeStatus("statusBatchNothingToConvert", "Nothing to convert.");
             return;
         }
 
@@ -1485,7 +1563,10 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         LbxDestinationItems.Add($"✅ Batch conversion ({count}) Done");
-        LblStatusBarContent = $"Batch conversion done. ( {config} )";
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusBatchDone",
+            "Batch conversion done. ( {0} )",
+            config);
     }
 
     private void BtnClearTbSource()
@@ -1494,7 +1575,7 @@ public class MainWindowViewModel : ViewModelBase
         CurrentOpenFilename = string.Empty;
         LblSourceCodeContent = string.Empty;
         LblFileNameContent = string.Empty;
-        LblStatusBarContent = "Source text box cleared";
+        LblStatusBarContent = GetRuntimeStatus("statusClearSource", "Source text box cleared");
         TbSourceTextDocument.UndoStack.ClearAll();
     }
 
@@ -1502,7 +1583,9 @@ public class MainWindowViewModel : ViewModelBase
     {
         TbDestinationTextDocument!.Text = string.Empty;
         LblDestinationCodeContent = string.Empty;
-        LblStatusBarContent = "Destination contents cleared";
+        LblStatusBarContent = GetRuntimeStatus(
+            "statusClearDestination",
+            "Destination contents cleared");
         TbDestinationTextDocument.UndoStack.ClearAll();
     }
 
@@ -1568,19 +1651,23 @@ public class MainWindowViewModel : ViewModelBase
         var name = LbxSourceSelectedItem;
         if (LbxSourceSelectedIndex == -1 || LbxSourceItems!.Count == 0 || string.IsNullOrEmpty(name))
         {
-            LblStatusBarContent = "Nothing to remove.";
+            LblStatusBarContent = GetRuntimeStatus("statusRemoveNothing", "Nothing to remove.");
             return;
         }
 
         LbxSourceItems!.Remove(LbxSourceSelectedItem!);
-        LblStatusBarContent = $"Item ({index + 1}) {name} removed";
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusRemoveItem",
+            "Item ({0}) {1} removed",
+            index + 1,
+            name);
     }
 
     private async Task BtnPreview()
     {
         if (LbxSourceSelectedIndex == -1 || string.IsNullOrWhiteSpace(LbxSourceSelectedItem))
         {
-            LblStatusBarContent = "Nothing to preview.";
+            LblStatusBarContent = GetRuntimeStatus("statusPreviewNothing", "Nothing to preview.");
             return;
         }
 
@@ -1605,13 +1692,16 @@ public class MainWindowViewModel : ViewModelBase
             IsTabPreview = true;
             // TbPreviewText = displayText;
             TbPreviewTextDocument!.Text = displayText.Text;
-            LblStatusBarContent = $"File preview: {filename}";
+            LblStatusBarContent = FormatRuntimeStatus("statusPreviewFile", "File preview: {0}", filename);
         }
         catch (Exception)
         {
             IsTabMessage = true;
             LbxDestinationItems!.Add($"❌ File read error: {filename}");
-            LblStatusBarContent = $"File read error ({filename})";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusPreviewReadError",
+                "File read error ({0})",
+                filename);
         }
     }
 
@@ -1619,7 +1709,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (LbxSourceItems!.Count == 0)
         {
-            LblStatusBarContent = "Nothing to detect.";
+            LblStatusBarContent = GetRuntimeStatus("statusDetectNothing", "Nothing to detect.");
             return;
         }
 
@@ -1656,13 +1746,17 @@ public class MainWindowViewModel : ViewModelBase
             }
         }
 
-        LblStatusBarContent = "Batch zho code detection done.";
+        LblStatusBarContent = GetRuntimeStatus(
+            "statusDetectDone",
+            "Batch zho code detection done.");
     }
 
     private void BtnClearLbxSource()
     {
         LbxSourceItems!.Clear();
-        LblStatusBarContent = "All source entries cleared.";
+        LblStatusBarContent = GetRuntimeStatus(
+            "statusClearSourceList",
+            "All source entries cleared.");
     }
 
     private void BtnMessagePreviewClear()
@@ -1670,7 +1764,7 @@ public class MainWindowViewModel : ViewModelBase
         if (IsTabMessage)
         {
             LbxDestinationItems!.Clear();
-            LblStatusBarContent = "Messages cleared.";
+            LblStatusBarContent = GetRuntimeStatus("statusMessagesCleared", "Messages cleared.");
         }
 
         else if (IsTabPreview)
@@ -1678,7 +1772,7 @@ public class MainWindowViewModel : ViewModelBase
             // TbPreviewText = string.Empty;
             TbPreviewTextDocument!.Text = string.Empty;
             TbPreviewTextDocument.UndoStack.ClearAll();
-            LblStatusBarContent = "Preview cleared.";
+            LblStatusBarContent = GetRuntimeStatus("statusPreviewCleared", "Preview cleared.");
         }
     }
 
@@ -1700,7 +1794,10 @@ public class MainWindowViewModel : ViewModelBase
             TbOutFolderText = folderPath;
             IsTbOutFolderFocus = false;
             IsTbOutFolderFocus = true;
-            LblStatusBarContent = $"Output folder set: {folderPath}";
+            LblStatusBarContent = FormatRuntimeStatus(
+                "statusOutputFolderSet",
+                "Output folder set: {0}",
+                folderPath);
         }
     }
 
@@ -1832,7 +1929,10 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
 
         // optional: toast/statusbar message
-        LblStatusBarContent = $"✅ Saved: {_languageSettingsService.UserSettingsPath}";
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusSettingsSaved",
+            "Saved: {0}",
+            _languageSettingsService.UserSettingsPath);
     }
 
     private async Task ShowAbout()
