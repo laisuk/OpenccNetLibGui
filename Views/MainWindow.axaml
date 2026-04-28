@@ -362,89 +362,93 @@
                                 IsReadOnly="True" />
                         </Border>
 
-                        <Label Grid.Row="1" Grid.Column="0" Content="{Binding SourceContent}"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center" Margin="5,0,0,0" FontSize="16" BorderBrush="DarkGray"
-                               BorderThickness="3,0,0,2" />
-                        <Label x:Name="LblSourceCode" Grid.Row="1" Grid.Column="0"
-                               Content="{Binding LblSourceCodeContent}"
-                               HorizontalAlignment="Left" VerticalAlignment="Center" Margin="70,0,0,0" FontSize="16" />
-                        <Label x:Name="LblTotalChars" Grid.Row="1" Grid.Column="0"
-                               Content="{Binding LblTotalCharsContent}" HorizontalAlignment="Right"
-                               VerticalAlignment="Center" Margin="0,0,175,0" FontSize="14" />
-                        <Button x:Name="BthReflow" Grid.Row="1" Grid.Column="0" Padding="0 2" Width="40"
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center"
-                                Margin="0,2,135,0" FontSize="14" FontWeight="Bold"
-                                ToolTip.Tip="{Binding ReflowHint}"
-                                Command="{Binding BtnReflowCommand}">
-                            <StackPanel Orientation="Horizontal">
-                                <!-- <controls:SymbolIcon Symbol="Refresh" FontSize="20" /> -->
-                                <!-- <PathIcon Classes="toolbar-icon" -->
-                                <!--           Data="{StaticResource Icon.Refresh}"> -->
-                                <!--     <PathIcon.RenderTransform> -->
-                                <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
-                                <!--     </PathIcon.RenderTransform> -->
-                                <!-- </PathIcon> -->
-                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Refresh}" />
+                        <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="Auto,*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left"
+                                        VerticalAlignment="Center">
+                                <Label Content="{Binding SourceContent}" FontSize="16" BorderBrush="DarkGray"
+                                       BorderThickness="3,0,0,2" />
+                                <Label x:Name="LblSourceCode"
+                                       Content="{Binding LblSourceCodeContent}"
+                                       FontSize="16" />
                             </StackPanel>
-                        </Button>
-                        <Label Grid.Column="1" Content="{Binding DestinationContent}" HorizontalAlignment="Left"
-                               Margin="5,0,0,0"
-                               Grid.Row="1" VerticalAlignment="Center" FontSize="16" BorderBrush="DarkGray"
-                               BorderThickness="3,0,0,2" />
-                        <Label x:Name="LblDestinationCode" Grid.Column="1"
-                               Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left"
-                               Margin="110,0,0,0" Grid.Row="1" VerticalAlignment="Center" FontSize="16" />
-                        <Button x:Name="BtnClearSource" Padding="0 2" Width="40"
-                                HorizontalAlignment="Right" HorizontalContentAlignment="Center"
-                                Margin="0,2,90,0" Grid.Row="1" ToolTip.Tip="{Binding ClearSourceHint}"
-                                Grid.Column="0" VerticalAlignment="Center" FontSize="14"
-                                Command="{Binding BtnClearTbSourceCommand}"
-                                FontWeight="Bold">
-                            <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
-                            <!-- <PathIcon Classes="toolbar-icon" -->
-                            <!--           Data="{StaticResource Icon.Delete}"> -->
-                            <!--     <PathIcon.RenderTransform> -->
-                            <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
-                            <!--     </PathIcon.RenderTransform> -->
-                            <!-- </PathIcon> -->
-                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
-                        </Button>
-                        <Button x:Name="BtnPaste" Padding="5 2" Width="80" HorizontalAlignment="Right"
-                                HorizontalContentAlignment="Center" FontWeight="SemiBold"
-                                Margin="0,2,5,0" Grid.Row="1" Height="28"
-                                Grid.Column="0" VerticalAlignment="Center" FontSize="14"
-                                Command="{Binding BtnPasteCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="3">
-                                <!-- <controls:SymbolIcon Symbol="Paste" FontSize="20" /> -->
-                                <!-- <PathIcon Classes="toolbar-icon" -->
-                                <!--           Data="{StaticResource Icon.Paste}"> -->
-                                <!--     <PathIcon.RenderTransform> -->
-                                <!--         <ScaleTransform ScaleX="0.75" ScaleY="0.75"/> -->
-                                <!--     </PathIcon.RenderTransform> -->
-                                <!-- </PathIcon> -->
-                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Paste}" />
-                                <TextBlock Text="{Binding BtnPasteContent}" VerticalAlignment="Center" />
+                            <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Label x:Name="LblTotalChars" FontSize="14" VerticalAlignment="Center"
+                                       Content="{Binding LblTotalCharsContent}" />
+                                <Button x:Name="BthReflow" Padding="0 2" Width="40" HorizontalContentAlignment="Center"
+                                        FontSize="14" FontWeight="Bold"
+                                        ToolTip.Tip="{Binding ReflowHint}"
+                                        Command="{Binding BtnReflowCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <!-- <PathIcon Classes="toolbar-icon" -->
+                                        <!--           Data="{StaticResource Icon.Refresh}"> -->
+                                        <!--     <PathIcon.RenderTransform> -->
+                                        <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
+                                        <!--     </PathIcon.RenderTransform> -->
+                                        <!-- </PathIcon> -->
+                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Refresh}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnClearSource" Padding="0 2" Width="40" FontWeight="Bold"
+                                        HorizontalContentAlignment="Center" FontSize="14"
+                                        ToolTip.Tip="{Binding ClearSourceHint}"
+                                        Command="{Binding BtnClearTbSourceCommand}">
+                                    <!-- <PathIcon Classes="toolbar-icon" -->
+                                    <!--           Data="{StaticResource Icon.Delete}"> -->
+                                    <!--     <PathIcon.RenderTransform> -->
+                                    <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
+                                    <!--     </PathIcon.RenderTransform> -->
+                                    <!-- </PathIcon> -->
+                                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
+                                </Button>
+                                <Button x:Name="BtnPaste" Padding="5 2" Width="80" HorizontalContentAlignment="Center"
+                                        FontWeight="SemiBold" Height="28" FontSize="14"
+                                        Command="{Binding BtnPasteCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <!-- <PathIcon Classes="toolbar-icon" -->
+                                        <!--           Data="{StaticResource Icon.Paste}"> -->
+                                        <!--     <PathIcon.RenderTransform> -->
+                                        <!--         <ScaleTransform ScaleX="0.75" ScaleY="0.75"/> -->
+                                        <!--     </PathIcon.RenderTransform> -->
+                                        <!-- </PathIcon> -->
+                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Paste}" />
+                                        <TextBlock Text="{Binding BtnPasteContent}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
-                        </Button>
-                        <Button x:Name="BtnClearDestination" Grid.Column="1" Padding="0 2" Width="40"
-                                HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,90,0"
-                                Grid.Row="1" VerticalAlignment="Center" ToolTip.Tip="{Binding ClearDestinationHint}"
-                                FontSize="14" Command="{Binding BtnClearTbDestinationCommand}" FontWeight="Bold">
-                            <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
-                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
-                        </Button>
-                        <Button x:Name="BtnCopy" Grid.Column="1" Padding="5 2" Width="80"
-                                HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,5,0"
-                                Grid.Row="1" VerticalAlignment="Center" FontWeight="SemiBold"
-                                FontSize="14" Command="{Binding BtnCopyCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="3">
-                                <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
-                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}" />
-                                <TextBlock Text="{Binding BtnCopyContent}" VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
+                                        VerticalAlignment="Center" Spacing="5">
+                                <Label Content="{Binding DestinationContent}"
+                                       FontSize="16" BorderBrush="DarkGray"
+                                       BorderThickness="3,0,0,2" />
+                                <Label x:Name="LblDestinationCode" FontSize="16"
+                                       Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" />
                             </StackPanel>
-                        </Button>
+                            <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                                        VerticalAlignment="Center" Spacing="5" Margin="0 0 8 0">
+                                <Button x:Name="BtnClearDestination" Padding="0 2" Width="40"
+                                        HorizontalContentAlignment="Center"
+                                        ToolTip.Tip="{Binding ClearDestinationHint}"
+                                        FontSize="14" Command="{Binding BtnClearTbDestinationCommand}"
+                                        FontWeight="Bold">
+                                    <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
+                                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
+                                </Button>
+                                <Button x:Name="BtnCopy" Padding="5 2" Width="80" HorizontalContentAlignment="Center"
+                                        FontWeight="SemiBold" FontSize="14"
+                                        Command="{Binding BtnCopyCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="3">
+                                        <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
+                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}" FontSize="22"/>
+                                        <TextBlock Text="{Binding BtnCopyContent}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="TabBatch" IsSelected="{Binding IsTabBatch}" FontSize="14"
