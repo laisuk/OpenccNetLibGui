@@ -53,7 +53,7 @@
                          IsChecked="{Binding IsRbCustom}" />
             <ComboBox Name="CbCustom" Grid.Column="2" Grid.Row="0" Margin="140,0,0,0" CornerRadius="6"
                       ItemsSource="{Binding CustomOptions}"
-                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                      SelectedItem="{Binding SelectedCustomItem, Mode=TwoWay}">
                 <Interaction.Behaviors>
                     <EventTriggerBehavior EventName="GotFocus">
                         <InvokeCommandAction Command="{Binding CmbCustomGotFocusCommand}" />

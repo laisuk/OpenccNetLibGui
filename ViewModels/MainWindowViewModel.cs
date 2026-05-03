@@ -120,7 +120,7 @@ public class MainWindowViewModel : ViewModelBase
     private TextDocument? _tbSourceTextDocument;
     private TextDocument? _tbDestinationTextDocument;
     private string? _currentOpenFileName = string.Empty;
-    private string? _selectedItem;
+    private string? _selectedCustomItem;
 
     private readonly Opencc? _opencc;
     private bool _isCbConvertFilename;
@@ -168,10 +168,10 @@ public class MainWindowViewModel : ViewModelBase
         nameof(ExitHint)
     };
 
-    public string? SelectedItem
+    public string? SelectedCustomItem
     {
-        get => _selectedItem;
-        set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+        get => _selectedCustomItem;
+        set => this.RaiseAndSetIfChanged(ref _selectedCustomItem, value);
     }
 
     public string UiLanguageOption0Content =>
@@ -700,15 +700,15 @@ public class MainWindowViewModel : ViewModelBase
 
         RefreshSaveTargetOptionLabels(language);
 
-        var selectedConfigKey = GetCustomConfigKey(SelectedItem);
+        var selectedConfigKey = GetCustomConfigKey(SelectedCustomItem);
         CustomOptions.Clear();
         foreach (var option in language.CustomOptions)
             CustomOptions.Add(option);
 
         var matchingOption = CustomOptions.FirstOrDefault(option =>
             string.Equals(GetCustomConfigKey(option), selectedConfigKey, StringComparison.OrdinalIgnoreCase));
-        SelectedItem = matchingOption
-                       ?? (CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)");
+        SelectedCustomItem = matchingOption
+                             ?? (CustomOptions.Count > 0 ? CustomOptions[0] : "s2t (zh-Hans->zh-Hant)");
 
         _selectedLanguage = language;
         _selectedUiLanguageIndex = NormalizeLanguageLocale(language);
@@ -1825,7 +1825,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (IsRbCustom)
         {
-            var s = SelectedItem;
+            var s = SelectedCustomItem;
             if (string.IsNullOrWhiteSpace(s))
                 return "s2t";
 
@@ -1861,7 +1861,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (IsRbCustom)
         {
-            var s = SelectedItem;
+            var s = SelectedCustomItem;
 
             // Default fallback: s2t
             if (string.IsNullOrWhiteSpace(s))
