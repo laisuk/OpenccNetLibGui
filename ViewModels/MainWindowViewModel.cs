@@ -2362,7 +2362,7 @@ public class MainWindowViewModel : ViewModelBase
             _content = content;
         }
 
-        public SaveTarget Target { get; }
+        internal SaveTarget Target { get; }
 
         public string Content
         {

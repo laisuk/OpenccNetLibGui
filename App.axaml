@@ -199,21 +199,48 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
 
+        <Style Selector="TabItem:selected TextBlock.tab-icon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+            <Setter Property="RenderTransform">
+                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+            </Setter>
+        </Style>
+
     </Application.Styles>
 
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
+
                 <ResourceDictionary x:Key="Light">
+                    <!-- Accent -->
+                    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#0078D4" />
+                    <SolidColorBrush x:Key="AccentPointerOverForegroundBrush" Color="#106EBE" />
+                    <SolidColorBrush x:Key="AccentPressedForegroundBrush" Color="#005A9E" />
+
+                    <!-- Danger -->
                     <SolidColorBrush x:Key="DangerOutlineForegroundBrush" Color="#C42B1C" />
                     <SolidColorBrush x:Key="DangerOutlinePointerOverForegroundBrush" Color="#A4262C" />
                     <SolidColorBrush x:Key="DangerOutlinePressedForegroundBrush" Color="#8E1F25" />
                 </ResourceDictionary>
+
                 <ResourceDictionary x:Key="Dark">
+                    <!-- Accent -->
+                    <SolidColorBrush x:Key="AccentForegroundBrush" Color="#4CC2FF" />
+                    <SolidColorBrush x:Key="AccentPointerOverForegroundBrush" Color="#70D6FF" />
+                    <SolidColorBrush x:Key="AccentPressedForegroundBrush" Color="#2AA8E0" />
+
+                    <!-- Danger -->
                     <SolidColorBrush x:Key="DangerOutlineForegroundBrush" Color="#F1707B" />
                     <SolidColorBrush x:Key="DangerOutlinePointerOverForegroundBrush" Color="#FF99A4" />
                     <SolidColorBrush x:Key="DangerOutlinePressedForegroundBrush" Color="#F1707B" />
                 </ResourceDictionary>
+
             </ResourceDictionary.ThemeDictionaries>
 
             <StreamGeometry x:Key="Icon.Add">

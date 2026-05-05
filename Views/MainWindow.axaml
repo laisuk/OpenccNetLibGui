@@ -107,7 +107,7 @@
                          FontSize="14" FontWeight="{Binding TabMainFontWeight}">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Classes="icon-font"
+                            <TextBlock Classes="icon-font tab-icon" 
                                        Text="{x:Static local:Icons.Sync}" />
                             <TextBlock Text="{Binding TabMainContent}" />
                         </StackPanel>
@@ -455,7 +455,7 @@
                          FontWeight="{Binding TabBatchFontWeight}">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Classes="icon-font"
+                            <TextBlock Classes="icon-font tab-icon"
                                        Text="{x:Static local:Icons.MoveToFolder}" />
                             <TextBlock Text="{Binding TabBatchContent}" />
                         </StackPanel>
@@ -797,7 +797,7 @@
                          FontWeight="{Binding TabSettingsFontWeight}">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Classes="icon-font"
+                            <TextBlock Classes="icon-font tab-icon"
                                        Text="{x:Static local:Icons.Settings}" />
                             <TextBlock Text="{Binding TabSettingsContent}" />
                         </StackPanel>
