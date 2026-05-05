@@ -107,7 +107,7 @@
                          FontSize="14" FontWeight="{Binding TabMainFontWeight}">
                     <TabItem.Header>
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Classes="icon-font tab-icon" 
+                            <TextBlock Classes="icon-font tab-icon"
                                        Text="{x:Static local:Icons.Sync}" />
                             <TextBlock Text="{Binding TabMainContent}" />
                         </StackPanel>
@@ -443,7 +443,7 @@
                                         Command="{Binding BtnCopyCommand}">
                                     <StackPanel Orientation="Horizontal" Spacing="3">
                                         <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
-                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}" FontSize="22"/>
+                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}" FontSize="22" />
                                         <TextBlock Text="{Binding BtnCopyContent}" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
