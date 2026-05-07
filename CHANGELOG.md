@@ -7,12 +7,15 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.3-beta1] - 2026-04-18
+## [1.5.0] - 2026-05-07
 
 ### Changed
 
 - Update Avalonia to version 12
-- Refined Fluent UI icons
+- Refined Fluent UI
+- Refined UI i18n
+- Updated `OpenccNetLib` to v1.5.0
+- Optimized Reflow function 
 
 ---
 
