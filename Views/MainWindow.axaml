@@ -329,7 +329,8 @@
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock Text="ℹ️" />
-                                                    <TextBlock Text="About…" />
+                                                    <TextBlock
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AboutContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -654,7 +655,8 @@
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="ℹ️" />
-                                                <TextBlock Text="About…" />
+                                                <TextBlock
+                                                    Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AboutContent, FallbackValue=''}" />
                                             </StackPanel>
                                         </MenuItem.Header>
                                     </MenuItem>

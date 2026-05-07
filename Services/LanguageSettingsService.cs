@@ -283,6 +283,7 @@ public class LanguageSettingsService
       ""usePdfiumEngineContent"": ""Use Pdfium (native) engine"",
       ""headingRulesContent"": ""Heading Rules"",
       ""shortHeadingSettingsContent"": ""Short heading settings..."",
+      ""aboutContent"": ""About..."",
       ""hints"": {
         ""cbZhtwHint"": ""Using zh-CN and zh-TW idioms in conversion."",
         ""cbPunctuationHint"": ""Convert CJK punctuations between Simplified/Traditional Chinese."",
@@ -411,6 +412,7 @@ public class LanguageSettingsService
       ""usePdfiumEngineContent"": ""使用 Pdfium（原生）引擎"",
       ""headingRulesContent"": ""標題規則"",
       ""shortHeadingSettingsContent"": ""短標題設定..."",
+      ""aboutContent"": ""關於..."",
       ""hints"": {
         ""cbZhtwHint"": ""轉換時使用 zh-CN 與 zh-TW 慣用語。"",
         ""cbPunctuationHint"": ""在簡體與繁體中文之間轉換 CJK 標點。"",
@@ -539,6 +541,7 @@ public class LanguageSettingsService
       ""usePdfiumEngineContent"": ""使用 Pdfium（原生）引擎"",
       ""headingRulesContent"": ""标题规则"",
       ""shortHeadingSettingsContent"": ""短标题设置..."",
+      ""aboutContent"": ""关于..."",
       ""hints"": {
         ""cbZhtwHint"": ""转换时使用 zh-CN 与 zh-TW 惯用语。"",
         ""cbPunctuationHint"": ""在简体与繁体中文之间转换 CJK 标点。"",

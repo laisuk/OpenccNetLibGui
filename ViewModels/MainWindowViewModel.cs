@@ -100,6 +100,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _usePdfiumEngineContent = "Use Pdfium (native) engine";
     private string? _headingRulesContent = "Heading Rules";
     private string? _shortHeadingSettingsContent = "Short heading settings...";
+    private string? _aboutContent = "About...";
     private string? _uiLanguageContent = "UI Language";
     private string? _themeModeContent = "Theme Mode";
     private string? _tabMainContent = "Main Conversion";
@@ -486,6 +487,7 @@ public class MainWindowViewModel : ViewModelBase
             UsePdfiumEngineContent = "Use Pdfium (native) engine",
             HeadingRulesContent = "Heading Rules",
             ShortHeadingSettingsContent = "Short heading settings...",
+            AboutContent = "Short heading settings...",
             UiLanguageContent = "UI Language",
             ThemeModeContent = "Theme Mode",
             ThemeModeSelectionContent = new List<string>
@@ -675,6 +677,9 @@ public class MainWindowViewModel : ViewModelBase
         ShortHeadingSettingsContent = string.IsNullOrWhiteSpace(language.ShortHeadingSettingsContent)
             ? "Short heading settings..."
             : language.ShortHeadingSettingsContent;
+        AboutContent = string.IsNullOrWhiteSpace(language.AboutContent)
+            ? "About..."
+            : language.AboutContent;
         UiLanguageContent = string.IsNullOrWhiteSpace(language.UiLanguageContent)
             ? "UI Language"
             : language.UiLanguageContent;
@@ -2298,6 +2303,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _shortHeadingSettingsContent;
         set => this.RaiseAndSetIfChanged(ref _shortHeadingSettingsContent, value);
+    }
+    
+    public string? AboutContent
+    {
+        get => _aboutContent;
+        set => this.RaiseAndSetIfChanged(ref _aboutContent, value);
     }
 
     public string? UiLanguageContent
