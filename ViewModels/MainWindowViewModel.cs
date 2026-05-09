@@ -356,19 +356,29 @@ public class MainWindowViewModel : ViewModelBase
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
 
-        switch (_languageSettings.Dictionary)
+        try
         {
-            case "dicts":
-                Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
-                break;
+            switch (_languageSettings.Dictionary)
+            {
+                case "dicts":
+                    Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
+                    break;
 
-            case "json":
-                Opencc.UseCustomDictionary(DictionaryLib.FromJson());
-                break;
+                case "json":
+                    Opencc.UseCustomDictionary(DictionaryLib.FromJson());
+                    break;
 
-            case "cbor":
-                Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
-                break;
+                case "cbor":
+                    Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
+                    break;
+            }
+        }
+        catch (FileNotFoundException)
+            when (_languageSettings.Dictionary is "json" or "cbor")
+        {
+            // JSON/CBOR dictionary files are optional.
+            // Fall back to OpenccNetLib default Zstd dictionary.
+            _languageSettings.Dictionary = "default";
         }
 
         _opencc = opencc;
@@ -2304,7 +2314,7 @@ public class MainWindowViewModel : ViewModelBase
         get => _shortHeadingSettingsContent;
         set => this.RaiseAndSetIfChanged(ref _shortHeadingSettingsContent, value);
     }
-    
+
     public string? AboutContent
     {
         get => _aboutContent;
