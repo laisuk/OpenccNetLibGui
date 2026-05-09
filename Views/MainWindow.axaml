@@ -160,6 +160,12 @@
                                                 <Setter Property="Padding" Value="8,4" />
                                                 <Setter Property="Background" Value="#F7F7F7" />
                                             </Style>
+
+                                            <Style Selector="TextBlock.menu-emoji">
+                                                <!-- Force colored emoji fallback on Windows -->
+                                                <Setter Property="FontFamily"
+                                                        Value="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji" />
+                                            </Style>
                                         </ContextMenu.Styles>
                                         <!-- 🔹 Section: PDF Options -->
                                         <MenuItem IsEnabled="False" Classes="section-header">
@@ -258,7 +264,7 @@
                                                   ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <TextBlock Text="⚙️" />
+                                                    <TextBlock Classes="menu-emoji" Text="⚙️" />
                                                     <TextBlock
                                                         Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineContent, FallbackValue=''}" />
                                                 </StackPanel>
@@ -271,7 +277,7 @@
                                                   ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <TextBlock Text="⚙️" />
+                                                    <TextBlock Classes="menu-emoji" Text="⚙️" />
                                                     <TextBlock
                                                         Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineContent, FallbackValue=''}" />
                                                 </StackPanel>
@@ -298,7 +304,7 @@
                                                   ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsHint, FallbackValue=''}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <TextBlock Text="✏️" />
+                                                    <TextBlock Classes="menu-emoji" Text="✏️" />
                                                     <TextBlock
                                                         Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsContent, FallbackValue=''}" />
                                                 </StackPanel>
@@ -328,7 +334,7 @@
                                         <MenuItem Command="{Binding ShowAboutDialog}">
                                             <MenuItem.Header>
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <TextBlock Text="ℹ️" />
+                                                    <TextBlock Classes="menu-emoji" Text="ℹ️" />
                                                     <TextBlock
                                                         Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AboutContent, FallbackValue=''}" />
                                                 </StackPanel>
@@ -487,6 +493,12 @@
                                             <Setter Property="Padding" Value="8,4" />
                                             <Setter Property="Background" Value="#F7F7F7" />
                                         </Style>
+
+                                        <Style Selector="TextBlock.menu-emoji">
+                                            <!-- Force colored emoji fallback on Windows -->
+                                            <Setter Property="FontFamily"
+                                                    Value="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji" />
+                                        </Style>
                                     </ContextMenu.Styles>
                                     <!-- 🔹 Section: PDF Options -->
                                     <MenuItem IsEnabled="False" Classes="section-header">
@@ -584,7 +596,7 @@
                                               ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <TextBlock Text="⚙️" />
+                                                <TextBlock Classes="menu-emoji" Text="⚙️" />
                                                 <TextBlock
                                                     Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfPigEngineContent, FallbackValue=''}" />
                                             </StackPanel>
@@ -597,7 +609,7 @@
                                               ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <TextBlock Text="⚙️" />
+                                                <TextBlock Classes="menu-emoji" Text="⚙️" />
                                                 <TextBlock
                                                     Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).UsePdfiumEngineContent, FallbackValue=''}" />
                                             </StackPanel>
@@ -624,7 +636,7 @@
                                               ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsHint, FallbackValue=''}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="✏️" />
+                                                <TextBlock Classes="menu-emoji" Text="✏️" />
                                                 <TextBlock
                                                     Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ShortHeadingSettingsContent, FallbackValue=''}" />
                                             </StackPanel>
@@ -654,7 +666,7 @@
                                     <MenuItem Command="{Binding ShowAboutDialog}">
                                         <MenuItem.Header>
                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="ℹ️" />
+                                                <TextBlock Classes="menu-emoji" Text="ℹ️" />
                                                 <TextBlock
                                                     Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AboutContent, FallbackValue=''}" />
                                             </StackPanel>
