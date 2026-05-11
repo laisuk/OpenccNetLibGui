@@ -1947,7 +1947,7 @@ public class MainWindowViewModel : ViewModelBase
         LblStatusBarContent = FormatRuntimeStatus(
             "statusSettingsSaved",
             "Saved: {0}",
-            _languageSettingsService.UserSettingsPath);
+            LanguageSettingsService.UserSettingsPath);
     }
 
     private async Task ShowAbout()

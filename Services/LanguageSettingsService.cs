@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -10,10 +11,15 @@ namespace OpenccNetLibGui.Services;
 
 public class LanguageSettingsService
 {
+    private const string AppName = "OpenccNetLibGui";
+
     private readonly string _defaultSettingsPath;
     private string _lastSavedSnapshot = string.Empty;
 
-    public string UserSettingsPath { get; }
+    public static string UserSettingsPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        AppName,
+        "UserLanguageSettings.json");
 
     public bool IsDirty =>
         CreateSnapshot(LanguageSettings) != _lastSavedSnapshot;
@@ -25,12 +31,9 @@ public class LanguageSettingsService
     /// </summary>
     public LanguageSettings LanguageSettings { get; private set; }
 
-    public LanguageSettingsService(
-        string defaultSettingsPath,
-        string userSettingsPath)
+    public LanguageSettingsService(string defaultSettingsPath)
     {
         _defaultSettingsPath = defaultSettingsPath;
-        UserSettingsPath = userSettingsPath;
 
         // Defensive: ensure invariant for computed properties after ctor returns.
         Reload();

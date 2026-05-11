@@ -50,14 +50,7 @@ public class App : Application
 
             var defaultPath = Path.Combine(baseDir, "LanguageSettings.json");
 
-            const string appName = "OpenccNetLibGui";
-            var userDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                appName
-            );
-            var userPath = Path.Combine(userDir, "UserLanguageSettings.json");
-
-            return new LanguageSettingsService(defaultPath, userPath);
+            return new LanguageSettingsService(defaultPath);
         });
 
         services.AddSingleton<ITopLevelService, TopLevelService>();
