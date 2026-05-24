@@ -11,7 +11,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Update OpenccNetLib to v1.5.2
+- Update OpenccNetLib to v1.5.1
 - Stabilized context menu emoji font family fallback
 - Improved Custom Dictionary handling
 - Optimized UserSettingsPath code flows
