@@ -7,6 +7,18 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.5.1] - 2026-05-25
+
+### Changed
+
+- Update OpenccNetLib to v1.5.2
+- Stabilized context menu emoji font family fallback
+- Improved Custom Dictionary handling
+- Optimized UserSettingsPath code flows
+- Added About label for i18n
+
+---
+
 ## [1.5.0] - 2026-05-07
 
 ### Changed
