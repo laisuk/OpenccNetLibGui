@@ -863,7 +863,7 @@
                                             </ComboBox>
                                             <NumericUpDown Grid.Row="1"
                                                            Grid.Column="1"
-                                                           Width="100"
+                                                           Width="110"
                                                            Minimum="8"
                                                            Maximum="72"
                                                            Increment="1"
