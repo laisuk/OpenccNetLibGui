@@ -333,6 +333,7 @@ public class LanguageSettingsService
         ""s2tw"",
         ""s2twp"",
         ""s2hk"",
+        ""s2hkp"",
         ""t2s"",
         ""t2tw"",
         ""t2twp"",
@@ -342,6 +343,7 @@ public class LanguageSettingsService
         ""tw2t"",
         ""tw2tp"",
         ""hk2s"",
+        ""hk2sp"",
         ""hk2t"",
         ""t2jp"",
         ""jp2t""
@@ -500,6 +502,7 @@ public class LanguageSettingsService
         ""s2tw (簡→繁臺)"",
         ""s2twp (簡→繁臺/慣)"",
         ""s2hk (簡→繁港)"",
+        ""s2hkp (簡→繁港/詞)"",
         ""t2s (繁→簡)"",
         ""t2tw (繁→繁臺)"",
         ""t2twp (繁→繁臺/慣)"",
@@ -509,6 +512,7 @@ public class LanguageSettingsService
         ""tw2t (繁臺→繁)"",
         ""tw2tp (繁臺→繁/慣)"",
         ""hk2s (繁港→簡)"",
+        ""hk2sp (繁港→簡/詞)"",
         ""hk2t (繁港→繁)"",
         ""t2jp (日舊→日新)"",
         ""jp2t (日新→日舊)""
@@ -667,6 +671,7 @@ public class LanguageSettingsService
         ""s2tw (简→繁台)"",
         ""s2twp (简→繁台/惯)"",
         ""s2hk (简→繁港)"",
+        ""s2hkp (简→繁港/词)"",
         ""t2s (繁→简)"",
         ""t2tw (繁→繁台)"",
         ""t2twp (繁→繁台/惯)"",
@@ -676,6 +681,7 @@ public class LanguageSettingsService
         ""tw2t (繁台→繁)"",
         ""tw2tp (繁台→繁/惯)"",
         ""hk2s (繁港→简)"",
+        ""hk2sp (繁港→简/词)"",
         ""hk2t (繁港→繁)"",
         ""t2jp (日旧→日新)"",
         ""jp2t (日新→日旧)""
