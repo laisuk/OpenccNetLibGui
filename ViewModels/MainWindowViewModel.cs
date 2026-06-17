@@ -122,7 +122,7 @@ public class MainWindowViewModel : ViewModelBase
     private TextDocument? _tbDestinationTextDocument;
     private string? _currentOpenFileName = string.Empty;
     private string? _selectedCustomItem;
-
+    
     private readonly Opencc? _opencc;
     private bool _isCbConvertFilename;
     private PdfViewModel PdfVm { get; }

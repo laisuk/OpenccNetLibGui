@@ -18,6 +18,13 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         var tbSource = this.FindControl<TextEditor>("TbSource");
+        var tbDestination = this.FindControl<TextEditor>("TbDestination");
+        var tbPreview = this.FindControl<TextEditor>("TbPreview");
+
+        ConfigureEditor(tbSource);
+        ConfigureEditor(tbDestination);
+        ConfigureEditor(tbPreview);
+
         var lbxSource = this.FindControl<ListBox>("LbxSource");
         InitializeDragAndDrop(tbSource);
         InitializeDragAndDrop(lbxSource);
@@ -26,6 +33,13 @@ public partial class MainWindow : Window
     public MainWindow(MainWindowViewModel vm) : this()
     {
         DataContext = vm;
+    }
+
+    private static void ConfigureEditor(TextEditor? editor)
+    {
+        if (editor == null) return;
+
+        editor.TextArea.TextView.Margin = new Avalonia.Thickness(0, 0, 18, 0);
     }
 
     private void InitializeDragAndDrop(Control? control)
