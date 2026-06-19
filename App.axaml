@@ -169,7 +169,7 @@
             <!-- 邊框：Fluent 2 式微對比灰線 -->
             <Setter Property="BorderBrush"
                     Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <Setter Property="BorderThickness" Value="3" />
+            <Setter Property="BorderThickness" Value="2" />
 
             <!-- 圓角 + 內邊距 -->
             <Setter Property="CornerRadius" Value="6" />
