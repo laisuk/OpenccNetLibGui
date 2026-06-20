@@ -7,11 +7,13 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.6.0] - 2026-06-18
+## [1.6.0] - 2026-06-20
 
 ### Changed
 
-- Update OpenccNetLib to v1.6.0
+- Update `OpenccNetLib` to v1.6.0
+- Minor UI refinement.
+- Added `s2hkp` and `hk2sp` conversion configs.
 
 ---
 
