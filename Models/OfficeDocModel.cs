@@ -54,7 +54,7 @@ public static class OfficeDocModel
     /// </returns>
     public static bool IsValidOfficeFormat(string? format)
     {
-        return !string.IsNullOrWhiteSpace(format) && OfficeFormats.Contains(format);
+        return !string.IsNullOrWhiteSpace(format) && OfficeFormats.Contains(format.Trim());
     }
 
     /// <summary>
@@ -79,15 +79,9 @@ public static class OfficeDocModel
         bool punctuation,
         bool keepFont = false)
     {
-        ArgumentNullException.ThrowIfNull(inputBytes);
+        ValidateInputBytes(inputBytes);
         ArgumentNullException.ThrowIfNull(converter);
-
-        if (!IsValidOfficeFormat(format))
-        {
-            return (false, $"❌ Unsupported or invalid format: {format}", null);
-        }
-
-        var normalizedFormat = format.ToLowerInvariant();
+        var normalizedFormat = NormalizeFormat(format);
 
         // Create a temporary working directory for extracted contents
         var tempDir = Path.Combine(Path.GetTempPath(), $"{normalizedFormat}_temp_" + Guid.NewGuid());
@@ -105,7 +99,7 @@ public static class OfficeDocModel
                     if (string.IsNullOrEmpty(entry.FullName))
                         continue;
 
-                    var destPath = Path.Combine(tempDir, entry.FullName);
+                    var destPath = GetSafeExtractionPath(tempDir, entry);
 
                     // Create directory structure
                     var destDir = Path.GetDirectoryName(destPath);
@@ -261,7 +255,11 @@ public static class OfficeDocModel
                 resultBytes = CreateZipFromDirectory(tempDir);
             }
 
-            return (true, $"✅ Successfully converted {convertedCount} fragment(s) in {format} document.", resultBytes);
+            ValidateZipBytes(resultBytes);
+
+            return (true,
+                $"✅ Successfully converted {convertedCount} fragment(s) in {normalizedFormat} document.",
+                resultBytes);
         }
         catch (Exception ex)
         {
@@ -303,8 +301,10 @@ public static class OfficeDocModel
         bool punctuation,
         bool keepFont = false)
     {
-        ArgumentNullException.ThrowIfNull(inputPath);
-        ArgumentNullException.ThrowIfNull(outputPath);
+        ValidatePath(inputPath, nameof(inputPath));
+        ValidatePath(outputPath, nameof(outputPath));
+        var normalizedFormat = NormalizeFormat(format);
+        ArgumentNullException.ThrowIfNull(converter);
 
         if (!File.Exists(inputPath))
         {
@@ -314,7 +314,7 @@ public static class OfficeDocModel
         var inputBytes = await File.ReadAllBytesAsync(inputPath).ConfigureAwait(false);
 
         var (success, message, outputBytes) = await ConvertOfficeBytesAsync(
-                inputBytes, format, converter, punctuation, keepFont)
+                inputBytes, normalizedFormat, converter, punctuation, keepFont)
             .ConfigureAwait(false);
 
         if (!success || outputBytes is null)
@@ -322,14 +322,121 @@ public static class OfficeDocModel
             return (success, message);
         }
 
-        var outputDir = Path.GetDirectoryName(outputPath);
-        if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+        await WriteAllBytesAtomicAsync(outputPath, outputBytes).ConfigureAwait(false);
+        return (true, message);
+    }
+
+    /// <summary>Validates that an in-memory package was supplied.</summary>
+    private static void ValidateInputBytes(byte[] inputBytes)
+    {
+        ArgumentNullException.ThrowIfNull(inputBytes);
+
+        if (inputBytes.Length == 0)
+            throw new ArgumentException("Input package bytes must not be empty.", nameof(inputBytes));
+    }
+
+    /// <summary>Validates a public file path argument.</summary>
+    private static void ValidatePath(string path, string paramName)
+    {
+        ArgumentNullException.ThrowIfNull(path, paramName);
+
+        if (string.IsNullOrWhiteSpace(path))
+            throw new ArgumentException("Path must not be empty or whitespace.", paramName);
+    }
+
+    /// <summary>Validates and canonicalizes a logical Office or EPUB format name.</summary>
+    private static string NormalizeFormat(string format)
+    {
+        ArgumentNullException.ThrowIfNull(format);
+
+        var normalized = format.Trim().ToLowerInvariant();
+        if (normalized.Length == 0)
+            throw new ArgumentException("Format must not be empty or whitespace.", nameof(format));
+        if (!OfficeFormats.Contains(normalized))
+            throw new ArgumentException($"Unsupported Office/EPUB format: '{normalized}'.", nameof(format));
+
+        return normalized;
+    }
+
+    /// <summary>Returns a normalized extraction path that cannot escape the ZIP root.</summary>
+    private static string GetSafeExtractionPath(string tempDir, ZipArchiveEntry entry)
+    {
+        var rootPath = Path.GetFullPath(tempDir);
+        var rootWithSeparator = Path.EndsInDirectorySeparator(rootPath)
+            ? rootPath
+            : rootPath + Path.DirectorySeparatorChar;
+        var normalizedEntryName = entry.FullName
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+        var destinationPath = Path.GetFullPath(Path.Combine(rootPath, normalizedEntryName));
+        var pathComparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        if (!destinationPath.StartsWith(rootWithSeparator, pathComparison))
         {
-            Directory.CreateDirectory(outputDir);
+            throw new InvalidDataException(
+                $"ZIP entry escapes the extraction directory: '{entry.FullName}'.");
         }
 
-        await File.WriteAllBytesAsync(outputPath, outputBytes).ConfigureAwait(false);
-        return (true, message);
+        return destinationPath;
+    }
+
+    /// <summary>Confirms that generated bytes contain a readable ZIP package.</summary>
+    private static void ValidateZipBytes(byte[] bytes)
+    {
+        ValidateInputBytes(bytes);
+
+        using var stream = new MemoryStream(bytes, writable: false);
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+        _ = archive.Entries.Count;
+    }
+
+    /// <summary>Writes a complete package to a sibling file before atomically publishing it.</summary>
+    private static async Task WriteAllBytesAtomicAsync(string outputPath, byte[] bytes)
+    {
+        var fullOutputPath = Path.GetFullPath(outputPath);
+        var outputDirectory = Path.GetDirectoryName(fullOutputPath);
+        if (string.IsNullOrEmpty(outputDirectory))
+            throw new ArgumentException("Output path must include a valid directory.", nameof(outputPath));
+
+        Directory.CreateDirectory(outputDirectory);
+        var tempPath = Path.Combine(
+            outputDirectory,
+            $".{Path.GetFileName(fullOutputPath)}.{Guid.NewGuid():N}.tmp");
+
+        try
+        {
+            await using (var stream = new FileStream(
+                             tempPath,
+                             FileMode.CreateNew,
+                             FileAccess.Write,
+                             FileShare.None,
+                             bufferSize: 81920,
+                             FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await stream.WriteAsync(bytes).ConfigureAwait(false);
+                await stream.FlushAsync().ConfigureAwait(false);
+                stream.Flush(flushToDisk: true);
+            }
+
+            if (File.Exists(fullOutputPath))
+                File.Replace(tempPath, fullOutputPath, destinationBackupFileName: null);
+            else
+                File.Move(tempPath, fullOutputPath);
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+            catch
+            {
+                // ignore cleanup errors
+            }
+        }
     }
 
     /// <summary>

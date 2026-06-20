@@ -7,6 +7,17 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.6.1] - Unreleased
+
+### Changed
+
+- Hardened GUI Office/EPUB conversion against corrupted package output.
+- Added explicit null, empty, and whitespace input validation.
+- Added ZIP path traversal protection during extraction.
+- Made GUI file output atomic so failed conversions do not replace existing output files.
+
+---
+
 ## [1.6.0] - 2026-06-20
 
 ### Changed

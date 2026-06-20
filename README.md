@@ -53,6 +53,10 @@ On the release page, look for assets named:
 - **Drag-and-Drop Support**  
   Drop text, PDF, EPUB, or Office files directly into the Source panel.
 
+- **Safe Office/EPUB Output**
+  Generated Office and EPUB packages are validated before use and written atomically. Invalid or corrupted packages
+  fail clearly without replacing an existing output file.
+
 - **CJK-Aware Reflow Engine**  
   Smart handling of:
     - Paragraph boundaries
