@@ -42,7 +42,7 @@ public partial class AboutDialog : Window
 
         Process.Start(new ProcessStartInfo
         {
-            FileName = "https://github.com/laisuk/ZhoConverterGui",
+            FileName = "https://github.com/laisuk/OpenccNetLibGui",
             UseShellExecute = true
         });
     }
