@@ -15,6 +15,9 @@ public class LanguageSettings
     public List<string>? OfficeFileTypes { get; set; }
     public string? Dictionary { get; set; }
     public int Locale { get; set; }
+    public int UiScale { get; set; } = 100;
+    public int WindowWidth { get; set; } = 1000;
+    public int WindowHeight { get; set; } = 700;
     public string ThemeMode { get; set; } = "System";
     public string EditorFont { get; set; } = "Consolas";
     public double EditorFontSize { get; set; } = 14;
@@ -51,6 +54,8 @@ public class Language
     public string S2TContent { get; set; } = "";
     public string CustomContent { get; set; } = "";
     public string UiLanguageContent { get; set; } = "UI Language";
+    public string UiScaleContent { get; set; } = "UI Scale";
+    public string ResetWindowSizeContent { get; set; } = "Reset Window Size";
     public string TabMainContent { get; set; } = "Main Conversion";
     public string TabBatchContent { get; set; } = "Batch Conversion";
     public string TabSettingsContent { get; set; } = "Settings";

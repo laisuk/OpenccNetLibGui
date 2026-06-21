@@ -12,6 +12,10 @@ namespace OpenccNetLibGui.Services;
 public class LanguageSettingsService
 {
     private const string AppName = "OpenccNetLibGui";
+    public const int DefaultWindowWidth = 1000;
+    public const int DefaultWindowHeight = 700;
+    public const int MinimumWindowWidth = 1000;
+    public const int MinimumWindowHeight = 300;
 
     private readonly string _defaultSettingsPath;
     private string _lastSavedSnapshot = string.Empty;
@@ -93,7 +97,10 @@ public class LanguageSettingsService
         "pdfOptions",
         "punctuation",
         "sentenceBoundaryMode",
-        "themeMode"
+        "themeMode",
+        "uiScale",
+        "windowWidth",
+        "windowHeight"
     };
 
     private static readonly JsonSerializerSettings JsonSaveSettings =
@@ -185,29 +192,74 @@ public class LanguageSettingsService
         var defaultSettings = ReadOrCreateLanguageSettings(defaultPath);
 
         if (!File.Exists(userPath))
-            return defaultSettings;
+            return Normalize(defaultSettings);
 
         try
         {
             var userJson = File.ReadAllText(userPath);
-            var userSettings =
-                JsonConvert.DeserializeObject<LanguageSettings>(userJson);
+            var userObject = JObject.Parse(userJson);
+            var uiScaleToken = userObject.GetValue("uiScale", StringComparison.OrdinalIgnoreCase);
+            if (uiScaleToken is not null &&
+                (uiScaleToken.Type != JTokenType.Integer ||
+                 !int.TryParse(uiScaleToken.ToString(), out var uiScale) ||
+                 uiScale is not (100 or 125 or 150)))
+            {
+                uiScaleToken.Replace(100);
+            }
 
-            if (userSettings is null)
-                return defaultSettings;
+            NormalizeWindowDimensionToken(userObject, "windowWidth", DefaultWindowWidth, MinimumWindowWidth);
+            NormalizeWindowDimensionToken(userObject, "windowHeight", DefaultWindowHeight, MinimumWindowHeight);
 
             // 🔑 Merge user → default
             JsonConvert.PopulateObject(
-                userJson,
+                userObject.ToString(Formatting.None),
                 defaultSettings
             );
 
-            return defaultSettings;
+            return Normalize(defaultSettings);
         }
         catch
         {
             // Corrupted user file → ignore
-            return defaultSettings;
+            return Normalize(defaultSettings);
+        }
+    }
+
+    private static LanguageSettings Normalize(LanguageSettings settings)
+    {
+        settings.UiScale = settings.UiScale is 100 or 125 or 150 ? settings.UiScale : 100;
+        settings.WindowWidth = settings.WindowWidth <= 0
+            ? DefaultWindowWidth
+            : Math.Max(MinimumWindowWidth, settings.WindowWidth);
+        settings.WindowHeight = settings.WindowHeight <= 0
+            ? DefaultWindowHeight
+            : Math.Max(MinimumWindowHeight, settings.WindowHeight);
+        return settings;
+    }
+
+    private static void NormalizeWindowDimensionToken(
+        JObject settings,
+        string propertyName,
+        int defaultValue,
+        int minimumValue)
+    {
+        var token = settings.GetValue(propertyName, StringComparison.OrdinalIgnoreCase);
+        if (token is null)
+            return;
+
+        try
+        {
+            var value = token.Type is JTokenType.Integer or JTokenType.Float
+                ? token.Value<double>()
+                : double.NaN;
+            var normalized = !double.IsFinite(value) || value <= 0 || value > int.MaxValue
+                ? defaultValue
+                : Math.Max(minimumValue, (int)Math.Round(value));
+            token.Replace(normalized);
+        }
+        catch (Exception)
+        {
+            token.Replace(defaultValue);
         }
     }
 
@@ -247,6 +299,8 @@ public class LanguageSettingsService
       ""s2tContent"": ""zh-Hans (SIMP) to zh-Hant (TRAD)"",
       ""customContent"": ""Custom Config"",
       ""uiLanguageContent"": ""UI Language"",
+      ""uiScaleContent"": ""UI Scale"",
+      ""resetWindowSizeContent"": ""Reset Window Size"",
       ""tabMainContent"": ""Main Conversion"",
       ""tabBatchContent"": ""Batch Conversion"",
       ""tabSettingsContent"": ""Settings"",
@@ -288,7 +342,7 @@ public class LanguageSettingsService
       ""shortHeadingSettingsContent"": ""Short heading settings..."",
       ""aboutContent"": ""About..."",
       ""hints"": {
-        ""cbZhtwHint"": ""Using zh-CN and zh-TW idioms in conversion."",
+        ""cbZhtwHint"": ""Using zh-CN, zh-HK and zh-TW idioms in conversion."",
         ""cbPunctuationHint"": ""Convert CJK punctuations between Simplified/Traditional Chinese."",
         ""autoReflowPdfTextHint"": ""Auto-Reflow extracted CJK text when open PDF file."",
         ""ignoreUntrustedPdfTextHint"": ""Ignores repeated or overlaid text commonly used for watermarks or visual noise. Enable this only if extracted text contains obvious duplicates or interference."",
@@ -416,6 +470,8 @@ public class LanguageSettingsService
       ""s2tContent"": ""zh-Hans (簡體) to zh-Hant (繁體)"",
       ""customContent"": ""Manual (自定義)"",
       ""uiLanguageContent"": ""介面語言"",
+      ""uiScaleContent"": ""介面縮放"",
+      ""resetWindowSizeContent"": ""重設視窗大小"",
       ""tabMainContent"": ""主要轉換"",
       ""tabBatchContent"": ""批次轉換"",
       ""tabSettingsContent"": ""設定"",
@@ -424,7 +480,7 @@ public class LanguageSettingsService
       ""stdContent"": ""General (通用簡繁)"",
       ""zhtwContent"": ""ZH-TW (中臺簡繁)"",
       ""hkContent"": ""ZH-HK (中港簡繁)"",
-      ""cbZhtwContent"": ""Regional Terms (地區詞彙)"",
+      ""cbZhtwContent"": ""Regional Terms (地區用語)"",
       ""cbPunctuationContent"": ""Punctuation (標點)"",
       ""btnPasteContent"": ""貼上"",
       ""btnCopyContent"": ""複製"",
@@ -457,7 +513,7 @@ public class LanguageSettingsService
       ""shortHeadingSettingsContent"": ""短標題設定..."",
       ""aboutContent"": ""關於..."",
       ""hints"": {
-        ""cbZhtwHint"": ""轉換時使用 zh-CN 與 zh-TW 慣用語。"",
+        ""cbZhtwHint"": ""轉換時使用 zh-CN，zh-HK 與 zh-TW 慣用語。"",
         ""cbPunctuationHint"": ""在簡體與繁體中文之間轉換 CJK 標點。"",
         ""autoReflowPdfTextHint"": ""開啟 PDF 檔案時自動重排擷取出的 CJK 文字。"",
         ""ignoreUntrustedPdfTextHint"": ""忽略常見於浮水印或視覺雜訊的重複或覆疊文字。只有在擷取文字出現明顯重複或干擾時才啟用。"",
@@ -520,7 +576,7 @@ public class LanguageSettingsService
       ""batchLogContents"": {
         ""conversionType"": ""Conversion Type (轉換方式)"",
         ""region"": ""Region (區域)"",
-        ""zhtwIdioms"": ""Regional Terms (地區詞彙)"",
+        ""zhtwIdioms"": ""Regional Terms (地區用語)"",
         ""punctuations"": ""Punctuations (標點)"",
         ""convertFilename"": ""Convert filename (轉換文件名)"",
         ""outputFolder"": ""Output folder (輸出文件夾)""
@@ -585,6 +641,8 @@ public class LanguageSettingsService
       ""s2tContent"": ""zh-Hans (简体) to zh-Hant (繁体)"",
       ""customContent"": ""Manual (自定义)"",
       ""uiLanguageContent"": ""界面语言"",
+      ""uiScaleContent"": ""界面缩放"",
+      ""resetWindowSizeContent"": ""重设窗口大小"",
       ""tabMainContent"": ""主要转换"",
       ""tabBatchContent"": ""批量转换"",
       ""tabSettingsContent"": ""设置"",
@@ -593,7 +651,7 @@ public class LanguageSettingsService
       ""stdContent"": ""General (通用简繁)"",
       ""zhtwContent"": ""ZH-TW (中台简繁)"",
       ""hkContent"": ""ZH-HK (中港简繁)"",
-      ""cbZhtwContent"": ""Regional Terms (地区词汇)"",
+      ""cbZhtwContent"": ""Regional Terms (地区用语)"",
       ""cbPunctuationContent"": ""Punctuation (标点)"",
       ""btnPasteContent"": ""粘贴"",
       ""btnCopyContent"": ""复制"",
@@ -626,7 +684,7 @@ public class LanguageSettingsService
       ""shortHeadingSettingsContent"": ""短标题设置..."",
       ""aboutContent"": ""关于..."",
       ""hints"": {
-        ""cbZhtwHint"": ""转换时使用 zh-CN 与 zh-TW 惯用语。"",
+        ""cbZhtwHint"": ""转换时使用 zh-CN，zh-HK 与 zh-TW 惯用语。"",
         ""cbPunctuationHint"": ""在简体与繁体中文之间转换 CJK 标点。"",
         ""autoReflowPdfTextHint"": ""打开 PDF 文件时自动重排提取出的 CJK 文本。"",
         ""ignoreUntrustedPdfTextHint"": ""忽略常见于水印或视觉噪声的重复或叠加文本。仅在提取文本出现明显重复或干扰时启用。"",
@@ -689,7 +747,7 @@ public class LanguageSettingsService
       ""batchLogContents"": {
         ""conversionType"": ""Conversion Type (转换方式)"",
         ""region"": ""Region (区域)"",
-        ""zhtwIdioms"": ""Regional Terms (地区词汇)"",
+        ""zhtwIdioms"": ""Regional Terms (地区用语)"",
         ""punctuations"": ""Punctuations (标点)"",
         ""convertFilename"": ""Convert filename (转换文件名)"",
         ""outputFolder"": ""Output folder (输出文件夹)""
@@ -800,6 +858,9 @@ public class LanguageSettingsService
   ""editorFont"": ""Consolas"",
   ""editorFontSize"": 16,
   ""themeMode"": ""System"",
+  ""uiScale"": 100,
+  ""windowWidth"": 1000,
+  ""windowHeight"": 700,
   ""locale"": 2
 }
 ";

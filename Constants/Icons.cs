@@ -29,4 +29,7 @@ public static class Icons
 
     public const string AddTo = "\uECC8";
     public const string RemoveFrom = "\uECC9";
+    public const string FitPage = "\uE9A6";
+    public const string BackToWindow = "\uE73F";
+    
 }

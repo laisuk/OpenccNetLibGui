@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         var lbxSource = this.FindControl<ListBox>("LbxSource");
         InitializeDragAndDrop(tbSource);
         InitializeDragAndDrop(lbxSource);
+        Closing += MainWindow_Closing;
     }
 
     public MainWindow(MainWindowViewModel vm) : this()
@@ -188,6 +189,15 @@ public partial class MainWindow : Window
         filePath = Uri.UnescapeDataString(filePath); // Decode URI
 
         return filePath;
+    }
+
+    private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+    {
+        if (WindowState != WindowState.Normal)
+            return;
+
+        if (DataContext is MainWindowViewModel viewModel)
+            viewModel.PersistWindowSize(Bounds.Width, Bounds.Height);
     }
 
     private void TbSource_TextChanged(object? sender, EventArgs eventArgs)

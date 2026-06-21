@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
@@ -102,6 +103,8 @@ public class MainWindowViewModel : ViewModelBase
     private string? _shortHeadingSettingsContent = "Short heading settings...";
     private string? _aboutContent = "About...";
     private string? _uiLanguageContent = "UI Language";
+    private string? _uiScaleContent = "UI Scale";
+    private string? _resetWindowSizeContent = "Reset Window Size";
     private string? _themeModeContent = "Theme Mode";
     private string? _tabMainContent = "Main Conversion";
     private string? _tabBatchContent = "Batch Conversion";
@@ -115,6 +118,7 @@ public class MainWindowViewModel : ViewModelBase
     private int _selectedUiLanguageIndex;
     private int _selectedThemeModeIndex;
     private string _selectedThemeMode = "System";
+    private int _selectedUiScale = 100;
 
     // private string? _tbPreviewText = string.Empty;
     private TextDocument? _tbPreviewTextDocument;
@@ -138,6 +142,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<SaveTargetOption> SaveTargetOptions { get; } = new();
     public IReadOnlyList<FontFamily> SystemFonts { get; } = FontManager.Current.SystemFonts;
+    public IReadOnlyList<int> UiScaleOptions { get; } = new[] { 100, 125, 150 };
 
     private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
 
@@ -219,6 +224,36 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+
+    public int SelectedUiScale
+    {
+        get => _selectedUiScale;
+        set
+        {
+            var normalized = NormalizeUiScale(value);
+            if (_selectedUiScale == normalized)
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedUiScale, normalized);
+            this.RaisePropertyChanged(nameof(UiScaleFactor));
+
+            if (_languageSettings is null || _languageSettings.UiScale == normalized)
+                return;
+
+            _languageSettings.UiScale = normalized;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    public double UiScaleFactor => SelectedUiScale / 100d;
+    public double WindowWidth => _languageSettings?.WindowWidth ?? LanguageSettingsService.DefaultWindowWidth;
+    public double WindowHeight => _languageSettings?.WindowHeight ?? LanguageSettingsService.DefaultWindowHeight;
+
+
+    private static int NormalizeUiScale(int value)
+    {
+        return value is 100 or 125 or 150 ? value : 100;
+    }
     public string SelectedThemeMode
     {
         get => _selectedThemeMode;
@@ -303,6 +338,7 @@ public class MainWindowViewModel : ViewModelBase
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
+        ResetWindowSizeCommand = ReactiveCommand.Create(ResetWindowSize);
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
@@ -324,6 +360,7 @@ public class MainWindowViewModel : ViewModelBase
         ApplyThemeMode(_selectedThemeMode);
         _editorFontFamily = ResolveEditorFontFamily(_languageSettings.EditorFont);
         _editorFontSize = NormalizeEditorFontSize(_languageSettings.EditorFontSize);
+        _selectedUiScale = NormalizeUiScale(_languageSettings.UiScale);
 
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
@@ -499,7 +536,9 @@ public class MainWindowViewModel : ViewModelBase
             ShortHeadingSettingsContent = "Short heading settings...",
             AboutContent = "Short heading settings...",
             UiLanguageContent = "UI Language",
+            UiScaleContent = "UI Scale",
             ThemeModeContent = "Theme Mode",
+            ResetWindowSizeContent = "Reset Window Size",
             ThemeModeSelectionContent = new List<string>
             {
                 "System",
@@ -696,6 +735,12 @@ public class MainWindowViewModel : ViewModelBase
         ThemeModeContent = string.IsNullOrWhiteSpace(language.ThemeModeContent)
             ? "Theme Mode"
             : language.ThemeModeContent;
+        UiScaleContent = string.IsNullOrWhiteSpace(language.UiScaleContent)
+            ? "UI Scale"
+            : language.UiScaleContent;
+        ResetWindowSizeContent = string.IsNullOrWhiteSpace(language.ResetWindowSizeContent)
+            ? "Reset Window Size"
+            : language.ResetWindowSizeContent;
         TabMainContent = string.IsNullOrWhiteSpace(language.TabMainContent)
             ? "Main Conversion"
             : language.TabMainContent;
@@ -964,6 +1009,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
 
+    public ReactiveCommand<Unit, Unit> ResetWindowSizeCommand { get; }
     #endregion
 
     private async Task BtnPaste()
@@ -1949,6 +1995,55 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
     }
 
+
+    private void ResetWindowSize()
+    {
+        if (_topLevelService is null || _languageSettingsService is null || _languageSettings is null)
+            return;
+
+        var window = _topLevelService.GetMainWindow();
+        window.WindowState = WindowState.Normal;
+        window.Width = LanguageSettingsService.DefaultWindowWidth;
+        window.Height = LanguageSettingsService.DefaultWindowHeight;
+        Dispatcher.UIThread.Post(() => CenterWindow(window));
+        PersistWindowSize(LanguageSettingsService.DefaultWindowWidth, LanguageSettingsService.DefaultWindowHeight);
+    }
+
+    private static void CenterWindow(Window window)
+    {
+        var screen = window.Screens.ScreenFromWindow(window);
+        if (screen is null)
+            return;
+
+        var scaling = window.RenderScaling;
+        var workingArea = screen.WorkingArea;
+        var widthPixels = (int)Math.Round(LanguageSettingsService.DefaultWindowWidth * scaling);
+        var heightPixels = (int)Math.Round(LanguageSettingsService.DefaultWindowHeight * scaling);
+        var x = workingArea.X + Math.Max(0, (workingArea.Width - widthPixels) / 2);
+        var y = workingArea.Y + Math.Max(0, (workingArea.Height - heightPixels) / 2);
+        window.Position = new PixelPoint(x, y);
+    }
+
+    public void PersistWindowSize(double width, double height)
+    {
+        if (_languageSettingsService is null || _languageSettings is null)
+            return;
+
+        if (!double.IsFinite(width) || !double.IsFinite(height) ||
+            width < LanguageSettingsService.MinimumWindowWidth ||
+            height < LanguageSettingsService.MinimumWindowHeight ||
+            width > int.MaxValue || height > int.MaxValue)
+            return;
+
+        var normalizedWidth = (int)Math.Round(width);
+        var normalizedHeight = (int)Math.Round(height);
+        _languageSettings.WindowWidth = normalizedWidth;
+        _languageSettings.WindowHeight = normalizedHeight;
+        _languageSettingsService.SaveDiffOnly();
+        this.RaisePropertyChanged(nameof(WindowWidth));
+        this.RaisePropertyChanged(nameof(WindowHeight));
+        this.RaisePropertyChanged(nameof(IsSettingsDirty));
+    }
     private void SaveLanguageSettings()
     {
         // Ensure VM → LanguageSettings object is already updated before calling this
@@ -2339,6 +2434,19 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _uiLanguageContent;
         set => this.RaiseAndSetIfChanged(ref _uiLanguageContent, value);
+    }
+
+    public string? UiScaleContent
+    {
+        get => _uiScaleContent;
+        set => this.RaiseAndSetIfChanged(ref _uiScaleContent, value);
+    }
+
+
+    public string? ResetWindowSizeContent
+    {
+        get => _resetWindowSizeContent;
+        set => this.RaiseAndSetIfChanged(ref _resetWindowSizeContent, value);
     }
 
     public string? ThemeModeContent
