@@ -1265,7 +1265,8 @@ public class MainWindowViewModel : ViewModelBase
             SuggestedFileName = SelectedSaveTarget == SaveTarget.Destination ? "destination.txt" : "source.txt",
             FileTypeChoices = new List<FilePickerFileType>
             {
-                new("Text Files") { Patterns = new[] { "*.txt" } }
+                new("Text Files") { Patterns = new[] { "*.txt" } },
+                new("All Files") { Patterns = new[] { "*.*" } }
             }
         });
 

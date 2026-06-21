@@ -39,7 +39,7 @@ public partial class MainWindow : Window
     {
         if (editor == null) return;
 
-        editor.TextArea.TextView.Margin = new Avalonia.Thickness(0, 0, 18, 0);
+        editor.TextArea.TextView.Margin = new Avalonia.Thickness(6, 0, 18, 0);
     }
 
     private void InitializeDragAndDrop(Control? control)
