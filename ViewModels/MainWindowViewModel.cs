@@ -39,8 +39,8 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isBtnSaveFileVisible = true;
     private bool _isCmbSaveTargetVisible = true;
     private bool _isCbPunctuation = true;
-    private bool _isCbZhtw;
-    private bool _isCbZhtwEnabled;
+    private bool _isCbRegionalTerms;
+    private bool _isCbRegionalTermsEnabled;
     private bool _isLblFileNameVisible = true;
     private bool _isRbHk;
     private bool _isRbS2T;
@@ -122,7 +122,7 @@ public class MainWindowViewModel : ViewModelBase
     private TextDocument? _tbDestinationTextDocument;
     private string? _currentOpenFileName = string.Empty;
     private string? _selectedCustomItem;
-    
+
     private readonly Opencc? _opencc;
     private bool _isCbConvertFilename;
     private PdfViewModel PdfVm { get; }
@@ -1436,7 +1436,7 @@ public class MainWindowViewModel : ViewModelBase
             : IsRbHk
                 ? RbHkContent
                 : RbZhtwContent;
-        var isZhTwIdioms = IsCbZhtw ? "✔️ Yes" : "✖️ No";
+        var isZhTwIdioms = IsCbRegionalTerms ? "✔️ Yes" : "✖️ No";
         var isPunctuations = IsCbPunctuation ? "✔️ Yes" : "️✖️  ️No";
         var isConvertFilename = IsCbConvertFilename ? "✔️ Yes" : "✖️ No";
 
@@ -1853,14 +1853,14 @@ public class MainWindowViewModel : ViewModelBase
                 ? "s2t"
                 : IsRbHk
                     ? "s2hk"
-                    : IsCbZhtw
+                    : IsCbRegionalTerms
                         ? "s2twp"
                         : "s2tw"
             : IsRbStd
                 ? "t2s"
                 : IsRbHk
                     ? "hk2s"
-                    : IsCbZhtw
+                    : IsCbRegionalTerms
                         ? "tw2sp"
                         : "tw2s";
         return config;
@@ -1875,37 +1875,50 @@ public class MainWindowViewModel : ViewModelBase
     private OpenccConfig GetCurrentConfigId()
     {
         if (IsRbCustom)
+            return GetCustomConfigId();
+
+        // Matrix:
+        // S→T  Std  -    => S2T
+        // S→T  TW   Off  => S2Tw
+        // S→T  TW   On   => S2Twp
+        // S→T  HK   Off  => S2Hk
+        // S→T  HK   On   => S2Hkp
+        // T→S  Std  -    => T2S
+        // T→S  TW   Off  => Tw2S
+        // T→S  TW   On   => Tw2Sp
+        // T→S  HK   Off  => Hk2S
+        // T→S  HK   On   => Hk2Sp
+        return (IsRbS2T, IsRbStd, IsRbHk, IsCbZhtw: IsCbRegionalTerms) switch
         {
-            var s = SelectedCustomItem;
+            (true, true, _, _) => OpenccConfig.S2T,
+            (true, false, false, false) => OpenccConfig.S2Tw,
+            (true, false, false, true) => OpenccConfig.S2Twp,
+            (true, false, true, false) => OpenccConfig.S2Hk,
+            (true, false, true, true) => OpenccConfig.S2Hkp,
 
-            // Default fallback: s2t
-            if (string.IsNullOrWhiteSpace(s))
-            {
-                return OpenccConfig.S2T;
-            }
+            (false, true, _, _) => OpenccConfig.T2S,
+            (false, false, false, false) => OpenccConfig.Tw2S,
+            (false, false, false, true) => OpenccConfig.Tw2Sp,
+            (false, false, true, false) => OpenccConfig.Hk2S,
+            (false, false, true, true) => OpenccConfig.Hk2Sp,
 
-            // Extract first token before space
-            var i = s.IndexOf(' ');
-            var name = i > 0 ? s[..i] : s;
+            // _ => OpenccConfig.S2T
+        };
+    }
 
-            // Try parse user-selected config
-            return Opencc.TryParseConfig(name, out var configId) ? configId : OpenccConfig.S2T;
-        }
+    private OpenccConfig GetCustomConfigId()
+    {
+        var s = SelectedCustomItem;
 
-        if (IsRbS2T)
-        {
-            if (IsRbStd)
-                return OpenccConfig.S2T;
-            if (IsRbHk)
-                return OpenccConfig.S2Hk;
-            return IsCbZhtw ? OpenccConfig.S2Twp : OpenccConfig.S2Tw;
-        }
+        if (string.IsNullOrWhiteSpace(s))
+            return OpenccConfig.S2T;
 
-        if (IsRbStd)
-            return OpenccConfig.T2S;
-        if (IsRbHk)
-            return OpenccConfig.Hk2S;
-        return IsCbZhtw ? OpenccConfig.Tw2Sp : OpenccConfig.Tw2S;
+        var i = s.IndexOf(' ');
+        var name = i > 0 ? s[..i] : s;
+
+        return Opencc.TryParseConfig(name, out var configId)
+            ? configId
+            : OpenccConfig.S2T;
     }
 
     public void TbSourceTextChanged()
@@ -2496,8 +2509,8 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbZhtw = false;
             IsRbHk = false;
-            IsCbZhtw = false;
-            IsCbZhtwEnabled = false;
+            IsCbRegionalTerms = false;
+            IsCbRegionalTermsEnabled = false;
         }
     }
 
@@ -2510,8 +2523,8 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbStd = false;
             IsRbHk = false;
-            IsCbZhtw = true;
-            IsCbZhtwEnabled = true;
+            // IsCbRegionalTerms = true;
+            IsCbRegionalTermsEnabled = true;
         }
     }
 
@@ -2524,9 +2537,27 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbStd = false;
             IsRbZhtw = false;
-            IsCbZhtw = false;
-            IsCbZhtwEnabled = false;
+            // IsCbRegionalTerms = false;
+            IsCbRegionalTermsEnabled = true;
         }
+    }
+
+    public bool IsCbRegionalTerms
+    {
+        get => _isCbRegionalTerms;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isCbRegionalTerms, value);
+            if (!value) return;
+            // IsRbHk = false;
+            IsRbStd = false;
+        }
+    }
+
+    public bool IsCbRegionalTermsEnabled
+    {
+        get => _isCbRegionalTermsEnabled;
+        set => this.RaiseAndSetIfChanged(ref _isCbRegionalTermsEnabled, value);
     }
 
     public bool IsTabMain
@@ -2612,24 +2643,6 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsTabMessage = false;
         }
-    }
-
-    public bool IsCbZhtw
-    {
-        get => _isCbZhtw;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _isCbZhtw, value);
-            if (!value) return;
-            IsRbHk = false;
-            IsRbStd = false;
-        }
-    }
-
-    public bool IsCbZhtwEnabled
-    {
-        get => _isCbZhtwEnabled;
-        set => this.RaiseAndSetIfChanged(ref _isCbZhtwEnabled, value);
     }
 
     public bool IsTbOutFolderFocus

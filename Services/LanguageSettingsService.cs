@@ -255,7 +255,7 @@ public class LanguageSettingsService
       ""stdContent"": ""General Region"",
       ""zhtwContent"": ""zh-CN / zh-TW Region"",
       ""hkContent"": ""zh-CN / zh-HK Region"",
-      ""cbZhtwContent"": ""zh-CN / zh-TW Idioms"",
+      ""cbZhtwContent"": ""Regional Phrases"",
       ""cbPunctuationContent"": ""Punctuation"",
       ""btnPasteContent"": ""Paste"",
       ""btnCopyContent"": ""Copy"",
@@ -351,7 +351,7 @@ public class LanguageSettingsService
       ""batchLogContents"": {
         ""conversionType"": ""Conversion Type"",
         ""region"": ""Region"",
-        ""zhtwIdioms"": ""ZH/TW Idioms"",
+        ""zhtwIdioms"": ""Regional Phrases"",
         ""punctuations"": ""Punctuations"",
         ""convertFilename"": ""Convert filename"",
         ""outputFolder"": ""Output folder""
@@ -424,7 +424,7 @@ public class LanguageSettingsService
       ""stdContent"": ""General (通用簡繁)"",
       ""zhtwContent"": ""ZH-TW (中臺簡繁)"",
       ""hkContent"": ""ZH-HK (中港簡繁)"",
-      ""cbZhtwContent"": ""ZH-TW Idioms (中臺慣用語)"",
+      ""cbZhtwContent"": ""Regional Terms (地區詞彙)"",
       ""cbPunctuationContent"": ""Punctuation (標點)"",
       ""btnPasteContent"": ""貼上"",
       ""btnCopyContent"": ""複製"",
@@ -520,7 +520,7 @@ public class LanguageSettingsService
       ""batchLogContents"": {
         ""conversionType"": ""Conversion Type (轉換方式)"",
         ""region"": ""Region (區域)"",
-        ""zhtwIdioms"": ""ZH/TW Idioms (中臺慣用語)"",
+        ""zhtwIdioms"": ""Regional Terms (地區詞彙)"",
         ""punctuations"": ""Punctuations (標點)"",
         ""convertFilename"": ""Convert filename (轉換文件名)"",
         ""outputFolder"": ""Output folder (輸出文件夾)""
@@ -593,7 +593,7 @@ public class LanguageSettingsService
       ""stdContent"": ""General (通用简繁)"",
       ""zhtwContent"": ""ZH-TW (中台简繁)"",
       ""hkContent"": ""ZH-HK (中港简繁)"",
-      ""cbZhtwContent"": ""ZH-TW Idioms (中台惯用语)"",
+      ""cbZhtwContent"": ""Regional Terms (地区词汇)"",
       ""cbPunctuationContent"": ""Punctuation (标点)"",
       ""btnPasteContent"": ""粘贴"",
       ""btnCopyContent"": ""复制"",
@@ -689,7 +689,7 @@ public class LanguageSettingsService
       ""batchLogContents"": {
         ""conversionType"": ""Conversion Type (转换方式)"",
         ""region"": ""Region (区域)"",
-        ""zhtwIdioms"": ""ZH/TW Idioms (中台惯用语)"",
+        ""zhtwIdioms"": ""Regional Terms (地区词汇)"",
         ""punctuations"": ""Punctuations (标点)"",
         ""convertFilename"": ""Convert filename (转换文件名)"",
         ""outputFolder"": ""Output folder (输出文件夹)""
