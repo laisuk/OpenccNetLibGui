@@ -491,7 +491,7 @@ internal static class PdfiumModel
         // Empirically, 3 is the smallest value that reliably keeps top-aligned CJK quote glyphs
         // (e.g., “ ” ‘ ’) in the same line bucket across real-world novel PDFs.
         const int LineBucketGap = 3;
-        
+
         for (var i = 0; i < items.Count; i++)
         {
             var it = items[i];
@@ -607,9 +607,23 @@ internal static class PdfiumModel
 
     private static bool IsUntrustedOverlay(string norm, int repeatCount)
     {
-        // Strong signal: the same normalized text repeats many times at the same Y-band.
-        if (repeatCount > 4 && norm.Length <= 200)
+        // Important:
+        // Do not classify punctuation-only text as untrusted overlay.
+        // Some PDFs split ellipsis/dots/quotes into repeated tiny text objects.
+        // Example: "......" may appear as six "." objects in the same Y-band.
+        // The repetition counter would otherwise remove the dots and leave only "".
+        if (IsPunctuationOrSymbolOnly(norm))
+            return false;
+
+        // Strong signal: the same non-trivial text repeats many times
+        // at the same Y-band. Typical overlay text is several characters
+        // long (e.g. "干扰字串", "备份版本", "BACKUP COPY").
+        if (repeatCount > 4 &&
+            norm.Length >= 3 &&
+            norm.Length <= 200)
+        {
             return true;
+        }
 
         // Extra signal: "X X X X X ..." (single token repeated across the line).
         // This catches typical tiled watermark patterns.
@@ -618,6 +632,11 @@ internal static class PdfiumModel
             return false;
 
         var first = parts[0];
+
+        // Same guard for token-repetition detection.
+        if (IsPunctuationOrSymbolOnly(first))
+            return false;
+
         var same = 1;
 
         for (var i = 1; i < parts.Length; i++)
@@ -628,6 +647,25 @@ internal static class PdfiumModel
 
         // Almost all tokens are identical, and the token is short -> likely overlay text.
         return same >= parts.Length - 1 && first.Length <= 32;
+    }
+
+    private static bool IsPunctuationOrSymbolOnly(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return true;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            var ch = s[i];
+
+            if (char.IsWhiteSpace(ch))
+                continue;
+
+            if (!char.IsPunctuation(ch) && !char.IsSymbol(ch))
+                return false;
+        }
+
+        return true;
     }
 
     // -------------------------------
