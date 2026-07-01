@@ -551,6 +551,7 @@ namespace OpenccNetLibGui.Models
                     case > 0
                         when !dialogState.IsUnclosed
                              && !strippedEndsWithDialogCloser
+                             && !strippedHasUnclosedDialogQuote
                              && (buffer.Length > 120 || !HasUnclosedBracket())
                              && strippedIsCompleteStandalone:
                         buffer.Append(stripped); // buffer now has new value
