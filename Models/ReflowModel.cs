@@ -487,6 +487,17 @@ namespace OpenccNetLibGui.Models
 
                 // *** DIALOG: treat any line that *starts* with a dialog opener as a new paragraph
                 var currentIsDialogStart = PunctSets.BeginsWithDialogOpener(stripped);
+                var strippedEndsWithDialogCloser =
+                    PunctSets.TryGetLastNonWhitespace(stripped, out var dialogCloserIdx, out var dialogCloserCh) &&
+                    PunctSets.IsDialogCloser(dialogCloserCh);
+
+                var strippedHasUnclosedBracket = PunctSets.HasUnclosedBracket(stripped);
+                var strippedHasUnclosedDialogQuote = PunctSets.HasUnclosedDialogQuote(stripped);
+
+                var strippedEndsWithStrongSentenceEnd = PunctSets.EndsWithStrongSentenceEnd(stripped);
+                var strippedIsCompleteStandalone = strippedEndsWithStrongSentenceEnd
+                                                   || PunctSets.EndsWithColonLike(stripped)
+                                                   || PunctSets.EndsWithEllipsis(stripped);
 
                 // 🔸 9a) NEW RULE: If previous line ends with comma, 
                 //     do NOT flush even if this line starts dialog.
@@ -495,7 +506,9 @@ namespace OpenccNetLibGui.Models
                 {
                     // 9a-0) Complete single-line dialog.
                     // Flush previous buffer first, then emit this dialog as its own paragraph.
-                    if (PunctSets.EndsWithDialogCloser(stripped))
+                    if (strippedEndsWithDialogCloser
+                        && !strippedHasUnclosedBracket
+                        && !strippedHasUnclosedDialogQuote)
                     {
                         if (buffer.Length > 0)
                         {
@@ -531,15 +544,6 @@ namespace OpenccNetLibGui.Models
 
                 // ------ Current line finalizer ------
 
-                var strippedEndsWithDialogCloser =
-                    PunctSets.TryGetLastNonWhitespace(stripped, out var dialogCloserIdx, out var dialogCloserCh) &&
-                    PunctSets.IsDialogCloser(dialogCloserCh);
-
-                var strippedHasUnclosedBracket = PunctSets.HasUnclosedBracket(stripped);
-
-                var strippedEndsWithStrongSentenceEnd =
-                    PunctSets.EndsWithStrongSentenceEnd(stripped);
-
                 switch (buffer.Length)
                 {
                     // 7) Finalizer: strong sentence end → flush immediately. Do not remove.
@@ -548,7 +552,7 @@ namespace OpenccNetLibGui.Models
                         when !dialogState.IsUnclosed
                              && !strippedEndsWithDialogCloser
                              && (buffer.Length > 120 || !HasUnclosedBracket())
-                             && strippedEndsWithStrongSentenceEnd:
+                             && strippedIsCompleteStandalone:
                         buffer.Append(stripped); // buffer now has new value
                         segments.Add(buffer.ToString()); // This is not old bufferText (it had been updated)
                         buffer.Clear();
@@ -559,7 +563,8 @@ namespace OpenccNetLibGui.Models
                         when !dialogState.IsUnclosed
                              && !strippedEndsWithDialogCloser
                              && !strippedHasUnclosedBracket
-                             && strippedEndsWithStrongSentenceEnd:
+                             && !strippedHasUnclosedDialogQuote
+                             && strippedIsCompleteStandalone:
                         segments.Add(stripped);
                         buffer.Clear();
                         dialogState.Reset();
