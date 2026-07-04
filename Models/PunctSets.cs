@@ -73,22 +73,22 @@ internal static class PunctSets
 
         var len = s.Length;
 
-        // (1) / (12) / （1） / （12）
-        if (len >= 3
-            && IsParenOpen(s[0])
-            && char.IsAsciiDigit(s[1]))
+        // (1) / (12)
+        if (len >= 3 && s[0] == '(' && char.IsAsciiDigit(s[1]))
         {
-            if (IsParenClose(s[2]))
-            {
-                return true;
-            }
+            if (s[2] == ')') return true;
 
-            if (len >= 4
-                && char.IsAsciiDigit(s[2])
-                && IsParenClose(s[3]))
-            {
+            if (len >= 4 && char.IsAsciiDigit(s[2]) && s[3] == ')')
                 return true;
-            }
+        }
+
+        // （1） / （12）
+        if (len >= 3 && s[0] == '（' && char.IsAsciiDigit(s[1]))
+        {
+            if (s[2] == '）') return true;
+
+            if (len >= 4 && char.IsAsciiDigit(s[2]) && s[3] == '）')
+                return true;
         }
 
         // 1) / 1.
@@ -121,14 +121,6 @@ internal static class PunctSets
 
         return false;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsParenOpen(char ch)
-        => ch is '(' or '（';
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsParenClose(char ch)
-        => ch is ')' or '）';
 
     internal static bool SimpleListHasUnclosedBracket(string s)
     {
