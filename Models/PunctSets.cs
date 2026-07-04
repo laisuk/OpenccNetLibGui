@@ -91,32 +91,32 @@ internal static class PunctSets
                 return true;
         }
 
-        // 1) / 1.
+        // 1) / 1. / 1、
         if (len >= 2 && char.IsAsciiDigit(s[0]))
         {
-            // 1) / 1）
-            if (s[1] == ')' || s[1] == '）')
+            switch (s[1])
             {
-                return true;
+                // 1) / 1）
+                case ')':
+                case '）':
+                case '、':
+                    return true;
+                case '.':
+                    return len >= 3 && s[2] == ' ';
             }
 
-            if (s[1] == '.')
-            {
-                return len >= 3 && s[2] == ' ';
-            }
-
-            // 12) / 12.
+            // 12) / 12. / 12、
             if (len >= 3 && char.IsAsciiDigit(s[1]))
             {
-                // 12) / 12）
-                if (s[2] == ')' || s[2] == '）')
+                switch (s[2])
                 {
-                    return true;
-                }
-
-                if (s[2] == '.')
-                {
-                    return len >= 4 && s[3] == ' ';
+                    // 12) / 12）
+                    case ')':
+                    case '）':
+                    case '、':
+                        return true;
+                    case '.':
+                        return len >= 4 && s[3] == ' ';
                 }
             }
         }
