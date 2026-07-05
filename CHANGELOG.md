@@ -15,6 +15,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added explicit null, empty, and whitespace input validation.
 - Added ZIP path traversal protection during extraction.
 - Made GUI file output atomic so failed conversions do not replace existing output files.
+- Allow commas in title headings when they appear within the first 20 characters.
+- Handle standalone dialog closer line in reflow finalizer
 
 ---
 
