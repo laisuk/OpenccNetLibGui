@@ -66,9 +66,24 @@ internal static class PunctSets
     {
         s = s.TrimStart();
 
-        if (s.StartsWith("- "))
+        if (s.Length >= 2)
         {
-            return true;
+            switch (s[0])
+            {
+                case '-':
+                case '*':
+                case '＊': // Fullwidth *
+                case '•':
+                case '‧':
+                case '▪':
+                case '◦':
+                case '○':
+                case '●':
+                case '※':
+                    if (char.IsWhiteSpace(s[1]))
+                        return true;
+                    break;
+            }
         }
 
         var len = s.Length;
