@@ -74,7 +74,7 @@ internal static class PunctSets
                 case '*':
                 case '＊': // Fullwidth *
                 case '•':
-                case '‧':
+                case '‧':  // U+2027 HYPHENATION POINT (often produced by PDF/OCR as a bullet)
                 case '▪':
                 case '◦':
                 case '○':
