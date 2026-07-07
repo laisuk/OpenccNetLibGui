@@ -34,7 +34,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="80" />
                 <RowDefinition />
-                <RowDefinition Height="70" />
+                <RowDefinition Height="90" />
                 <RowDefinition Height="30" />
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" Grid.Column="0" Height="70" VerticalAlignment="Bottom" Margin="0,0,0,0">
@@ -128,6 +128,7 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition />
+                                <RowDefinition Height="40" />
                                 <RowDefinition Height="40" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
@@ -387,7 +388,7 @@
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center">
                                     <Label Content="{Binding SourceContent}" FontSize="16" BorderBrush="DarkGray"
-                                           BorderThickness="3,0,0,2" />
+                                           BorderThickness="3,0,0,1" />
                                     <Label x:Name="LblSourceCode"
                                            Content="{Binding LblSourceCodeContent}"
                                            FontSize="16" />
@@ -397,6 +398,16 @@
                                             HorizontalAlignment="Right" VerticalAlignment="Center">
                                     <Label x:Name="LblTotalChars" FontSize="14" VerticalAlignment="Center"
                                            Content="{Binding LblTotalCharsContent}" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Grid.Row="2" Grid.Column="0" ColumnDefinitions="Auto,*,Auto">
+                                <Border Grid.ColumnSpan="3"
+                                        VerticalAlignment="Bottom"
+                                        BorderBrush="{DynamicResource ThemeControlLowBrush}"
+                                        BorderThickness="0,0,0,1" />
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center">
                                     <Button x:Name="BthReflow" Padding="0 2" Width="40"
                                             HorizontalContentAlignment="Center"
                                             FontSize="14" FontWeight="Bold"
@@ -412,7 +423,11 @@
                                             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Refresh}" />
                                         </StackPanel>
                                     </Button>
-                                    <Button x:Name="BtnClearSource" Padding="0 2" Width="40" FontWeight="Bold"
+                                </StackPanel>
+                                <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
+                                            HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <Button x:Name="BtnClearSource" Padding="0 2" Width="80" FontWeight="Bold"
                                             HorizontalContentAlignment="Center" FontSize="14"
                                             ToolTip.Tip="{Binding ClearSourceHint}"
                                             Command="{Binding BtnClearTbSourceCommand}">
@@ -422,7 +437,10 @@
                                         <!--         <ScaleTransform ScaleX="0.8" ScaleY="0.8"/> -->
                                         <!--     </PathIcon.RenderTransform> -->
                                         <!-- </PathIcon> -->
-                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
+                                            <TextBlock Text="AC" VerticalAlignment="Center" />
+                                        </StackPanel>
                                     </Button>
                                     <Button x:Name="BtnPaste" Padding="5 2" Width="80"
                                             HorizontalContentAlignment="Center"
@@ -446,20 +464,38 @@
                                             VerticalAlignment="Center" Spacing="5">
                                     <Label Content="{Binding DestinationContent}"
                                            FontSize="16" BorderBrush="DarkGray"
-                                           BorderThickness="3,0,0,2" />
+                                           BorderThickness="3,0,0,1" />
                                     <Label x:Name="LblDestinationCode" FontSize="16"
                                            Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" />
                                 </StackPanel>
                                 <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
                                             VerticalAlignment="Center" Spacing="5" Margin="0 0 8 0">
-                                    <Button x:Name="BtnClearDestination" Padding="0 2" Width="40"
+                                </StackPanel>
+                            </Grid>
+                            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,*,Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
+                                            VerticalAlignment="Center" Spacing="5">
+                                    <!-- <Label Content="{Binding DestinationContent}" -->
+                                    <!--        FontSize="16" BorderBrush="DarkGray" -->
+                                    <!--        BorderThickness="3,0,0,2" /> -->
+                                    <!-- <Label x:Name="LblDestinationCode" FontSize="16" -->
+                                    <!--        Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" /> -->
+                                </StackPanel>
+                                <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                                            VerticalAlignment="Center" Spacing="5" Margin="0 0 8 0">
+
+                                    <Button x:Name="BtnClearDestination" Padding="0 2" Width="80"
                                             HorizontalContentAlignment="Center"
                                             ToolTip.Tip="{Binding ClearDestinationHint}"
                                             FontSize="14" Command="{Binding BtnClearTbDestinationCommand}"
                                             FontWeight="Bold">
-                                        <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
-                                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
+                                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
+                                            <TextBlock Text="AC" VerticalAlignment="Center" />
+                                        </StackPanel>
                                     </Button>
                                     <Button x:Name="BtnCopy" Padding="5 2" Width="80"
                                             HorizontalContentAlignment="Center"

@@ -17,7 +17,7 @@ public class LanguageSettings
     public int Locale { get; set; }
     public int UiScale { get; set; } = 100;
     public int WindowWidth { get; set; } = 1000;
-    public int WindowHeight { get; set; } = 700;
+    public int WindowHeight { get; set; } = 750;
     public string ThemeMode { get; set; } = "System";
     public string EditorFont { get; set; } = "Consolas";
     public double EditorFontSize { get; set; } = 14;

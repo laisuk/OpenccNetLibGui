@@ -13,7 +13,7 @@ public class LanguageSettingsService
 {
     private const string AppName = "OpenccNetLibGui";
     public const int DefaultWindowWidth = 1000;
-    public const int DefaultWindowHeight = 700;
+    public const int DefaultWindowHeight = 750;
     public const int MinimumWindowWidth = 1000;
     public const int MinimumWindowHeight = 300;
 
@@ -860,7 +860,7 @@ public class LanguageSettingsService
   ""themeMode"": ""System"",
   ""uiScale"": 100,
   ""windowWidth"": 1000,
-  ""windowHeight"": 700,
+  ""windowHeight"": 750,
   ""locale"": 2
 }
 ";
