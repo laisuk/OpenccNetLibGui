@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -89,6 +89,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _filenameContent = "Filename";
     private string? _conversionSettingsContent = "Conversion Settings";
     private string? _convertFilenameContent = "Convert filename";
+    private string? _deTofuLevelContent = "DeTofu level";
     private string? _editorFontContent = "Editor Font";
     private string? _editorFontSizeContent = "Font Size";
     private string? _pdfOptionsContent = "PDF Options";
@@ -133,6 +134,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly int _sentenceBoundaryLevel;
     private ThemeModeOption? _selectedThemeModeOption;
     private SaveTargetOption? _selectedSaveTargetOption;
+    private DeTofuLevelOption? _selectedDeTofuLevelOption;
     private FontFamily _editorFontFamily = FontFamily.Default;
     private double _editorFontSize = 14;
 
@@ -143,10 +145,12 @@ public class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<ThemeModeOption> ThemeModeOptions { get; } = new();
     public ObservableCollection<SaveTargetOption> SaveTargetOptions { get; } = new();
+    public ObservableCollection<DeTofuLevelOption> DeTofuLevelOptions { get; } = new();
     public IReadOnlyList<FontFamily> SystemFonts { get; } = FontManager.Current.SystemFonts;
     public IReadOnlyList<int> UiScaleOptions { get; } = new[] { 100, 125, 150 };
 
     private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
+    private static readonly string[] DeTofuLevelValues = { "B", "C", "D", "E", "F", "G", "H", "I" };
 
     private static readonly string[] HintPropertyNames =
     {
@@ -159,8 +163,10 @@ public class MainWindowViewModel : ViewModelBase
         nameof(ShortHeadingSettingsHint),
         nameof(SaveAdvancedSettingsHint),
         nameof(ReflowHint),
+        nameof(NormalizeCompatHint),
         nameof(ClearSourceHint),
         nameof(ClearDestinationHint),
+        nameof(DeTofuHint),
         nameof(AddFileHint),
         nameof(RemoveFileHint),
         nameof(ConvertFilenameHint),
@@ -256,6 +262,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         return value is 100 or 125 or 150 ? value : 100;
     }
+
     public string SelectedThemeMode
     {
         get => _selectedThemeMode;
@@ -354,8 +361,11 @@ public class MainWindowViewModel : ViewModelBase
 
         SelectedThemeModeOption = ThemeModeOptions[0];
         SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Destination, "Destination"));
+        foreach (var deTofuLevel in DeTofuLevelValues)
+            DeTofuLevelOptions.Add(new DeTofuLevelOption(deTofuLevel, $"Ext {deTofuLevel}"));
         SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Source, "Source"));
         SelectedSaveTargetOption = SaveTargetOptions[0];
+        SetSelectedDeTofuLevelOption("B");
         PdfVm = new PdfViewModel();
         BtnPasteCommand = ReactiveCommand.CreateFromTask(BtnPaste);
         BtnCopyCommand = ReactiveCommand.CreateFromTask(BtnCopy);
@@ -374,6 +384,8 @@ public class MainWindowViewModel : ViewModelBase
         BtnBatchStartCommand = ReactiveCommand.CreateFromTask(BtnBatchStart);
         CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
         BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
+        BtnNormCompatCommand = ReactiveCommand.Create(NormalizeCompat);
+        BtnDeTofuCommand = ReactiveCommand.Create(DeTofu);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
@@ -482,6 +494,56 @@ public class MainWindowViewModel : ViewModelBase
         };
     }
 
+    private static string NormalizeDeTofuLevel(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "B";
+
+        var normalized = value.Trim().ToUpperInvariant();
+        return normalized switch
+        {
+            "ALL" => "B",
+            "EXTB" or "EXT-B" => "B",
+            "EXTC" or "EXT-C" => "C",
+            "EXTD" or "EXT-D" => "D",
+            "EXTE" or "EXT-E" => "E",
+            "EXTF" or "EXT-F" => "F",
+            "EXTG" or "EXT-G" => "G",
+            "EXTH" or "EXT-H" => "H",
+            "EXTI" or "EXT-I" => "I",
+            "B" or "C" or "D" or "E" or "F" or "G" or "H" or "I" => normalized,
+            _ => "B"
+        };
+    }
+
+    private DeTofuLevel GetSelectedDeTofuLevel()
+    {
+        return NormalizeDeTofuLevel(_languageSettings?.DeTofuLevel) switch
+        {
+            "C" => DeTofuLevel.ExtC,
+            "D" => DeTofuLevel.ExtD,
+            "E" => DeTofuLevel.ExtE,
+            "F" => DeTofuLevel.ExtF,
+            "G" => DeTofuLevel.ExtG,
+            "H" => DeTofuLevel.ExtH,
+            "I" => DeTofuLevel.ExtI,
+            _ => DeTofuLevel.ExtB
+        };
+    }
+
+    private void SetSelectedDeTofuLevelOption(string? value)
+    {
+        var normalized = NormalizeDeTofuLevel(value);
+        var option = MatchOption(
+            DeTofuLevelOptions,
+            candidate => string.Equals(candidate.Value, normalized, StringComparison.Ordinal));
+
+        if (ReferenceEquals(_selectedDeTofuLevelOption, option))
+            return;
+
+        this.RaiseAndSetIfChanged(ref _selectedDeTofuLevelOption, option, nameof(SelectedDeTofuLevelOption));
+    }
+
     private static int GetThemeModeIndex(string? value)
     {
         var normalized = NormalizeThemeMode(value);
@@ -561,6 +623,7 @@ public class MainWindowViewModel : ViewModelBase
             FilenameContent = "Filename",
             ConversionSettingsContent = "Conversion Settings",
             ConvertFilenameContent = "Convert filename",
+            DeTofuLevelContent = "DeTofu level",
             EditorFontContent = "Editor Font",
             EditorFontSizeContent = "Font Size",
             PdfOptionsContent = "PDF Options",
@@ -729,6 +792,9 @@ public class MainWindowViewModel : ViewModelBase
         ConvertFilenameContent = string.IsNullOrWhiteSpace(language.ConvertFilenameContent)
             ? "Convert filename"
             : language.ConvertFilenameContent;
+        DeTofuLevelContent = string.IsNullOrWhiteSpace(language.DeTofuLevelContent)
+            ? "DeTofu level"
+            : language.DeTofuLevelContent;
         EditorFontContent = string.IsNullOrWhiteSpace(language.EditorFontContent)
             ? "Editor Font"
             : language.EditorFontContent;
@@ -935,6 +1001,12 @@ public class MainWindowViewModel : ViewModelBase
     public string ReflowHint =>
         GetHint("reflowHint", "Reflow CJK paragraphs extracted from PDF text.");
 
+    public string NormalizeCompatHint =>
+        GetHint("normalizeCompatHint", "Normalize CJK compatibility ideographs in source text.");
+
+    public string DeTofuHint =>
+        GetHint("deTofuHint", "Restore tofu characters in destination text.");
+
     public string ClearSourceHint =>
         GetHint("clearSourceHint", "Clear source text box.");
 
@@ -980,18 +1052,18 @@ public class MainWindowViewModel : ViewModelBase
     public string ExitHint =>
         GetHint("exitHint", "Exit program");
 
-    private void ReselectThemeModeIndex()
-    {
-        var selectedIndex = GetThemeModeIndex(_selectedThemeMode);
-        _selectedThemeModeIndex = -1;
-        this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            _selectedThemeModeIndex = selectedIndex;
-            this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-        });
-    }
+    // private void ReselectThemeModeIndex()
+    // {
+    //     var selectedIndex = GetThemeModeIndex(_selectedThemeMode);
+    //     _selectedThemeModeIndex = -1;
+    //     this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+    //
+    //     Dispatcher.UIThread.Post(() =>
+    //     {
+    //         _selectedThemeModeIndex = selectedIndex;
+    //         this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+    //     });
+    // }
 
     private void RefreshLanguageDependentUi()
     {
@@ -1051,11 +1123,14 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnBatchStartCommand { get; }
     public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnNormCompatCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnDeTofuCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
 
     public ReactiveCommand<Unit, Unit> ResetWindowSizeCommand { get; }
+
     #endregion
 
     private async Task BtnPaste()
@@ -1107,6 +1182,22 @@ public class MainWindowViewModel : ViewModelBase
                 "Clipboard error: {0}",
                 ex.Message);
         }
+    }
+
+    private void DeTofu()
+    {
+        var document = TbDestinationTextDocument;
+        var results = document?.Text ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(results))
+        {
+            LblStatusBarContent = GetRuntimeStatus("statusDeTofuEmpty", "Nothing to DeTofu");
+            return;
+        }
+
+        document!.Text = _opencc!.DeTofu(results, GetSelectedDeTofuLevel());
+        document.UndoStack.ClearAll();
+        LblStatusBarContent = GetRuntimeStatus("statusDeTofuComplete", "DeTofu complete");
     }
 
     #region File Open Region
@@ -1342,6 +1433,93 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         LblStatusBarContent = GetRuntimeStatus("statusReflowComplete", "Reflow complete (CJK-aware)");
+    }
+
+    private void NormalizeCompat()
+    {
+        var document = TbSourceTextDocument;
+        var fullText = document!.Text ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(fullText))
+        {
+            LblStatusBarContent = GetRuntimeStatus("statusNormalizeCompatEmpty", "Nothing to normalize");
+            return;
+        }
+
+        var hasSelection = TbSourceSelectionLength > 0;
+
+        string sourceText;
+        var start = TbSourceSelectionStart;
+        var length = TbSourceSelectionLength;
+
+        if (hasSelection)
+        {
+            // Boundaries guard
+            if (start < 0 || length <= 0 || start + length > fullText.Length)
+            {
+                // Fallback to whole document if selection is invalid
+                sourceText = fullText;
+                hasSelection = false;
+            }
+            else
+            {
+                sourceText = fullText.Substring(start, length);
+            }
+        }
+        else
+        {
+            sourceText = fullText;
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceText))
+        {
+            LblStatusBarContent = GetRuntimeStatus("statusNormalizeCompatEmpty", "Nothing to normalize");
+            return;
+        }
+
+        // var result =
+        //     ReflowModel.ReflowCjkParagraphs(sourceText, PdfVm.PdfOptions,
+        //         _sentenceBoundaryLevel);
+
+        var result =
+            _opencc!.NormalizeCompat(sourceText);
+
+        // ⭐ If only reflowing a selection → ensure trailing newline
+        if (hasSelection)
+        {
+            // Avoid double newline if already present
+            if (!result.EndsWith('\n'))
+                result += "\n";
+        }
+
+        if (hasSelection)
+        {
+            // Replace only the selected region
+            var before = fullText[..start];
+            var after = fullText[(start + length)..];
+
+            var newFull = before + result + after;
+            document.Text = newFull;
+
+            // Update selection to cover the new reflowed range
+            TbSourceSelectionStart = start;
+            TbSourceSelectionLength = result.Length;
+            TbSourceCaretOffset = start + result.Length;
+        }
+        else
+        {
+            // Reflow entire document
+            document.Text = result;
+
+            // Clear selection
+            TbSourceSelectionStart = 0;
+            TbSourceSelectionLength = 0;
+            TbSourceCaretOffset = 0;
+        }
+
+        LblStatusBarContent = GetRuntimeStatus(
+            "statusNormalizeCompatComplete",
+            "Compatibility ideograph normalization complete");
     }
 
     #endregion // PDF Handling Region
@@ -2090,6 +2268,7 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(WindowHeight));
         this.RaisePropertyChanged(nameof(IsSettingsDirty));
     }
+
     private void SaveLanguageSettings()
     {
         // Ensure VM → LanguageSettings object is already updated before calling this
@@ -2398,6 +2577,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _convertFilenameContent, value);
     }
 
+    public string? DeTofuLevelContent
+    {
+        get => _deTofuLevelContent;
+        set => this.RaiseAndSetIfChanged(ref _deTofuLevelContent, value);
+    }
+
     public string? EditorFontContent
     {
         get => _editorFontContent;
@@ -2562,6 +2747,27 @@ public class MainWindowViewModel : ViewModelBase
         public override string ToString() => Content;
     }
 
+    public sealed class DeTofuLevelOption : ReactiveObject
+    {
+        private string _content;
+
+        public DeTofuLevelOption(string value, string content)
+        {
+            Value = value;
+            _content = content;
+        }
+
+        internal string Value { get; }
+
+        public string Content
+        {
+            get => _content;
+            set => this.RaiseAndSetIfChanged(ref _content, value);
+        }
+
+        public override string ToString() => Content;
+    }
+
     public sealed class SaveTargetOption : ReactiveObject
     {
         private string _content;
@@ -2631,6 +2837,24 @@ public class MainWindowViewModel : ViewModelBase
             if (option is not null)
                 SelectedSaveTarget = option.Target;
             this.RaisePropertyChanged(nameof(SelectedSaveTargetIndex));
+        }
+    }
+
+    public DeTofuLevelOption? SelectedDeTofuLevelOption
+    {
+        get => _selectedDeTofuLevelOption;
+        set
+        {
+            var option = value ?? MatchOption(
+                DeTofuLevelOptions,
+                candidate => string.Equals(candidate.Value, "B", StringComparison.Ordinal));
+            if (ReferenceEquals(_selectedDeTofuLevelOption, option))
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedDeTofuLevelOption, option);
+            if (option is not null && _languageSettings is not null)
+                _languageSettings.DeTofuLevel = option.Value;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
         }
     }
 

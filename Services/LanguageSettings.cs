@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
@@ -23,6 +23,7 @@ public class LanguageSettings
     public double EditorFontSize { get; set; } = 14;
     public bool Punctuation { get; set; }
     public bool ConvertFilename { get; set; }
+    public string DeTofuLevel { get; set; } = "B";
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
@@ -83,6 +84,7 @@ public class Language
     public string FilenameContent { get; set; } = "Filename";
     public string ConversionSettingsContent { get; set; } = "Conversion Settings";
     public string ConvertFilenameContent { get; set; } = "Convert filename";
+    public string DeTofuLevelContent { get; set; } = "DeTofu level";
     public string EditorFontContent { get; set; } = "Editor Font";
     public string EditorFontSizeContent { get; set; } = "Font Size";
     public string PdfOptionsContent { get; set; } = "PDF Options";
@@ -135,6 +137,10 @@ public sealed class RuntimeContents
         ["statusPdfLoadFailed"] = "PDF load failed: {0}",
         ["statusReflowEmpty"] = "Nothing to reflow",
         ["statusReflowComplete"] = "Reflow complete (CJK-aware)",
+        ["statusNormalizeCompatEmpty"] = "Nothing to normalize",
+        ["statusNormalizeCompatComplete"] = "Compatibility ideograph normalization complete",
+        ["statusDeTofuEmpty"] = "Nothing to DeTofu",
+        ["statusDeTofuComplete"] = "DeTofu complete",
         ["statusSaveFileSaved"] = "{0} contents saved to file: {1}",
         ["statusProcessSourceEmpty"] = "Source content is empty.",
         ["statusProcessNothing"] = "Nothing to process",

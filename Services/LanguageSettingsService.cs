@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -90,6 +90,7 @@ public class LanguageSettingsService
     {
         "charCheck",
         "convertFilename",
+        "deTofuLevel",
         "dictionary",
         "editorFont",
         "editorFontSize",
@@ -234,9 +235,31 @@ public class LanguageSettingsService
         settings.WindowHeight = settings.WindowHeight <= 0
             ? DefaultWindowHeight
             : Math.Max(MinimumWindowHeight, settings.WindowHeight);
+        settings.DeTofuLevel = NormalizeDeTofuLevel(settings.DeTofuLevel);
         return settings;
     }
 
+    private static string NormalizeDeTofuLevel(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "B";
+
+        var normalized = value.Trim().ToUpperInvariant();
+        return normalized switch
+        {
+            "ALL" => "B",
+            "EXTB" => "B",
+            "EXTC" => "C",
+            "EXTD" => "D",
+            "EXTE" => "E",
+            "EXTF" => "F",
+            "EXTG" => "G",
+            "EXTH" => "H",
+            "EXTI" => "I",
+            "B" or "C" or "D" or "E" or "F" or "G" or "H" or "I" => normalized,
+            _ => "B"
+        };
+    }
     private static void NormalizeWindowDimensionToken(
         JObject settings,
         string propertyName,
@@ -328,6 +351,7 @@ public class LanguageSettingsService
       ""filenameContent"": ""Filename"",
       ""conversionSettingsContent"": ""Conversion Settings"",
       ""convertFilenameContent"": ""Convert filename"",
+      ""deTofuLevelContent"": ""DeTofu level"",
       ""editorFontContent"": ""Editor Font"",
       ""editorFontSizeContent"": ""Font Size"",
       ""pdfOptionsContent"": ""PDF Options"",
@@ -351,8 +375,10 @@ public class LanguageSettingsService
         ""shortHeadingSettingsHint"": ""Configure short heading detection rules, including maximum length and allowed character patterns."",
         ""saveAdvancedSettingsHint"": ""Writes UserLanguageSettings.json (advanced users only)"",
         ""reflowHint"": ""Reflow CJK paragraphs extracted from PDF text."",
+        ""normalizeCompatHint"": ""Normalize CJK compatibility ideographs in source text."",
         ""clearSourceHint"": ""Clear source text box."",
         ""clearDestinationHint"": ""Clear destination text box."",
+        ""deTofuHint"": ""Restore tofu characters in destination text."",
         ""addFileHint"": ""Add file to Source List Box."",
         ""removeFileHint"": ""Remove selected item in Source List Box."",
         ""convertFilenameHint"": ""Convert output filename using current configuration."",
@@ -433,6 +459,10 @@ public class LanguageSettingsService
           ""statusPdfLoadFailed"": ""PDF load failed: {0}"",
           ""statusReflowEmpty"": ""Nothing to reflow"",
           ""statusReflowComplete"": ""Reflow complete (CJK-aware)"",
+          ""statusNormalizeCompatEmpty"": ""Nothing to normalize"",
+          ""statusNormalizeCompatComplete"": ""Compatibility ideograph normalization complete"",
+          ""statusDeTofuEmpty"": ""Nothing to DeTofu"",
+          ""statusDeTofuComplete"": ""DeTofu complete"",
           ""statusSaveFileSaved"": ""{0} contents saved to file: {1}"",
           ""statusProcessSourceEmpty"": ""Source content is empty."",
           ""statusProcessNothing"": ""Nothing to process"",
@@ -499,6 +529,7 @@ public class LanguageSettingsService
       ""filenameContent"": ""轉換檔名"",
       ""conversionSettingsContent"": ""轉換設定"",
       ""convertFilenameContent"": ""轉換檔名"",
+      ""deTofuLevelContent"": ""DeTofu 層級"",
       ""editorFontContent"": ""編輯器字型"",
       ""editorFontSizeContent"": ""字型大小"",
       ""pdfOptionsContent"": ""PDF 選項"",
@@ -522,8 +553,10 @@ public class LanguageSettingsService
         ""shortHeadingSettingsHint"": ""設定短標題偵測規則，包括最大長度與允許的字元模式。"",
         ""saveAdvancedSettingsHint"": ""寫入 UserLanguageSettings.json（僅供進階使用者）"",
         ""reflowHint"": ""重排從 PDF 文字擷取出的 CJK 段落。"",
+        ""normalizeCompatHint"": ""正規化來源文字中的 CJK 相容表意文字。"",
         ""clearSourceHint"": ""清除來源文字框。"",
         ""clearDestinationHint"": ""清除目標文字框。"",
+        ""deTofuHint"": ""修復目標文字中的豆腐字。"",
         ""addFileHint"": ""新增檔案到來源清單。"",
         ""removeFileHint"": ""移除來源清單中選取的項目。"",
         ""convertFilenameHint"": ""使用目前設定轉換輸出檔名。"",
@@ -604,6 +637,10 @@ public class LanguageSettingsService
           ""statusPdfLoadFailed"": ""PDF 載入失敗：{0}"",
           ""statusReflowEmpty"": ""沒有可重排的內容"",
           ""statusReflowComplete"": ""重排完成（CJK 感知）"",
+          ""statusNormalizeCompatEmpty"": ""沒有可正規化的內容"",
+          ""statusNormalizeCompatComplete"": ""相容表意文字正規化完成"",
+          ""statusDeTofuEmpty"": ""沒有可修復的豆腐字內容"",
+          ""statusDeTofuComplete"": ""豆腐字修復完成"",
           ""statusSaveFileSaved"": ""{0} 內容已儲存到檔案：{1}"",
           ""statusProcessSourceEmpty"": ""來源內容是空的。"",
           ""statusProcessNothing"": ""沒有可處理的內容"",
@@ -670,6 +707,7 @@ public class LanguageSettingsService
       ""filenameContent"": ""转换文件名"",
       ""conversionSettingsContent"": ""转换设置"",
       ""convertFilenameContent"": ""转换文件名"",
+      ""deTofuLevelContent"": ""DeTofu 级别"",
       ""editorFontContent"": ""编辑器字体"",
       ""editorFontSizeContent"": ""字体大小"",
       ""pdfOptionsContent"": ""PDF 选项"",
@@ -693,8 +731,10 @@ public class LanguageSettingsService
         ""shortHeadingSettingsHint"": ""设置短标题检测规则，包括最大长度和允许的字符模式。"",
         ""saveAdvancedSettingsHint"": ""写入 UserLanguageSettings.json（仅限高级用户）"",
         ""reflowHint"": ""重排从 PDF 文本提取出的 CJK 段落。"",
+        ""normalizeCompatHint"": ""规范化来源文本中的 CJK 兼容表意文字。"",
         ""clearSourceHint"": ""清空来源文本框。"",
         ""clearDestinationHint"": ""清空目标文本框。"",
+        ""deTofuHint"": ""修复目标文本中的豆腐字。"",
         ""addFileHint"": ""添加文件到来源列表。"",
         ""removeFileHint"": ""移除来源列表中选中的项目。"",
         ""convertFilenameHint"": ""使用当前配置转换输出文件名。"",
@@ -775,6 +815,10 @@ public class LanguageSettingsService
           ""statusPdfLoadFailed"": ""PDF 加载失败：{0}"",
           ""statusReflowEmpty"": ""没有可重排的内容"",
           ""statusReflowComplete"": ""重排完成（CJK 感知）"",
+          ""statusNormalizeCompatEmpty"": ""没有可规范化的内容"",
+          ""statusNormalizeCompatComplete"": ""兼容表意文字规范化完成"",
+          ""statusDeTofuEmpty"": ""没有可修复的豆腐字内容"",
+          ""statusDeTofuComplete"": ""豆腐字修复完成"",
           ""statusSaveFileSaved"": ""{0} 内容已保存到文件：{1}"",
           ""statusProcessSourceEmpty"": ""来源内容为空。"",
           ""statusProcessNothing"": ""没有可处理的内容"",
@@ -854,6 +898,7 @@ public class LanguageSettingsService
   },
   ""punctuation"": true,
   ""convertFilename"": false,
+  ""deTofuLevel"": ""B"",
   ""dictionary"": ""zstd"",
   ""editorFont"": ""Consolas"",
   ""editorFontSize"": 16,

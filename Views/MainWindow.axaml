@@ -426,6 +426,16 @@
                                             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Refresh}" />
                                         </StackPanel>
                                     </Button>
+                                    <Button x:Name="BthNormCompat" Padding="0 2" Width="40"
+                                            HorizontalContentAlignment="Center"
+                                            FontSize="14" FontWeight="Bold"
+                                            ToolTip.Tip="{Binding NormalizeCompatHint}"
+                                            Command="{Binding BtnNormCompatCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Classes="icon-font"
+                                                       Text="{x:Static local:Icons.BulletLestMirrored}" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                                 <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
@@ -447,7 +457,7 @@
                                     </Button>
                                     <Button x:Name="BtnPaste" Padding="5 2" Width="80"
                                             HorizontalContentAlignment="Center"
-                                            FontWeight="SemiBold" Height="28" FontSize="14"
+                                            FontWeight="SemiBold" Height="26" FontSize="14"
                                             Command="{Binding BtnPasteCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <!-- <PathIcon Classes="toolbar-icon" -->
@@ -481,7 +491,12 @@
                             </Border>
                             <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,*,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
-                                            VerticalAlignment="Center" Spacing="5">
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Spacing="5">
+                                    <Button x:Name="BtnDeTofu" Padding="6 2" Width="40"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                            ToolTip.Tip="{Binding DeTofuHint}"
+                                            Command="{Binding BtnDeTofuCommand}" Content="豆" />
                                     <!-- <Label Content="{Binding DestinationContent}" -->
                                     <!--        FontSize="16" BorderBrush="DarkGray" -->
                                     <!--        BorderThickness="3,0,0,2" /> -->
@@ -505,7 +520,7 @@
                                     </Button>
                                     <Button x:Name="BtnCopy" Padding="5 2" Width="80"
                                             HorizontalContentAlignment="Center"
-                                            FontWeight="SemiBold" FontSize="14"
+                                            FontWeight="SemiBold" FontSize="14" Height="26"
                                             Command="{Binding BtnCopyCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
@@ -898,6 +913,29 @@
                                                       FontSize="14"
                                                       IsChecked="{Binding IsCbConvertFilename, Mode=TwoWay}"
                                                       ToolTip.Tip="{Binding ConvertFilenameHint}" />
+                                            <Grid ColumnDefinitions="220,140"
+                                                  RowDefinitions="Auto,Auto"
+                                                  ColumnSpacing="8"
+                                                  RowSpacing="4">
+                                                <TextBlock Grid.Row="0"
+                                                           Grid.Column="0"
+                                                           Margin="0,0,0,2"
+                                                           Text="{Binding DeTofuLevelContent}"
+                                                           FontWeight="SemiBold" />
+                                                <ComboBox Grid.Row="1"
+                                                          Grid.Column="0"
+                                                          Width="140"
+                                                          HorizontalAlignment="Left"
+                                                          ItemsSource="{Binding DeTofuLevelOptions}"
+                                                          SelectedItem="{Binding SelectedDeTofuLevelOption, Mode=TwoWay}">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate
+                                                            x:DataType="vm:MainWindowViewModel+DeTofuLevelOption">
+                                                            <TextBlock Text="{Binding Content}" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                            </Grid>
                                             <Grid ColumnDefinitions="220,100"
                                                   RowDefinitions="Auto,Auto"
                                                   ColumnSpacing="8"
@@ -998,7 +1036,8 @@
                                                           FontSize="14"
                                                           ToolTip.Tip="{Binding ThemeModeHint}">
                                                     <ComboBox.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:MainWindowViewModel+ThemeModeOption">
+                                                        <DataTemplate
+                                                            x:DataType="vm:MainWindowViewModel+ThemeModeOption">
                                                             <TextBlock Text="{Binding Content}" />
                                                         </DataTemplate>
                                                     </ComboBox.ItemTemplate>
