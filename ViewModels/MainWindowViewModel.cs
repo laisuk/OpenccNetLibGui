@@ -131,6 +131,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbConvertFilename;
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
+    private ThemeModeOption? _selectedThemeModeOption;
     private SaveTargetOption? _selectedSaveTargetOption;
     private FontFamily _editorFontFamily = FontFamily.Default;
     private double _editorFontSize = 14;
@@ -140,6 +141,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
+    public ObservableCollection<ThemeModeOption> ThemeModeOptions { get; } = new();
     public ObservableCollection<SaveTargetOption> SaveTargetOptions { get; } = new();
     public IReadOnlyList<FontFamily> SystemFonts { get; } = FontManager.Current.SystemFonts;
     public IReadOnlyList<int> UiScaleOptions { get; } = new[] { 100, 125, 150 };
@@ -266,6 +268,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _selectedThemeMode, normalized);
             var normalizedIndex = GetThemeModeIndex(normalized);
             SetSelectedThemeModeIndex(normalizedIndex);
+            SetSelectedThemeModeOption(normalized);
 
             ApplyThemeMode(normalized);
 
@@ -295,6 +298,24 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public ThemeModeOption? SelectedThemeModeOption
+    {
+        get => _selectedThemeModeOption;
+        set
+        {
+            var option = value ?? MatchOption(
+                ThemeModeOptions,
+                candidate => string.Equals(candidate.Value, ThemeModeValues[0], StringComparison.Ordinal));
+            if (ReferenceEquals(_selectedThemeModeOption, option))
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedThemeModeOption, option);
+            if (option is not null)
+                SelectedThemeMode = option.Value;
+            this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+        }
+    }
+
     private void SetSelectedThemeModeIndex(int index)
     {
         var normalizedIndex = Math.Clamp(index, 0, ThemeModeValues.Length - 1);
@@ -305,6 +326,20 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         this.RaiseAndSetIfChanged(ref _selectedThemeModeIndex, normalizedIndex, nameof(SelectedThemeModeIndex));
+        SetSelectedThemeModeOption(ThemeModeValues[normalizedIndex]);
+    }
+
+    private void SetSelectedThemeModeOption(string themeMode)
+    {
+        var normalized = NormalizeThemeMode(themeMode);
+        var option = MatchOption(
+            ThemeModeOptions,
+            candidate => string.Equals(candidate.Value, normalized, StringComparison.Ordinal));
+
+        if (ReferenceEquals(_selectedThemeModeOption, option))
+            return;
+
+        this.RaiseAndSetIfChanged(ref _selectedThemeModeOption, option, nameof(SelectedThemeModeOption));
     }
 
     public MainWindowViewModel()
@@ -314,6 +349,10 @@ public class MainWindowViewModel : ViewModelBase
         TbPreviewTextDocument = new TextDocument();
         LbxSourceItems = new ObservableCollection<string>();
         LbxDestinationItems = new ObservableCollection<string>();
+        foreach (var themeMode in ThemeModeValues)
+            ThemeModeOptions.Add(new ThemeModeOption(themeMode, themeMode));
+
+        SelectedThemeModeOption = ThemeModeOptions[0];
         SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Destination, "Destination"));
         SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Source, "Source"));
         SelectedSaveTargetOption = SaveTargetOptions[0];
@@ -356,7 +395,7 @@ public class MainWindowViewModel : ViewModelBase
         _officeFileTypes = BuildExtSet(_languageSettings!.OfficeFileTypes);
 
         _selectedThemeMode = NormalizeThemeMode(_languageSettings.ThemeMode);
-        _selectedThemeModeIndex = GetThemeModeIndex(_selectedThemeMode);
+        SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
         ApplyThemeMode(_selectedThemeMode);
         _editorFontFamily = ResolveEditorFontFamily(_languageSettings.EditorFont);
         _editorFontSize = NormalizeEditorFontSize(_languageSettings.EditorFontSize);
@@ -758,6 +797,7 @@ public class MainWindowViewModel : ViewModelBase
             : language.TabPreviewContent;
         SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
+        RefreshThemeModeOptionLabels(language);
         RefreshSaveTargetOptionLabels(language);
 
         var selectedConfigKey = GetCustomConfigKey(SelectedCustomItem);
@@ -784,9 +824,9 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(ThemeModeOption1Content));
         this.RaisePropertyChanged(nameof(ThemeModeOption2Content));
         this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
+        this.RaisePropertyChanged(nameof(SelectedThemeModeOption));
         foreach (var propertyName in HintPropertyNames)
             this.RaisePropertyChanged(propertyName);
-        ReselectThemeModeIndex();
     }
 
     private static string GetCustomConfigKey(string? option)
@@ -817,6 +857,12 @@ public class MainWindowViewModel : ViewModelBase
             option => option.Target == SaveTarget.Source);
         if (sourceOption is not null)
             sourceOption.Content = GetListItem(language.SaveTargetSelectionContent, 1, "Source");
+    }
+
+    private void RefreshThemeModeOptionLabels(Language language)
+    {
+        for (var i = 0; i < ThemeModeOptions.Count && i < ThemeModeValues.Length; i++)
+            ThemeModeOptions[i].Content = GetListItem(language.ThemeModeSelectionContent, i, ThemeModeValues[i]);
     }
 
     private string GetUiSelectionLabel(int index, string fallback)
@@ -2493,6 +2539,27 @@ public class MainWindowViewModel : ViewModelBase
     {
         Destination,
         Source
+    }
+
+    public sealed class ThemeModeOption : ReactiveObject
+    {
+        private string _content;
+
+        public ThemeModeOption(string value, string content)
+        {
+            Value = value;
+            _content = content;
+        }
+
+        internal string Value { get; }
+
+        public string Content
+        {
+            get => _content;
+            set => this.RaiseAndSetIfChanged(ref _content, value);
+        }
+
+        public override string ToString() => Content;
     }
 
     public sealed class SaveTargetOption : ReactiveObject

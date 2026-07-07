@@ -991,14 +991,17 @@
                                                        FontSize="16"
                                                        FontWeight="Bold" />
                                             <Grid ColumnDefinitions="*,*">
-                                                <ComboBox SelectedIndex="{Binding SelectedThemeModeIndex, Mode=TwoWay}"
+                                                <ComboBox ItemsSource="{Binding ThemeModeOptions}"
+                                                          SelectedItem="{Binding SelectedThemeModeOption, Mode=TwoWay}"
                                                           Width="220"
                                                           HorizontalAlignment="Left"
                                                           FontSize="14"
                                                           ToolTip.Tip="{Binding ThemeModeHint}">
-                                                    <ComboBoxItem Content="{Binding ThemeModeOption0Content}" />
-                                                    <ComboBoxItem Content="{Binding ThemeModeOption1Content}" />
-                                                    <ComboBoxItem Content="{Binding ThemeModeOption2Content}" />
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:MainWindowViewModel+ThemeModeOption">
+                                                            <TextBlock Text="{Binding Content}" />
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
                                                 </ComboBox>
                                             </Grid>
                                         </StackPanel>
