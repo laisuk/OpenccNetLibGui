@@ -17,6 +17,10 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Made GUI file output atomic so failed conversions do not replace existing output files.
 - Allow commas in title headings when they appear within the first 20 characters.
 - Handle standalone dialog closer line in reflow finalizer
+- Added source and destination editor panel action rows for quick text actions.
+- Fixed Theme Mode selection by binding to stable `ThemeModeOption` objects.
+- Added a Normalize Compatibility Ideographs source action button with localized hints and status messages.
+- Added a DeTofu destination action button, DeTofu level setting, persisted `deTofuLevel`, and localized settings label.
 
 ---
 
@@ -50,7 +54,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Refined Fluent UI
 - Refined UI i18n
 - Updated `OpenccNetLib` to v1.5.0
-- Optimized Reflow function 
+- Optimized Reflow function
 
 ---
 
@@ -62,7 +66,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Optimized `ReflowModel` 
+- Optimized `ReflowModel`
 - Optimized Reflow for handling typo of dialog quote
 - Optimized MS Word `Numbering Context` extracted as text
 - Updated `OpenccNetLib` to v1.4.2
