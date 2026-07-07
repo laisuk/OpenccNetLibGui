@@ -142,8 +142,8 @@
                             <!--         BorderBrush="DarkGray"> -->
                             <!-- 左邊 Source -->
                             <Border Grid.Row="0" Grid.Column="0"
-                                    Margin="8,8,4,4"
-                                    Classes="editor-container">
+                                    Margin="8,8,4,0"
+                                    Classes="editor-container main-editor-panel">
                                 <avaloniaEdit:TextEditor
                                     x:Name="TbSource"
                                     BorderThickness="0"
@@ -367,8 +367,8 @@
                             <!--         BorderBrush="DarkGray"> -->
                             <!-- 右邊 Destination -->
                             <Border Grid.Row="0" Grid.Column="1"
-                                    Margin="4,8,8,4"
-                                    Classes="editor-container">
+                                    Margin="4,8,8,0"
+                                    Classes="editor-container main-editor-panel">
                                 <avaloniaEdit:TextEditor
                                     x:Name="TbDestination"
                                     BorderThickness="0"
@@ -383,30 +383,34 @@
                                     IsReadOnly="True" />
                             </Border>
 
-                            <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="Auto,*,Auto">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center">
-                                    <Label Content="{Binding SourceContent}" FontSize="16" BorderBrush="DarkGray"
-                                           BorderThickness="3,0,0,1" />
-                                    <Label x:Name="LblSourceCode"
-                                           Content="{Binding LblSourceCodeContent}"
-                                           FontSize="16" />
-                                </StackPanel>
-                                <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
-                                            HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <Label x:Name="LblTotalChars" FontSize="14" VerticalAlignment="Center"
-                                           Content="{Binding LblTotalCharsContent}" />
-                                </StackPanel>
-                            </Grid>
+                            <Border Grid.Row="1" Grid.Column="0"
+                                    Margin="8,0,4,0"
+                                    Classes="editor-info-panel">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                        <Label Content="{Binding SourceContent}" FontSize="16" BorderBrush="DarkGray"
+                                               BorderThickness="0,0,0,0" />
+                                        <Label x:Name="LblSourceCode"
+                                               Content="{Binding LblSourceCodeContent}"
+                                               FontSize="16" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <Label x:Name="LblTotalChars" FontSize="14" VerticalAlignment="Center"
+                                               Content="{Binding LblTotalCharsContent}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                             <Grid Grid.Row="2" Grid.Column="0" ColumnDefinitions="Auto,*,Auto">
                                 <Border Grid.ColumnSpan="3"
                                         VerticalAlignment="Bottom"
                                         BorderBrush="{DynamicResource ThemeControlLowBrush}"
                                         BorderThickness="0,0,0,1" />
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5"
-                                            HorizontalAlignment="Left"
+                                            HorizontalAlignment="Left" Margin="8,0,0,0"
                                             VerticalAlignment="Center">
                                     <Button x:Name="BthReflow" Padding="0 2" Width="40"
                                             HorizontalContentAlignment="Center"
@@ -459,20 +463,24 @@
                                     </Button>
                                 </StackPanel>
                             </Grid>
-                            <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,*,Auto">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
-                                            VerticalAlignment="Center" Spacing="5">
-                                    <Label Content="{Binding DestinationContent}"
-                                           FontSize="16" BorderBrush="DarkGray"
-                                           BorderThickness="3,0,0,1" />
-                                    <Label x:Name="LblDestinationCode" FontSize="16"
-                                           Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" />
-                                </StackPanel>
-                                <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
-                                            VerticalAlignment="Center" Spacing="5" Margin="0 0 8 0">
-                                </StackPanel>
-                            </Grid>
+                            <Border Grid.Row="1" Grid.Column="1"
+                                    Margin="4,0,8,0"
+                                    Classes="editor-info-panel">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
+                                                VerticalAlignment="Center" Spacing="5">
+                                        <Label Content="{Binding DestinationContent}"
+                                               FontSize="16" BorderBrush="DarkGray"
+                                               BorderThickness="0,0,0,0" />
+                                        <Label x:Name="LblDestinationCode" FontSize="16"
+                                               Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center" Spacing="5" Margin="0 0 8 0">
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                             <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,*,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
                                             VerticalAlignment="Center" Spacing="5">
