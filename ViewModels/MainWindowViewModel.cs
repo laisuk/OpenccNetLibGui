@@ -1970,7 +1970,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public void TbSourceTextChanged()
     {
-        LblTotalCharsContent = $"[ Ch: {TbSourceTextDocument!.Text!.Length:N0} ]";
+        LblTotalCharsContent = $"[ Chars: {TbSourceTextDocument!.Text!.Length:N0} ]";
     }
 
     private async Task ShowShortHeadingDialogAsync()
