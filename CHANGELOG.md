@@ -21,6 +21,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Fixed Theme Mode selection by binding to stable `ThemeModeOption` objects.
 - Added a Normalize Compatibility Ideographs source action button with localized hints and status messages.
 - Added a DeTofu destination action button, DeTofu level setting, persisted `deTofuLevel`, and localized settings label.
+- Added key-binding `Ctrl-G` (go to line number) for Editor Source.
 
 ---
 
