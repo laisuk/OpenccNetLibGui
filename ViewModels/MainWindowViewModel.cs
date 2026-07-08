@@ -164,6 +164,8 @@ public class MainWindowViewModel : ViewModelBase
         nameof(SaveAdvancedSettingsHint),
         nameof(ReflowHint),
         nameof(NormalizeCompatHint),
+        nameof(NormalizeDialogQuotesHint),
+        nameof(ValidateDialogQuotesHint),
         nameof(ClearSourceHint),
         nameof(ClearDestinationHint),
         nameof(DeTofuHint),
@@ -387,7 +389,8 @@ public class MainWindowViewModel : ViewModelBase
         BtnNormCompatCommand = ReactiveCommand.Create(NormalizeCompat);
         BtnDeTofuCommand = ReactiveCommand.Create(DeTofu);
         BtnNormDialogQuotesCommand = ReactiveCommand.Create(NormalizeDialogQuotes);
-        BtnValidateDialogQuotesCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesAsync);
+        BtnValidateDialogQuotesDestinationCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesDestinationAsync);
+        BtnValidateDialogQuotesSourceCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesSourceAsync);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
@@ -638,7 +641,7 @@ public class MainWindowViewModel : ViewModelBase
             UsePdfiumEngineContent = "Use Pdfium (native) engine",
             HeadingRulesContent = "Heading Rules",
             ShortHeadingSettingsContent = "Short heading settings...",
-            AboutContent = "Short heading settings...",
+            AboutContent = "About...",
             UiLanguageContent = "UI Language",
             UiScaleContent = "UI Scale",
             ThemeModeContent = "Theme Mode",
@@ -1006,6 +1009,14 @@ public class MainWindowViewModel : ViewModelBase
     public string NormalizeCompatHint =>
         GetHint("normalizeCompatHint", "Normalize CJK compatibility ideographs in source text.");
 
+    public string NormalizeDialogQuotesHint =>
+        GetHint("normalizeDialogQuotesHint",
+            "Normalize dialog quote marks in source text and write the result to destination text.");
+
+    public string ValidateDialogQuotesHint =>
+        GetHint("validateDialogQuotesHint",
+            "Check current editor text for suspicious reversed dialog quote lines.");
+
     public string DeTofuHint =>
         GetHint("deTofuHint", "Restore tofu characters in destination text.");
 
@@ -1128,7 +1139,8 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnNormCompatCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnDeTofuCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnNormDialogQuotesCommand { get; }
-    public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesSourceCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesDestinationCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
@@ -1207,9 +1219,19 @@ public class MainWindowViewModel : ViewModelBase
 
     public DialogQuoteValidationResult? LastDialogQuoteValidation { get; private set; }
 
-    private async Task ValidateDialogQuotesAsync()
+    private async Task ValidateDialogQuotesSourceAsync()
     {
-        var text = TbDestinationTextDocument?.Text ?? string.Empty;
+        await  ValidateDialogQuotesAsync(TbSourceTextDocument?.Text ?? string.Empty);
+    }
+    
+    private async Task ValidateDialogQuotesDestinationAsync()
+    {
+        await  ValidateDialogQuotesAsync(TbDestinationTextDocument?.Text ?? string.Empty);
+    }
+
+    private async Task ValidateDialogQuotesAsync(string text)
+    {
+        // var text = TbDestinationTextDocument?.Text ?? string.Empty;
 
         LastDialogQuoteValidation =
             CjkTextNormalizeHelper.ValidateDialogQuotes(text);
@@ -1221,25 +1243,71 @@ public class MainWindowViewModel : ViewModelBase
         var owner = _topLevelService!.GetMainWindow();
 
         _ = await MessageBox.ShowResult(
-            result.BuildSummary(),
-            result.IsValid ? "Dialog Quote Validation" : "Validation Warning",
+            BuildDialogQuoteValidationSummary(result),
+            result.IsValid
+                ? GetRuntimeStatus("dialogQuoteValidationTitle", "Dialog Quote Validation")
+                : GetRuntimeStatus("dialogQuoteValidationWarningTitle", "Validation Warning"),
             owner,
             width: 560,
             minHeight: result.IsValid ? 150 : 250,
             new MessageBoxButton(
-                result.IsValid ? "OK" : "Close",
+                result.IsValid
+                    ? GetRuntimeStatus("dialogQuoteValidationOkButton", "OK")
+                    : GetRuntimeStatus("dialogQuoteValidationCloseButton", "Close"),
                 result.IsValid ? MessageBoxResult.Ok : MessageBoxResult.Cancel,
                 isDefault: true,
                 isCancel: true));
 
         if (result.IsValid)
         {
-            LblStatusBarContent = "Dialog quote validation passed";
+            LblStatusBarContent = GetRuntimeStatus(
+                "statusDialogQuoteValidationPassed",
+                "Dialog quote validation passed");
             return;
         }
 
-        LblStatusBarContent =
-            $"Found {result.SuspiciousLines.Count} suspicious dialog quote line(s)";
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusDialogQuoteValidationSuspiciousLines",
+            "Found {0} suspicious dialog quote line(s)",
+            result.SuspiciousLines.Count);
+    }
+
+    private string BuildDialogQuoteValidationSummary(DialogQuoteValidationResult result)
+    {
+        if (result.IsValid)
+            return GetRuntimeStatus(
+                "dialogQuoteValidationNoIssues",
+                "No suspicious dialog quote issues found.");
+
+        var sb = new StringBuilder();
+
+        sb.AppendLine(FormatRuntimeStatus(
+            "dialogQuoteValidationFoundLines",
+            "Found {0} suspicious dialog quote line(s).",
+            result.SuspiciousLines.Count));
+        sb.AppendLine();
+        sb.AppendLine(GetRuntimeStatus("dialogQuoteValidationHintTitle", "Hint:"));
+        sb.AppendLine(GetRuntimeStatus(
+            "dialogQuoteValidationHintMissingExtra",
+            "The actual typo is often a missing or extra dialog quote"));
+        sb.AppendLine(GetRuntimeStatus(
+            "dialogQuoteValidationHintAbove",
+            "a few lines above the first reported line."));
+        sb.AppendLine(GetRuntimeStatus(
+            "dialogQuoteValidationHintFixAgain",
+            "Fix the source text and validate again."));
+        sb.AppendLine();
+
+        foreach (var item in result.SuspiciousLines.Take(5))
+            sb.AppendLine($"{item.LineNumber}: {item.Text}");
+
+        if (result.SuspiciousLines.Count > 5)
+            sb.AppendLine(FormatRuntimeStatus(
+                "dialogQuoteValidationMoreLines",
+                "...and {0} more.",
+                result.SuspiciousLines.Count - 5));
+
+        return sb.ToString();
     }
 
     private void NormalizeDialogQuotes()
@@ -1251,20 +1319,26 @@ public class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(source))
         {
-            LblStatusBarContent = "Nothing to normalize";
+            LblStatusBarContent = GetRuntimeStatus(
+                "statusDialogQuoteNormalizeEmpty",
+                "Nothing to normalize");
             return;
         }
 
         if (destinationDocument == null)
         {
-            LblStatusBarContent = "Destination editor is not ready";
+            LblStatusBarContent = GetRuntimeStatus(
+                "statusDialogQuoteDestinationNotReady",
+                "Destination editor is not ready");
             return;
         }
 
         destinationDocument.Text = CjkTextNormalizeHelper.NormalizeCjkTextDialogQuotes(source);
         destinationDocument.UndoStack.ClearAll();
 
-        LblStatusBarContent = "Dialog quote normalization complete";
+        LblStatusBarContent = GetRuntimeStatus(
+            "statusDialogQuoteNormalizeComplete",
+            "Dialog quote normalization complete");
     }
 
     #region File Open Region
