@@ -386,6 +386,8 @@ public class MainWindowViewModel : ViewModelBase
         BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
         BtnNormCompatCommand = ReactiveCommand.Create(NormalizeCompat);
         BtnDeTofuCommand = ReactiveCommand.Create(DeTofu);
+        BtnNormDialogQuotesCommand = ReactiveCommand.Create(NormalizeDialogQuotes);
+        BtnValidateDialogQuotesCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesAsync);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
@@ -1125,10 +1127,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnNormCompatCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnDeTofuCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnNormDialogQuotesCommand { get; }
+    public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
-
     public ReactiveCommand<Unit, Unit> ResetWindowSizeCommand { get; }
 
     #endregion
@@ -1198,6 +1201,70 @@ public class MainWindowViewModel : ViewModelBase
         document!.Text = _opencc!.DeTofu(results, GetSelectedDeTofuLevel());
         document.UndoStack.ClearAll();
         LblStatusBarContent = GetRuntimeStatus("statusDeTofuComplete", "DeTofu complete");
+    }
+
+    // Dialog Quotes Validator
+
+    public DialogQuoteValidationResult? LastDialogQuoteValidation { get; private set; }
+
+    private async Task ValidateDialogQuotesAsync()
+    {
+        var text = TbDestinationTextDocument?.Text ?? string.Empty;
+
+        LastDialogQuoteValidation =
+            CjkTextNormalizeHelper.ValidateDialogQuotes(text);
+
+        var result = LastDialogQuoteValidation;
+        if (result == null)
+            return;
+
+        var owner = _topLevelService!.GetMainWindow();
+
+        _ = await MessageBox.ShowResult(
+            result.BuildSummary(),
+            result.IsValid ? "Dialog Quote Validation" : "Validation Warning",
+            owner,
+            width: 560,
+            minHeight: result.IsValid ? 150 : 250,
+            new MessageBoxButton(
+                result.IsValid ? "OK" : "Close",
+                result.IsValid ? MessageBoxResult.Ok : MessageBoxResult.Cancel,
+                isDefault: true,
+                isCancel: true));
+
+        if (result.IsValid)
+        {
+            LblStatusBarContent = "Dialog quote validation passed";
+            return;
+        }
+
+        LblStatusBarContent =
+            $"Found {result.SuspiciousLines.Count} suspicious dialog quote line(s)";
+    }
+
+    private void NormalizeDialogQuotes()
+    {
+        var sourceDocument = TbSourceTextDocument;
+        var destinationDocument = TbDestinationTextDocument;
+
+        var source = sourceDocument?.Text ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            LblStatusBarContent = "Nothing to normalize";
+            return;
+        }
+
+        if (destinationDocument == null)
+        {
+            LblStatusBarContent = "Destination editor is not ready";
+            return;
+        }
+
+        destinationDocument.Text = CjkTextNormalizeHelper.NormalizeCjkTextDialogQuotes(source);
+        destinationDocument.UndoStack.ClearAll();
+
+        LblStatusBarContent = "Dialog quote normalization complete";
     }
 
     #region File Open Region

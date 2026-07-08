@@ -436,6 +436,15 @@
                                                        Text="{x:Static local:Icons.BulletLestMirrored}" />
                                         </StackPanel>
                                     </Button>
+                                    <Button x:Name="BtnNormDialogQuotes" Padding="0 2" Width="40"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                            ToolTip.Tip="{Binding DeTofuHint}"
+                                            Command="{Binding BtnNormDialogQuotesCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Comment}" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                                 <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
@@ -497,11 +506,16 @@
                                             FontWeight="SemiBold" FontSize="16" Height="26"
                                             ToolTip.Tip="{Binding DeTofuHint}"
                                             Command="{Binding BtnDeTofuCommand}" Content="豆" />
-                                    <!-- <Label Content="{Binding DestinationContent}" -->
-                                    <!--        FontSize="16" BorderBrush="DarkGray" -->
-                                    <!--        BorderThickness="3,0,0,2" /> -->
-                                    <!-- <Label x:Name="LblDestinationCode" FontSize="16" -->
-                                    <!--        Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" /> -->
+                                    <Button x:Name="BtnValidateDialogQuotes" Padding="0 2" Width="40"
+                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                            ToolTip.Tip="{Binding DeTofuHint}"
+                                            Command="{Binding BtnValidateDialogQuotesCommand}">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <TextBlock Classes="icon-font"
+                                                       Text="{x:Static local:Icons.CheckboxComposite}" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                                 <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"

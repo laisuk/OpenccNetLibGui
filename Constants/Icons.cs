@@ -32,5 +32,7 @@ public static class Icons
     public const string FitPage = "\uE9A6";
     public const string BackToWindow = "\uE73F";
     public const string BulletLestMirrored = "\uEA42";
+    public const string MultiSelect = "\ue762";
+    public const string Comment = "\uE90A";
     
 }

@@ -1,7 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 [assembly: InternalsVisibleTo("OpenccNetLibGuiTests")]
+
 namespace OpenccNetLibGui.Helpers
 {
     internal static class CjkTextNormalizeHelper
@@ -81,7 +84,7 @@ namespace OpenccNetLibGui.Helpers
 
             return sb.ToString();
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsAsciiLetter(char ch)
         {
@@ -139,5 +142,76 @@ namespace OpenccNetLibGui.Helpers
                 }
             }
         }
+
+        public static DialogQuoteValidationResult ValidateDialogQuotes(string text)
+        {
+            var result = new DialogQuoteValidationResult();
+
+            var lines = text.Replace("\r\n", "\n").Split('\n');
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                var stripped = line.Trim();
+
+                if (string.IsNullOrEmpty(stripped))
+                    continue;
+
+                if ((stripped.StartsWith('”') && stripped.EndsWith('“')) ||
+                    (stripped.StartsWith('’') && stripped.EndsWith('‘')))
+                {
+                    result.SuspiciousLines.Add(new DialogQuoteIssue
+                    {
+                        LineNumber = i + 1,
+                        Text = line
+                    });
+                }
+            }
+
+            return result;
+        }
+    }
+
+    public sealed class DialogQuoteValidationResult
+    {
+        public bool IsValid => SuspiciousLines.Count == 0;
+
+        public List<DialogQuoteIssue> SuspiciousLines { get; } = new()
+        {
+            Capacity = 0
+        };
+
+        public string BuildSummary()
+        {
+            if (IsValid)
+                return "No suspicious dialog quote issues found.";
+
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"Found {SuspiciousLines.Count} suspicious dialog quote line(s).");
+            sb.AppendLine();
+            sb.AppendLine("Hint:");
+            sb.AppendLine("The actual typo is often a missing or extra dialog quote");
+            sb.AppendLine("a few lines above the first reported line.");
+            sb.AppendLine("Fix the source text and validate again.");
+            sb.AppendLine();
+
+            foreach (var item in SuspiciousLines.Take(5))
+            {
+                sb.AppendLine($"{item.LineNumber}: {item.Text}");
+            }
+
+            if (SuspiciousLines.Count > 5)
+                sb.AppendLine($"...and {SuspiciousLines.Count - 5} more.");
+
+            return sb.ToString();
+        }
+    }
+
+    public sealed class DialogQuoteIssue
+    {
+        public int LineNumber { get; init; }
+
+        public string Text { get; init; } = "";
     }
 }
