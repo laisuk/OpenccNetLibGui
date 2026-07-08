@@ -1217,7 +1217,7 @@ public class MainWindowViewModel : ViewModelBase
 
     // Dialog Quotes Validator
 
-    public DialogQuoteValidationResult? LastDialogQuoteValidation { get; private set; }
+    private DialogQuoteValidationResult? LastDialogQuoteValidation { get; set; }
 
     private async Task ValidateDialogQuotesSourceAsync()
     {
