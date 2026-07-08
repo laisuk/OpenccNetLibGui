@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using AvaloniaEdit;
 using OpenccNetLibGui.ViewModels;
@@ -24,6 +25,8 @@ public partial class MainWindow : Window
         ConfigureEditor(tbSource);
         ConfigureEditor(tbDestination);
         ConfigureEditor(tbPreview);
+
+        AddHandler(KeyDownEvent, OnMainWindowKeyDown, RoutingStrategies.Tunnel);
 
         var lbxSource = this.FindControl<ListBox>("LbxSource");
         InitializeDragAndDrop(tbSource);
@@ -208,5 +211,124 @@ public partial class MainWindow : Window
     private void BtnExit_Click(object? sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    // Key-Bindings for TbSource
+
+    private async void OnMainWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        try
+        {
+            if (e.Key != Key.G || !e.KeyModifiers.HasFlag(KeyModifiers.Control))
+                return;
+
+            e.Handled = true;
+
+            var editor = this.FindControl<TextEditor>("TbSource");
+            if (editor?.Document == null)
+                return;
+
+            var lineCount = editor.Document.LineCount;
+            var lineNumber = await ShowGoToLineDialogAsync(lineCount);
+
+            if (lineNumber is >= 1)
+                GoToLine(editor, lineNumber.Value);
+        }
+        catch (Exception ex)
+        {
+            await MessageBox.Show(
+                "Go to line failed:\n" + ex.Message,
+                "Error",
+                this);
+        }
+    }
+
+    private async Task<int?> ShowGoToLineDialogAsync(int maxLine)
+    {
+        var input = new TextBox
+        {
+            Text = "1",
+            Width = 180
+        };
+
+        var dialog = new Window
+        {
+            Title = "Go to Line",
+            Width = 300,
+            Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+            Content = new StackPanel
+            {
+                Margin = new Avalonia.Thickness(16),
+                Spacing = 10,
+                Children =
+                {
+                    new TextBlock { Text = $"Line number 1 - {maxLine}:" },
+                    input,
+                    new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        Spacing = 8,
+                        Children =
+                        {
+                            new Button { Content = "Cancel", IsCancel = true },
+                            new Button { Content = "Go", IsDefault = true }
+                        }
+                    }
+                }
+            }
+        };
+
+        dialog.Opened += (_, _) =>
+        {
+            input.Focus();
+            input.SelectAll();
+        };
+
+        dialog.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape)
+                dialog.Close(null);
+            else if (e.Key == Key.Enter && int.TryParse(input.Text, out var n))
+                dialog.Close(n);
+        };
+
+        var buttons = ((StackPanel)((StackPanel)dialog.Content!).Children[2]).Children;
+        ((Button)buttons[0]).Click += (_, _) => dialog.Close(null);
+        ((Button)buttons[1]).Click += (_, _) =>
+        {
+            if (int.TryParse(input.Text, out var n))
+                dialog.Close(n);
+            else
+                dialog.Close(null);
+        };
+
+        var result = await dialog.ShowDialog<int?>(this);
+
+        if (result is >= 1 && result <= maxLine)
+            return result;
+
+        return null;
+    }
+
+    private static void GoToLine(TextEditor editor, int lineNumber)
+    {
+        if (editor.Document == null)
+            return;
+
+        if (lineNumber < 1 || lineNumber > editor.Document.LineCount)
+            return;
+
+        var line = editor.Document.GetLineByNumber(lineNumber);
+
+        editor.Focus();
+        editor.CaretOffset = line.Offset;
+
+        var visualLine = Math.Max(1, lineNumber - 3);
+        editor.ScrollToLine(visualLine);
+
+        editor.TextArea.Caret.BringCaretToView();
     }
 }
