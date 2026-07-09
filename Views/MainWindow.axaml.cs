@@ -37,6 +37,19 @@ public partial class MainWindow : Window
     public MainWindow(MainWindowViewModel vm) : this()
     {
         DataContext = vm;
+
+        vm.RequestGoToSuspiciousLine += OnRequestGoToSuspiciousLine;
+    }
+
+    private void OnRequestGoToSuspiciousLine(bool isSource, int lineNumber)
+    {
+        var editor = this.FindControl<TextEditor>(
+            isSource ? "TbSource" : "TbDestination");
+
+        if (editor == null)
+            return;
+
+        GoToLine(editor, lineNumber);
     }
 
     private static void ConfigureEditor(TextEditor? editor)
@@ -323,8 +336,13 @@ public partial class MainWindow : Window
 
         var line = editor.Document.GetLineByNumber(lineNumber);
 
+        var offset = line.Offset;
+
         editor.Focus();
-        editor.CaretOffset = line.Offset;
+        editor.TextArea.Focus();
+
+        editor.CaretOffset = offset;
+        // editor.TextArea.Caret.Offset = offset;
 
         var visualLine = Math.Max(1, lineNumber - 3);
         editor.ScrollToLine(visualLine);

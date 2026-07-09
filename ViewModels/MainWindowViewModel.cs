@@ -389,7 +389,8 @@ public class MainWindowViewModel : ViewModelBase
         BtnNormCompatCommand = ReactiveCommand.Create(NormalizeCompat);
         BtnDeTofuCommand = ReactiveCommand.Create(DeTofu);
         BtnNormDialogQuotesCommand = ReactiveCommand.Create(NormalizeDialogQuotes);
-        BtnValidateDialogQuotesDestinationCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesDestinationAsync);
+        BtnValidateDialogQuotesDestinationCommand =
+            ReactiveCommand.CreateFromTask(ValidateDialogQuotesDestinationAsync);
         BtnValidateDialogQuotesSourceCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesSourceAsync);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
@@ -1217,22 +1218,27 @@ public class MainWindowViewModel : ViewModelBase
 
     // Dialog Quotes Validator
 
+    public event Action<bool, int>? RequestGoToSuspiciousLine;
+    // bool = true source, false destination
+
     private DialogQuoteValidationResult? LastDialogQuoteValidation { get; set; }
 
     private async Task ValidateDialogQuotesSourceAsync()
     {
-        await  ValidateDialogQuotesAsync(TbSourceTextDocument?.Text ?? string.Empty);
+        await ValidateDialogQuotesAsync(
+            TbSourceTextDocument?.Text ?? string.Empty,
+            true);
     }
-    
+
     private async Task ValidateDialogQuotesDestinationAsync()
     {
-        await  ValidateDialogQuotesAsync(TbDestinationTextDocument?.Text ?? string.Empty);
+        await ValidateDialogQuotesAsync(
+            TbDestinationTextDocument?.Text ?? string.Empty,
+            false);
     }
 
-    private async Task ValidateDialogQuotesAsync(string text)
+    private async Task ValidateDialogQuotesAsync(string text, bool isSource)
     {
-        // var text = TbDestinationTextDocument?.Text ?? string.Empty;
-
         LastDialogQuoteValidation =
             CjkTextNormalizeHelper.ValidateDialogQuotes(text);
 
@@ -1242,7 +1248,29 @@ public class MainWindowViewModel : ViewModelBase
 
         var owner = _topLevelService!.GetMainWindow();
 
-        _ = await MessageBox.ShowResult(
+        var buttons = result.IsValid
+            ? new[]
+            {
+                new MessageBoxButton(
+                    GetRuntimeStatus("dialogQuoteValidationOkButton", "OK"),
+                    MessageBoxResult.Ok,
+                    isDefault: true,
+                    isCancel: true)
+            }
+            : new[]
+            {
+                new MessageBoxButton(
+                    GetRuntimeStatus("dialogQuoteValidationGoToFirstButton", "Go To First Suspicious Line"),
+                    MessageBoxResult.Custom,
+                    isDefault: true),
+
+                new MessageBoxButton(
+                    GetRuntimeStatus("dialogQuoteValidationCloseButton", "Close"),
+                    MessageBoxResult.Cancel,
+                    isCancel: true)
+            };
+
+        var dialogResult = await MessageBox.ShowResult(
             BuildDialogQuoteValidationSummary(result),
             result.IsValid
                 ? GetRuntimeStatus("dialogQuoteValidationTitle", "Dialog Quote Validation")
@@ -1250,26 +1278,20 @@ public class MainWindowViewModel : ViewModelBase
             owner,
             width: 560,
             minHeight: result.IsValid ? 150 : 250,
-            new MessageBoxButton(
-                result.IsValid
-                    ? GetRuntimeStatus("dialogQuoteValidationOkButton", "OK")
-                    : GetRuntimeStatus("dialogQuoteValidationCloseButton", "Close"),
-                result.IsValid ? MessageBoxResult.Ok : MessageBoxResult.Cancel,
-                isDefault: true,
-                isCancel: true));
+            buttons);
 
-        if (result.IsValid)
+        if (!result.IsValid && dialogResult == MessageBoxResult.Custom)
         {
-            LblStatusBarContent = GetRuntimeStatus(
-                "statusDialogQuoteValidationPassed",
-                "Dialog quote validation passed");
-            return;
+            var firstLine = result.SuspiciousLines[0].LineNumber;
+            RequestGoToSuspiciousLine?.Invoke(isSource, firstLine);
         }
 
-        LblStatusBarContent = FormatRuntimeStatus(
-            "statusDialogQuoteValidationSuspiciousLines",
-            "Found {0} suspicious dialog quote line(s)",
-            result.SuspiciousLines.Count);
+        LblStatusBarContent = result.IsValid
+            ? GetRuntimeStatus("statusDialogQuoteValidationPassed", "Dialog quote validation passed")
+            : FormatRuntimeStatus(
+                "statusDialogQuoteValidationSuspiciousLines",
+                "Found {0} suspicious dialog quote line(s)",
+                result.SuspiciousLines.Count);
     }
 
     private string BuildDialogQuoteValidationSummary(DialogQuoteValidationResult result)
