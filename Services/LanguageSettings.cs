@@ -151,8 +151,9 @@ public sealed class RuntimeContents
         ["dialogQuoteValidationNoIssues"] = "No suspicious dialog quote issues found.",
         ["dialogQuoteValidationFoundLines"] = "Found {0} suspicious dialog quote line(s).",
         ["dialogQuoteValidationHintTitle"] = "Hint:",
-        ["dialogQuoteValidationHintMissingExtra"] = "The actual typo is often a missing or extra dialog quote",
-        ["dialogQuoteValidationHintAbove"] = "a few lines above the first reported line.",
+        ["dialogQuoteValidationHintMissingExtra"] =
+            "The actual typo is often a missing, extra, reversed, or mixed dialog quote.",
+        ["dialogQuoteValidationHintAbove"] = "It may appear on the reported line or a few lines above it.",
         ["dialogQuoteValidationHintFixAgain"] = "Fix the source text and validate again.",
         ["dialogQuoteValidationMoreLines"] = "...and {0} more.",
         ["statusDeTofuEmpty"] = "Nothing to DeTofu",
