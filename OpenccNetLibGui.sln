@@ -5,8 +5,6 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenccNetLibGui", "OpenccNetLibGui.csproj", "{32EC2227-ECA4-48AA-9E87-C29AFA089DD9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenccNetLibGuiTests", "..\OpenccNetLibGuiTests\OpenccNetLibGuiTests.csproj", "{261E3187-439F-42B4-BFA4-8E9DE3DE607C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{32EC2227-ECA4-48AA-9E87-C29AFA089DD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32EC2227-ECA4-48AA-9E87-C29AFA089DD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32EC2227-ECA4-48AA-9E87-C29AFA089DD9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{261E3187-439F-42B4-BFA4-8E9DE3DE607C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{261E3187-439F-42B4-BFA4-8E9DE3DE607C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{261E3187-439F-42B4-BFA4-8E9DE3DE607C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{261E3187-439F-42B4-BFA4-8E9DE3DE607C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
