@@ -25,6 +25,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added CJK Dialog Quotes Fixer and Validator features.
 - Added 2 new Manual conversion API T2Hkp() and Hk2Tp().
 - Update runtimes to PDFium 151.0.7920.0.
+- Update `OpenccNetLib` to `v1.6.1`.
 
 ---
 
