@@ -511,11 +511,22 @@
                             <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,*,Auto">
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Spacing="5">
-                                    <Button x:Name="BtnDeTofu" Padding="6 2" Width="40"
-                                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                    <Button x:Name="BtnDeTofu"
+                                            Padding="0"
+                                            Width="40"
+                                            Height="26"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center"
+                                            FontWeight="SemiBold"
+                                            FontSize="16"
                                             ToolTip.Tip="{Binding DeTofuHint}"
-                                            Command="{Binding BtnDeTofuCommand}" Content="豆" />
+                                            Command="{Binding BtnDeTofuCommand}">
+                                        <TextBlock Text="豆"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   TextAlignment="Center"
+                                                   LineHeight="18" />
+                                    </Button>
                                     <Button x:Name="BtnValidateDialogDestinationQuotes" Padding="0 2" Width="40"
                                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                             FontWeight="SemiBold" FontSize="16" Height="26"
