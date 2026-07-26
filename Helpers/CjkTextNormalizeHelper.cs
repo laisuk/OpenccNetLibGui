@@ -29,9 +29,6 @@ namespace OpenccNetLibGui.Helpers
         private const char OpenCornerSingle = '『';
         private const char CloseCornerSingle = '』';
 
-        // Private Use Area marker used only during normalization.
-        private const char MaskedLatinSingleQuote = '\uE000';
-
         /// <summary>
         /// Normalizes ASCII dialog quotation marks in CJK text.
         /// </summary>
@@ -96,27 +93,28 @@ namespace OpenccNetLibGui.Helpers
             if (string.IsNullOrEmpty(text))
                 return text;
 
-            if (preserveLatinSingleQuotes)
-                text = MaskLatinSingleQuotes(text);
-
             var state = new DialogQuoteState();
             var sb = new StringBuilder(text.Length);
 
-            foreach (var ch in text)
+            for (var i = 0; i < text.Length; i++)
             {
+                var ch = text[i];
+
+                if (preserveLatinSingleQuotes &&
+                    ch is AsciiSingle or OpenSingle or CloseSingle &&
+                    i > 0 &&
+                    i + 1 < text.Length &&
+                    IsAsciiLetter(text[i - 1]) &&
+                    IsAsciiLetter(text[i + 1]))
+                {
+                    sb.Append(ch);
+                    continue;
+                }
+
                 sb.Append(state.NormalizeChar(ch));
             }
 
-            var normalized = sb.ToString();
-
-            if (preserveLatinSingleQuotes)
-            {
-                normalized = normalized.Replace(
-                    MaskedLatinSingleQuote,
-                    AsciiSingle);
-            }
-
-            return normalized;
+            return sb.ToString();
         }
 
         /// <summary>
@@ -194,45 +192,6 @@ namespace OpenccNetLibGui.Helpers
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Masks ASCII apostrophes that appear between Latin letters.
-        /// </summary>
-        /// <param name="text">
-        /// The text whose Latin apostrophes should be protected.
-        /// </param>
-        /// <returns>
-        /// A temporary string in which protected apostrophes have been replaced
-        /// with a private-use marker.
-        /// </returns>
-        /// <remarks>
-        /// This prevents apostrophes in words such as <c>don't</c>,
-        /// <c>I'm</c>, <c>rock'n'roll</c>, and <c>O'Brien</c> from being
-        /// interpreted as dialog quotation marks.
-        /// </remarks>
-        private static string MaskLatinSingleQuotes(string text)
-        {
-            var sb = new StringBuilder(text.Length);
-
-            for (var i = 0; i < text.Length; i++)
-            {
-                var ch = text[i];
-
-                if (ch == AsciiSingle &&
-                    i > 0 &&
-                    i + 1 < text.Length &&
-                    IsAsciiLetter(text[i - 1]) &&
-                    IsAsciiLetter(text[i + 1]))
-                {
-                    sb.Append(MaskedLatinSingleQuote);
-                    continue;
-                }
-
-                sb.Append(ch);
-            }
-
-            return sb.ToString();
         }
 
         /// <summary>
