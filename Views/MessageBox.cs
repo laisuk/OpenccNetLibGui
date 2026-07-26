@@ -45,6 +45,7 @@ public class MessageBox : Window
         double minHeight,
         IReadOnlyList<MessageBoxButton> buttons)
     {
+        Classes.Add("dialog-surface");
         Title = title;
         Width = width;
         MinHeight = minHeight;

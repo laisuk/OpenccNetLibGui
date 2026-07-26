@@ -5,6 +5,7 @@
         xmlns:viewModels="clr-namespace:OpenccNetLibGui.ViewModels"
         x:DataType="viewModels:ShortHeadingDialogViewModel"
         x:Class="OpenccNetLibGui.Views.ShortHeadingDialog"
+        Classes="dialog-surface"
         Width="450"
         Height="550"
         CanResize="False"

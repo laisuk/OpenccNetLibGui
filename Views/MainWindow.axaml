@@ -13,6 +13,7 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/openccnetlib.ico"
         Title="OpenccNetLibGui"
+        Background="{DynamicResource MainWindowBackgroundBrush}"
         Height="{Binding WindowHeight}" Width="{Binding WindowWidth}"
         WindowStartupLocation="CenterScreen"
         MinWidth="1000"
@@ -147,7 +148,7 @@
                                 <avaloniaEdit:TextEditor
                                     x:Name="TbSource"
                                     BorderThickness="0"
-                                    Background="{DynamicResource ThemeBackgroundBrush}"
+                                    Background="{DynamicResource EditorSurfaceBackgroundBrush}"
                                     Foreground="{DynamicResource ThemeForegroundBrush}"
                                     Document="{Binding TbSourceTextDocument, Mode=TwoWay}"
                                     FontFamily="{Binding EditorFontFamily}"
@@ -372,7 +373,7 @@
                                 <avaloniaEdit:TextEditor
                                     x:Name="TbDestination"
                                     BorderThickness="0"
-                                    Background="{DynamicResource ThemeBackgroundBrush}"
+                                    Background="{DynamicResource EditorSurfaceBackgroundBrush}"
                                     Foreground="{DynamicResource ThemeForegroundBrush}"
                                     Document="{Binding TbDestinationTextDocument}"
                                     FontFamily="{Binding EditorFontFamily}"
@@ -931,7 +932,7 @@
                         </TabItem.Header>
                         <Border Margin="8"
                                 Padding="18"
-                                Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                Background="{DynamicResource SettingsCardBackgroundBrush}"
                                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                 BorderThickness="2"
                                 CornerRadius="6">
@@ -1146,7 +1147,8 @@
                                       ColumnDefinitions="*,Auto"
                                       Margin="0,16,0,0"
                                       ColumnSpacing="16"
-                                      VerticalAlignment="Bottom">
+                                      VerticalAlignment="Bottom"
+                                      Background="{DynamicResource SettingsSaveRowBackgroundBrush}">
                                     <StackPanel Orientation="Horizontal"
                                                 Spacing="8"
                                                 VerticalAlignment="Center">

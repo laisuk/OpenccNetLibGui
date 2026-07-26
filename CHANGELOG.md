@@ -7,6 +7,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.6.2] - Unreleased
+
+### Changed
+
+- Repainted the dark theme with a softer Fluent-inspired charcoal palette and distinct layered surfaces across the main
+  window, editors, settings, ComboBox and numeric controls, About dialog, validation popups, and Short Heading Settings
+  dialog. The light theme remains unchanged.
+
+---
+
 ## [1.6.1] - 2026-07-15
 
 ### Changed
@@ -114,12 +124,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
         - Front-matter titles (e.g. *序章*, *前言*, *楔子*)
         - Chapter banners (e.g. `第十二章 夜雨初歇`)
         - Decorated or stylized headings commonly found in novels and scanned PDFs
-    - Supports unlimited pattern combinations via regular expressions
-      (e.g. `xxx|yyy|zzz`), allowing full adaptation to diverse content styles.
+    - Supports unlimited pattern combinations via regular expressions (e.g. `xxx|yyy|zzz`), allowing full adaptation to
+      diverse content styles.
 
 - **Design-time preview support**
-    - Added `Design.DataContext` for the Short Heading dialog,
-      improving layout iteration and visual consistency during development.
+    - Added `Design.DataContext` for the Short Heading dialog, improving layout iteration and visual consistency during
+      development.
 
 - **Ignore untrusted PDF text (Pdfium)**
     - Added an option to skip repeated overlay- or annotation-like text during PDF extraction.
@@ -130,10 +140,10 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - **DOCX (.docx) plain-text import support**
     - Extracts human-readable text from Microsoft Word documents into the source editor.
-    - Handles paragraphs, numbered and bulleted lists, tables (flattened as TSV),
-      headers/footers, footnotes, and comments.
-    - Formatting is intentionally stripped to produce clean, editable plain text
-      suitable for reflow processing and OpenCC conversion.
+    - Handles paragraphs, numbered and bulleted lists, tables (flattened as TSV), headers/footers, footnotes, and
+      comments.
+    - Formatting is intentionally stripped to produce clean, editable plain text suitable for reflow processing and
+      OpenCC conversion.
 
 - **ODT (.odt) plain-text import support**
     - Extracts text from OpenDocument Text files via `content.xml`.
@@ -144,15 +154,14 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Extracts human-readable text from EPUB eBooks by parsing the package manifest (OPF) and spine order.
     - Supports both XHTML (`.xhtml`) and legacy HTML (`.html` / `.htm`) chapters, including older `Calibre`-generated
       EPUBs.
-    - Ignores CSS and presentation-only markup; text is extracted based on semantic structure
-      (paragraphs, headings, block elements, and line breaks).
+    - Ignores CSS and presentation-only markup; text is extracted based on semantic structure (paragraphs, headings,
+      block elements, and line breaks).
     - Skips non-content sections such as scripts, styles, and navigation documents (ToC) by default.
-    - Output is normalized into clean, reflow-friendly plain text suitable for further
-      paragraph reflow and OpenCC conversion.
+    - Output is normalized into clean, reflow-friendly plain text suitable for further paragraph reflow and OpenCC
+      conversion.
 
 - **About dialog**
-    - Added a dedicated About dialog displaying application version,
-      engine information, and project homepage.
+    - Added a dedicated About dialog displaying application version, engine information, and project homepage.
 
 ### Changed
 
@@ -162,18 +171,15 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Greatly improves maintainability, testability, and reuse across formats.
 - **Short heading detection upgraded**
     - Uses `ShortHeadingSettings` instead of a single integer value.
-    - ASCII-only headings automatically allow a larger effective length
-      (`maxLen × 2`, clamped to 10–30) to better support English headings
-      such as *Introduction*, *Chapter One*, *Black Water*, etc.
+    - ASCII-only headings automatically allow a larger effective length (`maxLen × 2`, clamped to 10–30) to better
+      support English headings such as *Introduction*, *Chapter One*, *Black Water*, etc.
 - **PDF reflow heuristics improved**
-    - Better handling of dialog continuation, punctuation-based joins,
-      metadata lines, and mixed CJK/ASCII content.
+    - Better handling of dialog continuation, punctuation-based joins, metadata lines, and mixed CJK/ASCII content.
     - More robust collapse of layout-level repeated titles and headings.
     - Detect drawing box line pattern as paragraph separator.
 - **Main text import pipeline unified**
     - Drag-and-drop and Open File now share the same document-loading logic.
-    - DOCX, ODT, and plain text files are consistently routed through the same
-      source editor update path.
+    - DOCX, ODT, and plain text files are consistently routed through the same source editor update path.
 - **Internal architecture cleanup**
     - Clear separation between:
         - PDF extraction (PdfPig / Pdfium)
@@ -188,13 +194,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Structural lines (e.g. bracket-wrapped titles, book lists, metadata-like lines, dates, signatures)
       are handled separately from sentence punctuation, avoiding interference with normal prose.
     - Robust handling of common OCR artifacts:
-        - ASCII `.` and `:` may be conditionally interpreted as CJK punctuation
-          **only in strongly CJK contexts**.
+        - ASCII `.` and `:` may be conditionally interpreted as CJK punctuation **only in strongly CJK contexts**.
     - Dialog continuity is strictly preserved:
-        - Paragraph splits are always blocked while quotes or brackets remain unclosed,
-          ensuring multi-line dialog stays intact.
-    - Overall reflow behavior is now closer to **human-edited Chinese text layout**,
-      especially for novels, essays, and scanned PDFs.
+        - Paragraph splits are always blocked while quotes or brackets remain unclosed, ensuring multi-line dialog stays
+          intact.
+    - Overall reflow behavior is now closer to **human-edited Chinese text layout**, especially for novels, essays, and
+      scanned PDFs.
 - Update `OpenccNetLib` to v1.4.0
 - Update `OpenccNetLibGui` runtimes to `.Net 10`
 
@@ -202,12 +207,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - This release focuses on **correctness, configurability, and long-term maintainability**
   of text reflow and document import.
-- DOCX and ODT are treated as **input formats only**; all content is converted to
-  plain text before editing, reflow, or Opencc conversion.
-- Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally
-  synchronized with the new settings model.
-- The reflow engine is now suitable for reuse across
-  PDF, Office documents, EPUB, CLI tools, batch processing, and automated testing.
+- DOCX and ODT are treated as **input formats only**; all content is converted to plain text before editing, reflow, or
+  Opencc conversion.
+- Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally synchronized with the new settings
+  model.
+- The reflow engine is now suitable for reuse across PDF, Office documents, EPUB, CLI tools, batch processing, and
+  automated testing.
 
 ---
 

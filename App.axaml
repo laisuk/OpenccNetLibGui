@@ -12,6 +12,10 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <Style Selector="Window.dialog-surface">
+            <Setter Property="Background" Value="{DynamicResource DialogBackgroundBrush}" />
+        </Style>
+
 
         <!-- Primary action button -->
         <Style Selector="Button.accent-button">
@@ -164,7 +168,7 @@
         <Style Selector="Border.editor-container">
             <!-- 背景：略淺一層，令 TextEditor 區域同窗體分層 -->
             <Setter Property="Background"
-                    Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+                    Value="{DynamicResource EditorSurfaceBackgroundBrush}" />
 
             <!-- 邊框：Fluent 2 式微對比灰線 -->
             <Setter Property="BorderBrush"
@@ -185,7 +189,7 @@
         </Style>
 
         <Style Selector="Border.editor-info-panel">
-            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
+            <Setter Property="Background" Value="{DynamicResource EditorSurfaceBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="CornerRadius" Value="0,0,4,4" />
@@ -224,6 +228,15 @@
             </Setter>
         </Style>
 
+        <!-- The closed ComboBox surface; popup/dropdown colors remain Fluent defaults. -->
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource EditorSurfaceBackgroundBrush}" />
+        </Style>
+
+        <Style Selector="NumericUpDown">
+            <Setter Property="Background" Value="{DynamicResource EditorSurfaceBackgroundBrush}" />
+        </Style>
+
     </Application.Styles>
 
     <Application.Resources>
@@ -231,6 +244,13 @@
             <ResourceDictionary.ThemeDictionaries>
 
                 <ResourceDictionary x:Key="Light">
+                    <!-- Preserve the existing Fluent light surfaces. -->
+                    <SolidColorBrush x:Key="MainWindowBackgroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="EditorSurfaceBackgroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="SettingsCardBackgroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="SettingsSaveRowBackgroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#FFFFFF" />
+
                     <!-- Accent -->
                     <SolidColorBrush x:Key="AccentForegroundBrush" Color="#0078D4" />
                     <SolidColorBrush x:Key="AccentPointerOverForegroundBrush" Color="#106EBE" />
@@ -243,6 +263,14 @@
                 </ResourceDictionary>
 
                 <ResourceDictionary x:Key="Dark">
+                    <!-- Softer Fluent dark background; keeps the light theme unchanged. -->
+                    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="#202020" />
+                    <SolidColorBrush x:Key="MainWindowBackgroundBrush" Color="#1B1B1B" />
+                    <SolidColorBrush x:Key="EditorSurfaceBackgroundBrush" Color="#242424" />
+                    <SolidColorBrush x:Key="SettingsCardBackgroundBrush" Color="#202020" />
+                    <SolidColorBrush x:Key="SettingsSaveRowBackgroundBrush" Color="#242424" />
+                    <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#202020" />
+
                     <!-- Accent -->
                     <SolidColorBrush x:Key="AccentForegroundBrush" Color="#4CC2FF" />
                     <SolidColorBrush x:Key="AccentPointerOverForegroundBrush" Color="#70D6FF" />

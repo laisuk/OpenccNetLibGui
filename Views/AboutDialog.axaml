@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:OpenccNetLibGui.Constants"
         mc:Ignorable="d"
         x:Class="OpenccNetLibGui.Views.AboutDialog"
+        Classes="dialog-surface"
         Width="420"
         Height="300"
         Title="About"
