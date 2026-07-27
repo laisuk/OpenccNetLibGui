@@ -54,6 +54,8 @@ public class App : Application
         });
 
         services.AddSingleton<ITopLevelService, TopLevelService>();
+        services.AddSingleton<IDictionaryGeneratorService, DictionaryGeneratorService>();
+        services.AddSingleton<DictionaryGeneratorViewModel>();
         services.AddSingleton<Opencc>();
         // Register ViewModels
         services.AddSingleton<MainWindowViewModel>();

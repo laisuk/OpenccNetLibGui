@@ -9,6 +9,17 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ## [1.6.2] - Unreleased
 
+### Added
+
+- Added a theme-aware **Dictionary** tab for generating OpenccNet dictionary artifacts directly from base text
+  dictionaries in ZSTD, CBOR, or JSON format.
+- Added ordered custom dictionary rows with selectable active slots, Append/Override modes, file pickers, validation,
+  and support for duplicate slots while preserving application order.
+- Added responsive background generation with busy-state controls, progress/status feedback, clear error reporting, and
+  safe sibling temporary-file replacement to protect existing output artifacts on failure.
+- Added an optional **Readable Unicode JSON** mode that emits unescaped Unicode text while retaining standard escaped
+  JSON generation as the default.
+
 ### Changed
 
 - Repainted the dark theme with a softer Fluent-inspired charcoal palette and distinct layered surfaces across the main

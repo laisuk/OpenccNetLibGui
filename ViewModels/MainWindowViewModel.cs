@@ -52,6 +52,7 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isTabBatch;
     private bool _isTabMain = true;
     private bool _isTabSettings;
+    private bool _isTabDictionary;
     private bool _isTabMessage = true;
     private bool _isTabPreview;
     private bool _isTbOutFolderFocus;
@@ -113,8 +114,9 @@ public class MainWindowViewModel : ViewModelBase
     private string? _tabMessageContent = "Message";
     private string? _tabPreviewContent = "Preview";
     private FontWeight _tabBatchFontWeight = FontWeight.Normal;
-    private FontWeight _tabMainFontWeight = FontWeight.Black;
+    private FontWeight _tabMainFontWeight = FontWeight.SemiBold;
     private FontWeight _tabSettingsFontWeight = FontWeight.Normal;
+    private FontWeight _tabDictionaryFontWeight = FontWeight.Normal;
     private string? _tbOutFolderText = "./output/";
     private int _selectedUiLanguageIndex;
     private int _selectedThemeModeIndex;
@@ -137,6 +139,8 @@ public class MainWindowViewModel : ViewModelBase
     private DeTofuLevelOption? _selectedDeTofuLevelOption;
     private FontFamily _editorFontFamily = FontFamily.Default;
     private double _editorFontSize = 14;
+
+    public DictionaryGeneratorViewModel DictionaryGenerator { get; } = null!;
 
     public bool IsSettingsDirty =>
         _languageSettingsService!.IsDirty;
@@ -399,9 +403,10 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
-        Opencc opencc) :
+        Opencc opencc, DictionaryGeneratorViewModel dictionaryGenerator) :
         this()
     {
+        DictionaryGenerator = dictionaryGenerator;
         _topLevelService = topLevelService;
         _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
@@ -3123,24 +3128,56 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isCbRegionalTermsEnabled, value);
     }
 
+    private void SelectPrimaryTab(bool main, bool batch, bool dictionary, bool settings)
+    {
+        if (main)
+        {
+            _isTabBatch = false;
+            _isTabDictionary = false;
+            _isTabSettings = false;
+        }
+        else if (batch)
+        {
+            _isTabMain = false;
+            _isTabDictionary = false;
+            _isTabSettings = false;
+        }
+        else if (dictionary)
+        {
+            _isTabMain = false;
+            _isTabBatch = false;
+            _isTabSettings = false;
+        }
+        else if (settings)
+        {
+            _isTabMain = false;
+            _isTabBatch = false;
+            _isTabDictionary = false;
+        }
+
+        this.RaisePropertyChanged(nameof(IsTabMain));
+        this.RaisePropertyChanged(nameof(IsTabBatch));
+        this.RaisePropertyChanged(nameof(IsTabDictionary));
+        this.RaisePropertyChanged(nameof(IsTabSettings));
+        IsBtnOpenFileVisible = main;
+        IsLblFileNameVisible = main;
+        IsCmbSaveTargetVisible = main;
+        IsBtnSaveFileVisible = main;
+        IsBtnProcessVisible = main;
+        IsBtnBatchStartVisible = batch;
+        TabMainFontWeight = main ? FontWeight.SemiBold : FontWeight.Normal;
+        TabBatchFontWeight = batch ? FontWeight.SemiBold : FontWeight.Normal;
+        TabDictionaryFontWeight = dictionary ? FontWeight.SemiBold : FontWeight.Normal;
+        TabSettingsFontWeight = settings ? FontWeight.SemiBold : FontWeight.Normal;
+    }
+
     public bool IsTabMain
     {
         get => _isTabMain;
         set
         {
             this.RaiseAndSetIfChanged(ref _isTabMain, value);
-            if (!value) return;
-            IsTabBatch = false;
-            IsTabSettings = false;
-            IsBtnOpenFileVisible = true;
-            IsLblFileNameVisible = true;
-            IsCmbSaveTargetVisible = true;
-            IsBtnSaveFileVisible = true;
-            IsBtnProcessVisible = true;
-            IsBtnBatchStartVisible = false;
-            TabMainFontWeight = FontWeight.Black;
-            TabBatchFontWeight = FontWeight.Normal;
-            TabSettingsFontWeight = FontWeight.Normal;
+            if (value) SelectPrimaryTab(main: true, batch: false, dictionary: false, settings: false);
         }
     }
 
@@ -3150,18 +3187,17 @@ public class MainWindowViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _isTabBatch, value);
-            if (!value) return;
-            IsTabMain = false;
-            IsTabSettings = false;
-            IsBtnOpenFileVisible = false;
-            IsLblFileNameVisible = false;
-            IsCmbSaveTargetVisible = false;
-            IsBtnSaveFileVisible = false;
-            IsBtnProcessVisible = false;
-            IsBtnBatchStartVisible = true;
-            TabMainFontWeight = FontWeight.Normal;
-            TabBatchFontWeight = FontWeight.Black;
-            TabSettingsFontWeight = FontWeight.Normal;
+            if (value) SelectPrimaryTab(main: false, batch: true, dictionary: false, settings: false);
+        }
+    }
+
+    public bool IsTabDictionary
+    {
+        get => _isTabDictionary;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isTabDictionary, value);
+            if (value) SelectPrimaryTab(main: false, batch: false, dictionary: true, settings: false);
         }
     }
 
@@ -3171,18 +3207,7 @@ public class MainWindowViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _isTabSettings, value);
-            if (!value) return;
-            IsTabMain = false;
-            IsTabBatch = false;
-            IsBtnOpenFileVisible = false;
-            IsLblFileNameVisible = false;
-            IsCmbSaveTargetVisible = false;
-            IsBtnSaveFileVisible = false;
-            IsBtnProcessVisible = false;
-            IsBtnBatchStartVisible = false;
-            TabMainFontWeight = FontWeight.Normal;
-            TabBatchFontWeight = FontWeight.Normal;
-            TabSettingsFontWeight = FontWeight.Black;
+            if (value) SelectPrimaryTab(main: false, batch: false, dictionary: false, settings: true);
         }
     }
 
@@ -3266,6 +3291,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _tabSettingsFontWeight;
         set => this.RaiseAndSetIfChanged(ref _tabSettingsFontWeight, value);
+    }
+
+    public FontWeight TabDictionaryFontWeight
+    {
+        get => _tabDictionaryFontWeight;
+        set => this.RaiseAndSetIfChanged(ref _tabDictionaryFontWeight, value);
     }
 
     #endregion

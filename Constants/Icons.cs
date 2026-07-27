@@ -10,6 +10,8 @@ public static class Icons
     public const string Message = "\uE8BD";
     public const string PowerButton = "\uE7E8";
     public const string Settings = "\uE713";
+    public const string Dictionary = "\uE82D";
+    public const string DictionaryAdd = "\uE82E";
 
     public const string Copy = "\uE16F";
     public const string Paste = "\uE16D";
