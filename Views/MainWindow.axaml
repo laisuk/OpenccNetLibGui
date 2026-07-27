@@ -999,8 +999,9 @@
                                                                              PlaceholderText="Dictionary file path" />
                                                                     <Button Grid.Column="3"
                                                                             Command="{Binding BrowseCommand}"
-                                                                            ToolTip.Tip="Browse and add custom dictionary file" >
-                                                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                            ToolTip.Tip="Browse and add custom dictionary file">
+                                                                        <StackPanel Orientation="Horizontal"
+                                                                                Spacing="6">
                                                                             <TextBlock Classes="icon-font"
                                                                                     Text="{x:Static local:Icons.DictionaryAdd}" />
                                                                             <TextBlock Text="Browse" />
@@ -1041,16 +1042,29 @@
                                                   VerticalAlignment="Center"
                                                   ToolTip.Tip="Write Chinese and other Unicode characters directly instead of using \uXXXX escape sequences. Applies only to JSON output." />
                                     </StackPanel>
-                                    <Border Padding="12" Background="{DynamicResource EditorSurfaceBackgroundBrush}"
+                                    <Border Padding="12"
+                                            Background="{DynamicResource EditorSurfaceBackgroundBrush}"
                                             BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                            BorderThickness="1" CornerRadius="6" IsVisible="{Binding IsGenerating}">
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            IsVisible="{Binding IsGenerating}">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <ProgressBar Width="180" IsIndeterminate="True" />
-                                            <TextBlock Text="{Binding GenerationStatus}" VerticalAlignment="Center" />
+                                            <ProgressBar Width="180"
+                                                         IsIndeterminate="True" />
+                                            <TextBlock Text="{Binding GenerationStatus}"
+                                                       VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock Text="{Binding GenerationStatus}" TextWrapping="Wrap"
-                                               IsVisible="{Binding !IsGenerating}" />
+
+                                    <Border Padding="12"
+                                            Background="{DynamicResource EditorSurfaceBackgroundBrush}"
+                                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            IsVisible="{Binding !IsGenerating}">
+                                        <TextBlock Text="{Binding GenerationStatus}"
+                                                   TextWrapping="Wrap" />
+                                    </Border>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>

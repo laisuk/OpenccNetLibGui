@@ -87,9 +87,54 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
 
     public static string ResolvePath(string path) => Path.GetFullPath(path, AppContext.BaseDirectory);
 
-    public static IReadOnlyList<DictSlot> GetActiveSlots() => Enum.GetValues<DictSlot>()
-        .Where(slot => typeof(DictSlot).GetField(slot.ToString())?.GetCustomAttribute<ObsoleteAttribute>() is null)
-        .ToArray();
+    private static IReadOnlyList<DictSlot> GetActiveSlots()
+    {
+        var preferredOrder = new[]
+        {
+            // Simplified
+            DictSlot.STCharacters,
+            DictSlot.STPhrases,
+            DictSlot.STPunctuations,
+
+            // Traditional
+            DictSlot.TSCharacters,
+            DictSlot.TSPhrases,
+            DictSlot.TSPunctuations,
+
+            // Taiwan
+            DictSlot.TWVariants,
+            DictSlot.TWVariantsRev,
+            DictSlot.TWVariantsPhrases,
+            DictSlot.TWVariantsRevPhrases,
+            DictSlot.TWPhrases,
+            DictSlot.TWPhrasesRev,
+
+            // Hong Kong
+            DictSlot.HKVariants,
+            DictSlot.HKVariantsRev,
+            DictSlot.HKVariantsPhrases,
+            DictSlot.HKVariantsRevPhrases,
+            DictSlot.HKPhrases,
+            DictSlot.HKPhrasesRev,
+
+            // Japanese
+            DictSlot.JPSCharacters,
+            DictSlot.JPSCharactersRev,
+            DictSlot.JPSPhrases
+        };
+
+        var activeSlots = Enum.GetValues<DictSlot>()
+            .Where(slot =>
+                typeof(DictSlot)
+                    .GetField(slot.ToString())?
+                    .GetCustomAttribute<ObsoleteAttribute>() is null)
+            .ToArray();
+
+        return preferredOrder
+            .Where(activeSlots.Contains)
+            .Concat(activeSlots.Except(preferredOrder))
+            .ToArray();
+    }
 
     private void AddCustomDictionary() => CustomDictionaries.Add(new CustomDictionaryRowViewModel(
         _topLevelService, AvailableSlots, AvailableModes, row => CustomDictionaries.Remove(row)));
