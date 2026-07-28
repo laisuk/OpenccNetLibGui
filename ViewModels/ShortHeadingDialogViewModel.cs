@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using OpenccNetLibGui.Services;
-using ReactiveUI;
+using ReactiveUI.Reactive;
 
 namespace OpenccNetLibGui.ViewModels;
 

@@ -2,7 +2,7 @@
 using System.Reactive.Concurrency;
 using Avalonia;
 using Avalonia.Threading;
-using ReactiveUI;
+using ReactiveUI.Reactive;
 
 namespace OpenccNetLibGui;
 

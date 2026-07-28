@@ -10,7 +10,7 @@ using Avalonia.Platform.Storage;
 using OpenccNetLib;
 using OpenccNetLibGui.Services;
 using OpenccNetLibGui.Views;
-using ReactiveUI;
+using ReactiveUI.Reactive;
 
 namespace OpenccNetLibGui.ViewModels;
 

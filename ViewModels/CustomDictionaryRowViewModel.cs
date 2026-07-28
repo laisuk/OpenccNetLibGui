@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using OpenccNetLib;
 using OpenccNetLibGui.Services;
-using ReactiveUI;
+using ReactiveUI.Reactive;
 
 namespace OpenccNetLibGui.ViewModels;
 

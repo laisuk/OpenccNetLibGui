@@ -12,7 +12,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using AvaloniaEdit.Document;
 using OpenccNetLib;
-using ReactiveUI;
+using ReactiveUI.Reactive;
 using OpenccNetLibGui.Services;
 using OpenccNetLibGui.Views;
 using System.Diagnostics;
