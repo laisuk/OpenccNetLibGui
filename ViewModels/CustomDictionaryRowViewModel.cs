@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using OpenccNetLib;
+using OpenccNetLibGui.Helpers;
 using OpenccNetLibGui.Services;
 using ReactiveUI.Reactive;
 
@@ -20,7 +21,7 @@ public sealed class CustomDictionaryRowViewModel : ViewModelBase
 
     public CustomDictionaryRowViewModel(ITopLevelService topLevelService, IReadOnlyList<DictSlot> availableSlots,
         IReadOnlyList<CustomDictMode> availableModes, Func<DictionaryGeneratorContents> contentsProvider,
-        Action<CustomDictionaryRowViewModel> remove)
+        Action<CustomDictionaryRowViewModel> remove, Action<CommandExceptionInfo> handleCommandException)
     {
         _topLevelService = topLevelService;
         AvailableSlots = availableSlots;
@@ -29,6 +30,11 @@ public sealed class CustomDictionaryRowViewModel : ViewModelBase
         _selectedSlot = availableSlots[0];
         BrowseCommand = ReactiveCommand.CreateFromTask(BrowseAsync);
         RemoveCommand = ReactiveCommand.Create(() => remove(this));
+
+        TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
+            handleCommandException,
+            ($"{nameof(CustomDictionaryRowViewModel)}.{nameof(BrowseCommand)}", BrowseCommand.ThrownExceptions),
+            ($"{nameof(CustomDictionaryRowViewModel)}.{nameof(RemoveCommand)}", RemoveCommand.ThrownExceptions)));
     }
 
     public IReadOnlyList<DictSlot> AvailableSlots { get; }

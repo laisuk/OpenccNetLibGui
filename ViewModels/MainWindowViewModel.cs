@@ -400,6 +400,45 @@ public class MainWindowViewModel : ViewModelBase
         SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
         ResetWindowSizeCommand = ReactiveCommand.Create(ResetWindowSize);
+
+        TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
+            HandleUnexpectedCommandException,
+            (nameof(BtnPasteCommand), BtnPasteCommand.ThrownExceptions),
+            (nameof(BtnCopyCommand), BtnCopyCommand.ThrownExceptions),
+            (nameof(BtnOpenFileCommand), BtnOpenFileCommand.ThrownExceptions),
+            (nameof(BtnSaveFileCommand), BtnSaveFileCommand.ThrownExceptions),
+            (nameof(BtnProcessCommand), BtnProcessCommand.ThrownExceptions),
+            (nameof(BtnClearTbSourceCommand), BtnClearTbSourceCommand.ThrownExceptions),
+            (nameof(BtnClearTbDestinationCommand), BtnClearTbDestinationCommand.ThrownExceptions),
+            (nameof(BtnAddCommand), BtnAddCommand.ThrownExceptions),
+            (nameof(BtnRemoveCommand), BtnRemoveCommand.ThrownExceptions),
+            (nameof(BtnClearLbxSourceCommand), BtnClearLbxSourceCommand.ThrownExceptions),
+            (nameof(BtnSelectOutFolderCommand), BtnSelectOutFolderCommand.ThrownExceptions),
+            (nameof(BtnPreviewCommand), BtnPreviewCommand.ThrownExceptions),
+            (nameof(BtnDetectCommand), BtnDetectCommand.ThrownExceptions),
+            (nameof(BtnMessagePreviewClearCommand), BtnMessagePreviewClearCommand.ThrownExceptions),
+            (nameof(BtnBatchStartCommand), BtnBatchStartCommand.ThrownExceptions),
+            (nameof(CmbCustomGotFocusCommand), CmbCustomGotFocusCommand.ThrownExceptions),
+            (nameof(BtnReflowCommand), BtnReflowCommand.ThrownExceptions),
+            (nameof(BtnNormCompatCommand), BtnNormCompatCommand.ThrownExceptions),
+            (nameof(BtnDeTofuCommand), BtnDeTofuCommand.ThrownExceptions),
+            (nameof(BtnNormDialogQuotesCommand), BtnNormDialogQuotesCommand.ThrownExceptions),
+            (nameof(BtnValidateDialogQuotesDestinationCommand),
+                BtnValidateDialogQuotesDestinationCommand.ThrownExceptions),
+            (nameof(BtnValidateDialogQuotesSourceCommand), BtnValidateDialogQuotesSourceCommand.ThrownExceptions),
+            (nameof(ShowShortHeadingDialogCommand), ShowShortHeadingDialogCommand.ThrownExceptions),
+            (nameof(SaveLanguageSettingsCommand), SaveLanguageSettingsCommand.ThrownExceptions),
+            (nameof(ShowAboutDialog), ShowAboutDialog.ThrownExceptions),
+            (nameof(ResetWindowSizeCommand), ResetWindowSizeCommand.ThrownExceptions)));
+    }
+
+    private void HandleUnexpectedCommandException(CommandExceptionInfo failure)
+    {
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusUnexpectedCommandError",
+            "Unexpected error in {0}: {1}",
+            failure.CommandName,
+            failure.Exception.Message);
     }
 
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,

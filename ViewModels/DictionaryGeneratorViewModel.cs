@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using OpenccNetLib;
+using OpenccNetLibGui.Helpers;
 using OpenccNetLibGui.Services;
 using OpenccNetLibGui.Views;
 using ReactiveUI.Reactive;
@@ -40,6 +41,15 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         GenerateZstdCommand = ReactiveCommand.CreateFromTask(() => GenerateAsync(DictionaryOutputFormat.Zstd));
         GenerateCborCommand = ReactiveCommand.CreateFromTask(() => GenerateAsync(DictionaryOutputFormat.Cbor));
         GenerateJsonCommand = ReactiveCommand.CreateFromTask(() => GenerateAsync(DictionaryOutputFormat.Json));
+
+        TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
+            HandleUnexpectedCommandException,
+            (nameof(AddCustomDictionaryCommand), AddCustomDictionaryCommand.ThrownExceptions),
+            (nameof(BrowseBaseDirectoryCommand), BrowseBaseDirectoryCommand.ThrownExceptions),
+            (nameof(BrowseOutputDirectoryCommand), BrowseOutputDirectoryCommand.ThrownExceptions),
+            (nameof(GenerateZstdCommand), GenerateZstdCommand.ThrownExceptions),
+            (nameof(GenerateCborCommand), GenerateCborCommand.ThrownExceptions),
+            (nameof(GenerateJsonCommand), GenerateJsonCommand.ThrownExceptions)));
     }
 
     public ObservableCollection<CustomDictionaryRowViewModel> CustomDictionaries { get; } = new();
@@ -158,7 +168,20 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
 
     private void AddCustomDictionary() => CustomDictionaries.Add(new CustomDictionaryRowViewModel(
         _topLevelService, AvailableSlots, AvailableModes, () => Contents,
-        row => CustomDictionaries.Remove(row)));
+        RemoveCustomDictionary, HandleUnexpectedCommandException));
+
+    private void RemoveCustomDictionary(CustomDictionaryRowViewModel row)
+    {
+        if (CustomDictionaries.Remove(row))
+            row.Dispose();
+    }
+
+    private void HandleUnexpectedCommandException(CommandExceptionInfo failure)
+    {
+        HasGenerationError = true;
+        _generationStatusKind = GenerationStatusKind.Error;
+        GenerationStatus = $"Unexpected error in {failure.CommandName}: {failure.Exception.Message}";
+    }
 
     private async Task BrowseDirectoryAsync(bool isBaseDirectory)
     {

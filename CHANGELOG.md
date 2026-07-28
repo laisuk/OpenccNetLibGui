@@ -25,6 +25,15 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Repainted the dark theme with a softer Fluent-inspired charcoal palette and distinct layered surfaces across the main
   window, editors, settings, ComboBox and numeric controls, About dialog, validation popups, and Short Heading Settings
   dialog. The light theme remains unchanged.
+- Updated ReactiveUI from `23.2.28` to the System.Reactive-compatible `ReactiveUI.Reactive 24.0.0` distribution and
+  migrated namespaces and application scheduler initialization to the v24 API.
+- Centralized exception observation for all ReactiveCommands so failures retain their command name and full stack trace,
+  break immediately when a debugger is attached, and surface appropriate status feedback in the owning view model.
+
+### Fixed
+
+- Prevented unobserved ReactiveCommand exceptions from being rethrown on the UI thread and terminating the application,
+  while making failures such as unexpected null view-model state substantially easier to diagnose.
 
 ---
 

@@ -1,9 +1,10 @@
 ﻿using System.Reactive;
+using OpenccNetLibGui.Helpers;
 using ReactiveUI.Reactive;
 
 namespace OpenccNetLibGui.ViewModels;
 
-public sealed class AboutViewModel : ReactiveObject
+public sealed class AboutViewModel : ViewModelBase
 {
     // Instance property required for XAML binding (do not make them static)
     public string AppName => "OpenccNetLibGui";
@@ -18,11 +19,12 @@ public sealed class AboutViewModel : ReactiveObject
     public string PdfEngine => "Pdfium (native)";
 
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
-        = ReactiveCommand.Create(() => { });
 
-    // ✅ 保留 constructor，但唔做初始化
     public AboutViewModel()
     {
-        // Intentionally empty
+        CloseCommand = ReactiveCommand.Create(() => { });
+        TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
+            _ => { },
+            (nameof(CloseCommand), CloseCommand.ThrownExceptions)));
     }
 }

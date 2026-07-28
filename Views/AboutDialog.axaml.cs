@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using Avalonia.Input;
 using Avalonia.Controls;
-using AvaloniaEdit.Utils;
 using OpenccNetLibGui.ViewModels;
 
 namespace OpenccNetLibGui.Views;
@@ -23,7 +22,7 @@ public partial class AboutDialog : Window
     {
         if (DataContext is AboutViewModel vm)
         {
-            _closeSubscription = ExtensionMethods.Subscribe(vm.CloseCommand, _ => Close());
+            _closeSubscription = vm.CloseCommand.Subscribe(_ => Close());
         }
     }
 
@@ -31,6 +30,10 @@ public partial class AboutDialog : Window
     {
         _closeSubscription?.Dispose();
         _closeSubscription = null;
+
+        if (DataContext is IDisposable disposable)
+            disposable.Dispose();
+        DataContext = null;
 
         Opened -= OnOpened;
         Closed -= OnClosed;
