@@ -12,6 +12,7 @@ public static class Icons
     public const string Settings = "\uE713";
     public const string Dictionary = "\uE82D";
     public const string DictionaryAdd = "\uE82E";
+    public const string ReadingMode = "\uE736";
 
     public const string Copy = "\uE16F";
     public const string Paste = "\uE16D";

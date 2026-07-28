@@ -106,6 +106,65 @@ public class Language
     public Dictionary<string, string> Hints { get; set; } = new();
     public RuntimeContents Runtimes { get; set; } = new();
     public BatchLogContents BatchLogContents { get; set; } = new();
+    public DictionaryGeneratorContents DictionaryGeneratorContents { get; set; } = new();
+}
+
+[Serializable]
+public sealed class DictionaryGeneratorContents
+{
+    public string TabTitle { get; set; } = "Dictionary";
+    public string PageTitle { get; set; } = "Dictionary Generation";
+    public string BaseDirectoryLabel { get; set; } = "Base Dictionary Directory";
+    public string OutputDirectoryLabel { get; set; } = "Output Directory";
+    public string CustomSlotsLabel { get; set; } = "Custom Dictionary Slots";
+    public string SlotColumn { get; set; } = "Slot";
+    public string ModeColumn { get; set; } = "Mode";
+    public string DictionaryFileColumn { get; set; } = "Dictionary file";
+    public string DictionaryFilePlaceholder { get; set; } = "Dictionary file path";
+    public string BrowseButton { get; set; } = "Browse";
+    public string RemoveButton { get; set; } = "Remove";
+    public string AddCustomDictionaryButton { get; set; } = "Add Custom Dictionary";
+    public string GenerateZstdButton { get; set; } = "Generate ZSTD";
+    public string GenerateCborButton { get; set; } = "Generate CBOR";
+    public string GenerateJsonButton { get; set; } = "Generate JSON";
+    public string ReadableUnicodeJsonLabel { get; set; } = "Readable Unicode JSON";
+    public string BaseDirectoryToolTip { get; set; } = "Directory containing the standard OpenccNet text dictionaries.";
+
+    public string OutputDirectoryToolTip { get; set; } =
+        "Existing directory where the generated dictionary will be saved.";
+
+    public string BrowseBaseDirectoryToolTip { get; set; } = "Select the base dictionary directory.";
+    public string BrowseOutputDirectoryToolTip { get; set; } = "Select the output directory.";
+    public string SlotToolTip { get; set; } = "Select the dictionary slot to customize.";
+    public string ModeToolTip { get; set; } = "Append merges entries; Override replaces the selected slot.";
+    public string DictionaryFileToolTip { get; set; } = "Path to a custom dictionary text file.";
+    public string BrowseDictionaryFileToolTip { get; set; } = "Select a custom dictionary text file.";
+    public string RemoveRowToolTip { get; set; } = "Remove this custom dictionary row.";
+    public string AddRowToolTip { get; set; } = "Add a custom dictionary row at the end.";
+    public string GenerateZstdToolTip { get; set; } = "Generate dictionary_maxlength.zstd.";
+    public string GenerateCborToolTip { get; set; } = "Generate dictionary_maxlength.cbor.";
+    public string GenerateJsonToolTip { get; set; } = "Generate dictionary_maxlength.json.";
+
+    public string ReadableUnicodeJsonToolTip { get; set; } =
+        "Write readable Unicode characters instead of escaped JSON sequences.";
+
+    public string BaseDirectoryPickerTitle { get; set; } = "Select Base Dictionary Directory";
+    public string OutputDirectoryPickerTitle { get; set; } = "Select Output Directory";
+    public string CustomFilePickerTitle { get; set; } = "Select Custom Dictionary";
+    public string DictionaryTextFilesFilter { get; set; } = "Dictionary text files";
+    public string AllFilesFilter { get; set; } = "All files";
+    public string GeneratingStatus { get; set; } = "Generating dictionary…";
+    public string GenerationSuccessFormat { get; set; } = "Dictionary generated successfully:{0}{1}";
+    public string GenerationFailedFormat { get; set; } = "Dictionary generation failed: {0}";
+    public string BaseDirectoryRequired { get; set; } = "Base dictionary directory is required.";
+    public string BaseDirectoryNotFoundFormat { get; set; } = "Base dictionary directory not found: {0}";
+    public string OutputDirectoryRequired { get; set; } = "Output directory is required.";
+    public string OutputDirectoryNotFoundFormat { get; set; } = "Output directory not found: {0}";
+    public string UnsupportedSlotFormat { get; set; } = "Custom dictionary row {0}: unsupported dictionary slot: {1}.";
+    public string UnsupportedModeFormat { get; set; } = "Custom dictionary row {0}: unsupported dictionary mode: {1}.";
+    public string RowFileRequiredFormat { get; set; } = "Custom dictionary row {0}: file path is required.";
+    public string RowFileNotFoundFormat { get; set; } = "Custom dictionary row {0}: file not found: {1}";
+    public string MessageBoxTitle { get; set; } = "Dictionary Generation";
 }
 
 [Serializable]

@@ -872,6 +872,7 @@ public class MainWindowViewModel : ViewModelBase
         TabPreviewContent = string.IsNullOrWhiteSpace(language.TabPreviewContent)
             ? "Preview"
             : language.TabPreviewContent;
+        DictionaryGenerator.ApplyLanguage(language.DictionaryGeneratorContents);
         SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
 
         RefreshThemeModeOptionLabels(language);

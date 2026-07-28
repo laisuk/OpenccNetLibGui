@@ -13,16 +13,19 @@ namespace OpenccNetLibGui.ViewModels;
 public sealed class CustomDictionaryRowViewModel : ViewModelBase
 {
     private readonly ITopLevelService _topLevelService;
+    private readonly Func<DictionaryGeneratorContents> _contentsProvider;
     private DictSlot _selectedSlot;
     private CustomDictMode _selectedMode = CustomDictMode.Append;
     private string _dictionaryPath = string.Empty;
 
     public CustomDictionaryRowViewModel(ITopLevelService topLevelService, IReadOnlyList<DictSlot> availableSlots,
-        IReadOnlyList<CustomDictMode> availableModes, Action<CustomDictionaryRowViewModel> remove)
+        IReadOnlyList<CustomDictMode> availableModes, Func<DictionaryGeneratorContents> contentsProvider,
+        Action<CustomDictionaryRowViewModel> remove)
     {
         _topLevelService = topLevelService;
         AvailableSlots = availableSlots;
         AvailableModes = availableModes;
+        _contentsProvider = contentsProvider;
         _selectedSlot = availableSlots[0];
         BrowseCommand = ReactiveCommand.CreateFromTask(BrowseAsync);
         RemoveCommand = ReactiveCommand.Create(() => remove(this));
@@ -66,15 +69,16 @@ public sealed class CustomDictionaryRowViewModel : ViewModelBase
             // An invalid manually entered path should not prevent opening the picker.
         }
 
+        var contents = _contentsProvider();
         var result = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select Custom Dictionary",
+            Title = contents.CustomFilePickerTitle,
             AllowMultiple = false,
             SuggestedStartLocation = suggestedStartLocation,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Dictionary text files") { Patterns = new[] { "*.txt" } },
-                new FilePickerFileType("All files") { Patterns = new[] { "*.*" } }
+                new FilePickerFileType(contents.DictionaryTextFilesFilter) { Patterns = new[] { "*.txt" } },
+                new FilePickerFileType(contents.AllFilesFilter) { Patterns = new[] { "*.*" } }
             }
         });
         if (result.Count > 0) DictionaryPath = result[0].Path.LocalPath;

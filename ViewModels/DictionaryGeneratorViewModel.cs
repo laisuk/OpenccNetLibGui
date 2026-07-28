@@ -24,6 +24,9 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     private string _generationStatus = string.Empty;
     private bool _hasGenerationError;
     private bool _readableUnicodeJson;
+    private DictionaryGeneratorContents _contents = new();
+    private string? _lastGeneratedOutputPath;
+    private GenerationStatusKind _generationStatusKind;
 
     public DictionaryGeneratorViewModel(ITopLevelService topLevelService, IDictionaryGeneratorService generatorService)
     {
@@ -40,8 +43,8 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     }
 
     public ObservableCollection<CustomDictionaryRowViewModel> CustomDictionaries { get; } = new();
-    public IReadOnlyList<DictSlot> AvailableSlots { get; }
-    public IReadOnlyList<CustomDictMode> AvailableModes { get; }
+    private IReadOnlyList<DictSlot> AvailableSlots { get; }
+    private IReadOnlyList<CustomDictMode> AvailableModes { get; }
     public ReactiveCommand<Unit, Unit> AddCustomDictionaryCommand { get; }
     public ReactiveCommand<Unit, Unit> BrowseBaseDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> BrowseOutputDirectoryCommand { get; }
@@ -85,6 +88,23 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _readableUnicodeJson, value);
     }
 
+    public DictionaryGeneratorContents Contents
+    {
+        get => _contents;
+        private set => this.RaiseAndSetIfChanged(ref _contents, value);
+    }
+
+    public void ApplyLanguage(DictionaryGeneratorContents? contents)
+    {
+        Contents = contents ?? new DictionaryGeneratorContents();
+        GenerationStatus = _generationStatusKind switch
+        {
+            GenerationStatusKind.Generating => Contents.GeneratingStatus,
+            GenerationStatusKind.Success when _lastGeneratedOutputPath is not null =>
+                string.Format(Contents.GenerationSuccessFormat, Environment.NewLine, _lastGeneratedOutputPath),
+            _ => GenerationStatus
+        };
+    }
     public static string ResolvePath(string path) => Path.GetFullPath(path, AppContext.BaseDirectory);
 
     private static IReadOnlyList<DictSlot> GetActiveSlots()
@@ -137,7 +157,8 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     }
 
     private void AddCustomDictionary() => CustomDictionaries.Add(new CustomDictionaryRowViewModel(
-        _topLevelService, AvailableSlots, AvailableModes, row => CustomDictionaries.Remove(row)));
+        _topLevelService, AvailableSlots, AvailableModes, () => Contents,
+        row => CustomDictionaries.Remove(row)));
 
     private async Task BrowseDirectoryAsync(bool isBaseDirectory)
     {
@@ -158,7 +179,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
 
         var result = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = isBaseDirectory ? "Select Base Dictionary Directory" : "Select Output Directory",
+            Title = isBaseDirectory ? Contents.BaseDirectoryPickerTitle : Contents.OutputDirectoryPickerTitle,
             SuggestedStartLocation = suggestedStartLocation
         });
         if (result.Count == 0) return;
@@ -174,9 +195,12 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             var request = CreateValidatedRequest(format);
             IsGenerating = true;
             HasGenerationError = false;
-            GenerationStatus = "Generating dictionary…";
+            _generationStatusKind = GenerationStatusKind.Generating;
+            GenerationStatus = Contents.GeneratingStatus;
             var outputPath = await Task.Run(() => _generatorService.Generate(request));
-            GenerationStatus = $"Dictionary generated successfully:{Environment.NewLine}{outputPath}";
+            _lastGeneratedOutputPath = outputPath;
+            _generationStatusKind = GenerationStatusKind.Success;
+            GenerationStatus = string.Format(Contents.GenerationSuccessFormat, Environment.NewLine, outputPath);
         }
         catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or
                                               FileNotFoundException or UnauthorizedAccessException or IOException or
@@ -186,7 +210,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync($"Dictionary generation failed: {exception.Message}");
+            await ShowErrorAsync(string.Format(Contents.GenerationFailedFormat, exception.Message));
         }
         finally
         {
@@ -197,15 +221,15 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     private DictionaryGenerationRequest CreateValidatedRequest(DictionaryOutputFormat format)
     {
         if (string.IsNullOrWhiteSpace(BaseDictionaryDirectory))
-            throw new ArgumentException("Base dictionary directory is required.");
+            throw new ArgumentException(Contents.BaseDirectoryRequired);
         var baseDirectory = ResolvePath(BaseDictionaryDirectory.Trim());
         if (!Directory.Exists(baseDirectory))
-            throw new DirectoryNotFoundException($"Base dictionary directory not found: {baseDirectory}");
+            throw new DirectoryNotFoundException(string.Format(Contents.BaseDirectoryNotFoundFormat, baseDirectory));
         if (string.IsNullOrWhiteSpace(OutputDirectory))
-            throw new ArgumentException("Output directory is required.");
+            throw new ArgumentException(Contents.OutputDirectoryRequired);
         var outputDirectory = ResolvePath(OutputDirectory.Trim());
         if (!Directory.Exists(outputDirectory))
-            throw new DirectoryNotFoundException($"Output directory not found: {outputDirectory}");
+            throw new DirectoryNotFoundException(string.Format(Contents.OutputDirectoryNotFoundFormat, outputDirectory));
 
         var activeSlots = AvailableSlots.ToHashSet();
         var activeModes = AvailableModes.ToHashSet();
@@ -215,14 +239,14 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             var row = CustomDictionaries[index];
             var rowNumber = index + 1;
             if (!activeSlots.Contains(row.SelectedSlot))
-                throw new ArgumentException($"Custom dictionary row {rowNumber}: unsupported dictionary slot.");
+                throw new ArgumentException(string.Format(Contents.UnsupportedSlotFormat, rowNumber, row.SelectedSlot));
             if (!activeModes.Contains(row.SelectedMode))
-                throw new ArgumentException($"Custom dictionary row {rowNumber}: unsupported dictionary mode.");
+                throw new ArgumentException(string.Format(Contents.UnsupportedModeFormat, rowNumber, row.SelectedMode));
             if (string.IsNullOrWhiteSpace(row.DictionaryPath))
-                throw new ArgumentException($"Custom dictionary row {rowNumber}: file path is required.");
+                throw new ArgumentException(string.Format(Contents.RowFileRequiredFormat, rowNumber));
             var path = ResolvePath(row.DictionaryPath.Trim());
             if (!File.Exists(path))
-                throw new FileNotFoundException($"Custom dictionary row {rowNumber}: file not found: {path}", path);
+                throw new FileNotFoundException(string.Format(Contents.RowFileNotFoundFormat, rowNumber, path), path);
             customRequests.Add(new CustomDictionaryRequest(row.SelectedSlot, row.SelectedMode, path));
         }
 
@@ -238,6 +262,14 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     {
         HasGenerationError = true;
         GenerationStatus = message;
-        await MessageBox.Show(message, "Dictionary Generation", _topLevelService.GetMainWindow());
+        _generationStatusKind = GenerationStatusKind.Error;
+        await MessageBox.Show(message, Contents.MessageBoxTitle, _topLevelService.GetMainWindow());
+    }
+    private enum GenerationStatusKind
+    {
+        None,
+        Generating,
+        Success,
+        Error
     }
 }
