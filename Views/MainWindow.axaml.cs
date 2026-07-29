@@ -236,13 +236,19 @@ public partial class MainWindow : Window
                 return;
 
             e.Handled = true;
+            
+            var mainTab = this.FindControl<TabItem>("TabMain");
+            if (mainTab?.IsSelected != true)
+                return;
 
             var editor = this.FindControl<TextEditor>("TbSource");
             if (editor?.Document == null)
                 return;
 
-            var lineCount = editor.Document.LineCount;
-            var lineNumber = await ShowGoToLineDialogAsync(lineCount);
+            var currentLine = editor.TextArea.Caret.Line;
+            var lineNumber = await ShowGoToLineDialogAsync(
+                editor.Document.LineCount,
+                currentLine);
 
             if (lineNumber is >= 1)
                 GoToLine(editor, lineNumber.Value);
@@ -256,30 +262,95 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task<int?> ShowGoToLineDialogAsync(int maxLine)
+    private async Task<int?> ShowGoToLineDialogAsync(int maxLine, int currentLine)
     {
+        currentLine = Math.Clamp(currentLine, 1, maxLine);
+
         var input = new TextBox
         {
-            Text = "1",
+            Text = currentLine.ToString(),
             Width = 180,
+            MaxLength = maxLine.ToString().Length,
             HorizontalContentAlignment = HorizontalAlignment.Left
+        };
+        input.Classes.Add("go-to-line");
+
+        var validationMessage = new TextBlock
+        {
+            MinHeight = 20,
+            Foreground = Avalonia.Media.Brushes.IndianRed
+        };
+
+        var cancelButton = new Button
+        {
+            Content = "Cancel",
+            IsCancel = true,
+            MinWidth = 80,
+            HorizontalContentAlignment = HorizontalAlignment.Center
+        };
+
+        var goButton = new Button
+        {
+            Content = "Go",
+            IsDefault = true,
+            MinWidth = 80,
+            HorizontalContentAlignment = HorizontalAlignment.Center
+        };
+
+        bool TryGetValidLine(out int lineNumber)
+        {
+            var valid =
+                int.TryParse(input.Text, out lineNumber) &&
+                lineNumber >= 1 &&
+                lineNumber <= maxLine;
+
+            input.Classes.Set("invalid", !valid);
+            goButton.IsEnabled = valid;
+
+            validationMessage.Text = valid
+                ? string.Empty
+                : $"Enter a line number from 1 to {maxLine}.";
+
+            return valid;
+        }
+
+        var filteringText = false;
+
+        input.TextChanged += (_, _) =>
+        {
+            if (filteringText)
+                return;
+
+            var text = input.Text ?? string.Empty;
+            var digitsOnly = new string(text.Where(char.IsAsciiDigit).ToArray());
+
+            if (digitsOnly != text)
+            {
+                filteringText = true;
+                input.Text = digitsOnly;
+                input.CaretIndex = digitsOnly.Length;
+                filteringText = false;
+            }
+
+            TryGetValidLine(out _);
         };
 
         var dialog = new Window
         {
             Title = "Go to Line",
             Width = 300,
-            Height = 150,
+            Height = 160,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,
             Content = new StackPanel
             {
                 Margin = new Avalonia.Thickness(16),
-                Spacing = 10,
+                Spacing = 8,
                 Children =
                 {
                     new TextBlock { Text = $"Line number 1 - {maxLine}:" },
                     input,
+                    validationMessage,
                     new StackPanel
                     {
                         Orientation = Orientation.Horizontal,
@@ -287,8 +358,8 @@ public partial class MainWindow : Window
                         Spacing = 8,
                         Children =
                         {
-                            new Button { Content = "Cancel", IsCancel = true, MinWidth = 80, HorizontalContentAlignment =  HorizontalAlignment.Center },
-                            new Button { Content = "Go", IsDefault = true, MinWidth = 80, HorizontalContentAlignment = HorizontalAlignment.Center },
+                            cancelButton,
+                            goButton
                         }
                     }
                 }
@@ -301,32 +372,31 @@ public partial class MainWindow : Window
         {
             input.Focus();
             input.SelectAll();
+            TryGetValidLine(out _);
         };
 
         dialog.KeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape)
+            {
                 dialog.Close(null);
-            else if (e.Key == Key.Enter && int.TryParse(input.Text, out var n))
-                dialog.Close(n);
+            }
+            else if (e.Key == Key.Enter &&
+                     TryGetValidLine(out var lineNumber))
+            {
+                dialog.Close(lineNumber);
+            }
         };
 
-        var buttons = ((StackPanel)((StackPanel)dialog.Content!).Children[2]).Children;
-        ((Button)buttons[0]).Click += (_, _) => dialog.Close(null);
-        ((Button)buttons[1]).Click += (_, _) =>
+        cancelButton.Click += (_, _) => dialog.Close(null);
+
+        goButton.Click += (_, _) =>
         {
-            if (int.TryParse(input.Text, out var n))
-                dialog.Close(n);
-            else
-                dialog.Close(null);
+            if (TryGetValidLine(out var lineNumber))
+                dialog.Close(lineNumber);
         };
 
-        var result = await dialog.ShowDialog<int?>(this);
-
-        if (result is >= 1 && result <= maxLine)
-            return result;
-
-        return null;
+        return await dialog.ShowDialog<int?>(this);
     }
 
     private static void GoToLine(TextEditor editor, int lineNumber)

@@ -236,6 +236,11 @@
         <Style Selector="NumericUpDown">
             <Setter Property="Background" Value="{DynamicResource EditorSurfaceBackgroundBrush}" />
         </Style>
+        
+        <Style Selector="TextBox.go-to-line.invalid">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
 
     </Application.Styles>
 
