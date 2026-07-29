@@ -523,6 +523,15 @@ public class MainWindowViewModel : ViewModelBase
             Opencc.UseDefaultDictionary();
             _languageSettings.Dictionary = "default";
         }
+        catch (Exception ex)
+        {
+            // Log the custom dictionary loading error.
+            Debug.WriteLine(ex);
+
+            // Keep the GUI usable with the built-in Zstd dictionary.
+            Opencc.UseDefaultDictionary();
+            _languageSettings.Dictionary = "default";
+        }
 
         _opencc = opencc;
         RefreshRuntimeStatus();
