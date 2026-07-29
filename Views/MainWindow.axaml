@@ -1023,8 +1023,15 @@
                                                                     <Button Grid.Column="4"
                                                                             Command="{Binding RemoveCommand}"
                                                                             Classes="outline-button danger-outline-button"
-                                                                            Content="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveButton, FallbackValue=Remove}"
-                                                                            ToolTip.Tip="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveRowToolTip, FallbackValue='Remove this custom dictionary row.'}" />
+                                                                            ToolTip.Tip="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveRowToolTip, FallbackValue='Remove this custom dictionary row.'}" >
+                                                                        <StackPanel Orientation="Horizontal"
+                                                                                Spacing="6">
+                                                                            <TextBlock Classes="icon-font"
+                                                                                    Text="{x:Static local:Icons.RemoveFrom}" />
+                                                                            <TextBlock
+                                                                                Text="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveButton, FallbackValue=Remove}" />
+                                                                        </StackPanel>
+                                                                    </Button>
                                                                 </Grid>
                                                             </DataTemplate>
                                                         </ItemsControl.ItemTemplate>

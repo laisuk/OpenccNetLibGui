@@ -509,6 +509,10 @@ public class MainWindowViewModel : ViewModelBase
                 case "cbor":
                     Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
                     break;
+                
+                default:
+                    Opencc.UseDefaultDictionary();
+                    break;
             }
         }
         catch (FileNotFoundException)
@@ -516,6 +520,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             // JSON/CBOR dictionary files are optional.
             // Fall back to OpenccNetLib default Zstd dictionary.
+            Opencc.UseDefaultDictionary();
             _languageSettings.Dictionary = "default";
         }
 
