@@ -261,7 +261,8 @@ public partial class MainWindow : Window
         var input = new TextBox
         {
             Text = "1",
-            Width = 180
+            Width = 180,
+            HorizontalContentAlignment = HorizontalAlignment.Left
         };
 
         var dialog = new Window
@@ -286,13 +287,15 @@ public partial class MainWindow : Window
                         Spacing = 8,
                         Children =
                         {
-                            new Button { Content = "Cancel", IsCancel = true },
-                            new Button { Content = "Go", IsDefault = true }
+                            new Button { Content = "Cancel", IsCancel = true, MinWidth = 80, HorizontalContentAlignment =  HorizontalAlignment.Center },
+                            new Button { Content = "Go", IsDefault = true, MinWidth = 80, HorizontalContentAlignment = HorizontalAlignment.Center },
                         }
                     }
                 }
             }
         };
+
+        dialog.Classes.Add("dialog-surface");
 
         dialog.Opened += (_, _) =>
         {
