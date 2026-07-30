@@ -8,12 +8,12 @@
         <ApplicationIcon>Assets/openccnetlib.ico</ApplicationIcon>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>10</LangVersion>
-        <AssemblyVersion>1.6.1.0</AssemblyVersion>
-        <FileVersion>1.6.1.0</FileVersion>
+        <AssemblyVersion>1.6.2.0</AssemblyVersion>
+        <FileVersion>1.6.2.0</FileVersion>
         <Copyright>© 2026 Laisuk Lai. All rights reserved.</Copyright>
-        <AssemblyInformationalVersion>1.6.1.0</AssemblyInformationalVersion>
+        <AssemblyInformationalVersion>1.6.2.0</AssemblyInformationalVersion>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-        <Version>1.6.1.0</Version>
+        <Version>1.6.2.0</Version>
         <Title>OpenccNetLibGui</Title>
         <Authors>laisuk</Authors>
         <IsPackable>false</IsPackable>
@@ -40,16 +40,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.1.0" />
+        <PackageReference Include="Avalonia" Version="12.1.1" />
         <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.11"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
-        <PackageReference Include="OpenccNetLib" Version="1.6.1" />
+        <PackageReference Include="OpenccNetLib" Version="1.6.2" />
         <PackageReference Include="PdfPig" Version="0.1.15" />
         <PackageReference Include="ReactiveUI.Reactive" Version="24.0.0" />
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.5" />

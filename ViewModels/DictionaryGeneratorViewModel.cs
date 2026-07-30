@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using OpenccNetLib;
@@ -33,7 +32,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     {
         _topLevelService = topLevelService;
         _generatorService = generatorService;
-        AvailableSlots = GetActiveSlots();
+        AvailableSlots = GetSlotsInDisplayOrder();
         AvailableModes = Enum.GetValues<CustomDictMode>();
         AddCustomDictionaryCommand = ReactiveCommand.Create(AddCustomDictionary);
         BrowseBaseDirectoryCommand = ReactiveCommand.CreateFromTask(() => BrowseDirectoryAsync(true));
@@ -115,9 +114,10 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             _ => GenerationStatus
         };
     }
+
     public static string ResolvePath(string path) => Path.GetFullPath(path, AppContext.BaseDirectory);
 
-    private static IReadOnlyList<DictSlot> GetActiveSlots()
+    private static DictSlot[] GetSlotsInDisplayOrder()
     {
         var preferredOrder = new[]
         {
@@ -153,16 +153,9 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             DictSlot.JPSPhrases
         };
 
-        var activeSlots = Enum.GetValues<DictSlot>()
-            .Where(slot =>
-                typeof(DictSlot)
-                    .GetField(slot.ToString())?
-                    .GetCustomAttribute<ObsoleteAttribute>() is null)
-            .ToArray();
-
         return preferredOrder
-            .Where(activeSlots.Contains)
-            .Concat(activeSlots.Except(preferredOrder))
+            .Where(slot => slot.IsActive())
+            .Concat(DictSlotExtensions.ActiveSlots.Except(preferredOrder))
             .ToArray();
     }
 
@@ -252,7 +245,8 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             throw new ArgumentException(Contents.OutputDirectoryRequired);
         var outputDirectory = ResolvePath(OutputDirectory.Trim());
         if (!Directory.Exists(outputDirectory))
-            throw new DirectoryNotFoundException(string.Format(Contents.OutputDirectoryNotFoundFormat, outputDirectory));
+            throw new DirectoryNotFoundException(string.Format(Contents.OutputDirectoryNotFoundFormat,
+                outputDirectory));
 
         var activeSlots = AvailableSlots.ToHashSet();
         var activeModes = AvailableModes.ToHashSet();
@@ -288,9 +282,10 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         _generationStatusKind = GenerationStatusKind.Error;
         await MessageBox.Show(message, Contents.MessageBoxTitle, _topLevelService.GetMainWindow());
     }
+
     private enum GenerationStatusKind
     {
-        None,
+        Idle,
         Generating,
         Success,
         Error
