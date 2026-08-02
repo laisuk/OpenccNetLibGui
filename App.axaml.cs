@@ -58,6 +58,7 @@ public class App : Application
         services.AddSingleton<DictionaryGeneratorViewModel>();
         services.AddSingleton<Opencc>();
         // Register ViewModels
+        services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<MainWindowViewModel>();
         // Register MainWindow
         services.AddTransient<MainWindow>();

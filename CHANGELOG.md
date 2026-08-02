@@ -25,6 +25,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
+- Extracted a focused singleton `SettingsViewModel` from `MainWindowViewModel` to own theme mode, UI scale, editor
+  appearance, window dimensions, configured global dictionary selection, settings dirty/save state, and their localized
+  labels and hints, while keeping application-wide language coordination, PDF behavior, short-heading workflows, and
+  active dictionary-provider loading in the main view model.
+- Updated Settings and main-window appearance bindings to use `Settings.*` directly, removing the temporary root-level
+  forwarding properties and property-change relay while retaining the window-size persistence compatibility method used
+  by the existing close handler.
+- Preserved startup dictionary fallback and diff-only persistence behavior during the settings extraction, including
+  resetting failed custom providers to ZSTD, keeping runtime and configured dictionary state distinct, and routing
+  root-owned persistent settings through the single `SettingsViewModel.IsSettingsDirty` state.
 - Repainted the dark theme with a softer Fluent-inspired charcoal palette and distinct layered surfaces across the main
   window, editors, settings, ComboBox and numeric controls, About dialog, validation popups, and Short Heading Settings
   dialog. The light theme remains unchanged.

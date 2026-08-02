@@ -5,11 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
-using Avalonia.Styling;
 using AvaloniaEdit.Document;
 using OpenccNetLib;
 using ReactiveUI.Reactive;
@@ -19,6 +16,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Reactive.Disposables;
 using OpenccNetLibGui.Models;
 using Avalonia.Threading;
 using OpenccNetLibGui.Helpers;
@@ -28,7 +26,6 @@ namespace OpenccNetLibGui.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly LanguageSettings? _languageSettings;
-    private readonly LanguageSettingsService? _languageSettingsService;
     private Language _selectedLanguage = new();
     private readonly List<string> _codeNames = new();
     private readonly HashSet<string>? _textFileTypes;
@@ -79,20 +76,14 @@ public class MainWindowViewModel : ViewModelBase
     private string? _btnDetectContent = "Detect";
     private string? _btnOpenFileContent = "Open File";
     private string? _btnSaveAsContent = "Save As";
-    private string? _unsavedChangesContent = "Unsaved changes";
-    private string? _allSettingsSavedContent = "All settings saved";
-    private string? _btnSaveAdvancedSettingsContent = "Save Advanced Settings";
     private string? _processContent = "Process";
     private string? _batchStartContent = "Batch Start";
     private string? _sourceContent = "Source:";
     private string? _destinationContent = "Destination:";
     private string? _outputContent = "Output:";
     private string? _filenameContent = "Filename";
-    private string? _conversionSettingsContent = "Conversion Settings";
     private string? _convertFilenameContent = "Convert filename";
     private string? _deTofuLevelContent = "DeTofu level";
-    private string? _editorFontContent = "Editor Font";
-    private string? _editorFontSizeContent = "Font Size";
     private string? _pdfOptionsContent = "PDF Options";
     private string? _addPdfPageHeaderContent = "Add page header";
     private string? _compactPdfTextContent = "Compact PDF text";
@@ -103,12 +94,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _usePdfiumEngineContent = "Use Pdfium (native) engine";
     private string? _headingRulesContent = "Heading Rules";
     private string? _shortHeadingSettingsContent = "Short heading settings...";
-    private string? _globalDictionaryContent = "Global Conversion Dictionary";
     private string? _aboutContent = "About...";
-    private string? _uiLanguageContent = "UI Language";
-    private string? _uiScaleContent = "UI Scale";
-    private string? _resetWindowSizeContent = "Reset Window Size";
-    private string? _themeModeContent = "Theme Mode";
     private string? _tabMainContent = "Main Conversion";
     private string? _tabBatchContent = "Batch Conversion";
     private string? _tabSettingsContent = "Settings";
@@ -120,9 +106,6 @@ public class MainWindowViewModel : ViewModelBase
     private FontWeight _tabDictionaryFontWeight = FontWeight.Normal;
     private string? _tbOutFolderText = "./output/";
     private int _selectedUiLanguageIndex;
-    private int _selectedThemeModeIndex;
-    private string _selectedThemeMode = "System";
-    private int _selectedUiScale = 100;
 
     // private string? _tbPreviewText = string.Empty;
     private TextDocument? _tbPreviewTextDocument;
@@ -135,30 +118,19 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbConvertFilename;
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
-    private ThemeModeOption? _selectedThemeModeOption;
     private SaveTargetOption? _selectedSaveTargetOption;
     private DeTofuLevelOption? _selectedDeTofuLevelOption;
-    private FontFamily _editorFontFamily = FontFamily.Default;
-    private double _editorFontSize = 14;
 
     private readonly string _activeDictionary = "zstd";
-    private GlobalDictionaryOption? _selectedGlobalDictionaryOption;
 
     public DictionaryGeneratorViewModel DictionaryGenerator { get; } = null!;
-
-    public bool IsSettingsDirty =>
-        _languageSettingsService!.IsDirty;
+    public SettingsViewModel Settings { get; }
 
     public ObservableCollection<string> CustomOptions { get; } = new();
 
-    public ObservableCollection<ThemeModeOption> ThemeModeOptions { get; } = new();
     public ObservableCollection<SaveTargetOption> SaveTargetOptions { get; } = new();
     public ObservableCollection<DeTofuLevelOption> DeTofuLevelOptions { get; } = new();
-    public IReadOnlyList<FontFamily> SystemFonts { get; } = FontManager.Current.SystemFonts;
-    public IReadOnlyList<int> UiScaleOptions { get; } = new[] { 100, 125, 150 };
 
-    private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
-    private static readonly string[] GlobalDictionaryValues = { "zstd", "dicts", "json", "cbor" };
     private static readonly string[] DeTofuLevelValues = { "B", "C", "D", "E", "F", "G", "H", "I" };
 
     private static readonly string[] HintPropertyNames =
@@ -170,8 +142,6 @@ public class MainWindowViewModel : ViewModelBase
         nameof(UsePdfPigEngineHint),
         nameof(UsePdfiumEngineHint),
         nameof(ShortHeadingSettingsHint),
-        nameof(GlobalDictionaryHint),
-        nameof(SaveAdvancedSettingsHint),
         nameof(ReflowHint),
         nameof(NormalizeCompatHint),
         nameof(NormalizeDialogQuotesHint),
@@ -187,7 +157,6 @@ public class MainWindowViewModel : ViewModelBase
         nameof(ClearSourceListHint),
         nameof(SelectOutputFolderHint),
         nameof(ClearDisplayHint),
-        nameof(ThemeModeHint),
         nameof(OpenFileHint),
         nameof(SaveTargetHint),
         nameof(SaveFileHint),
@@ -208,15 +177,6 @@ public class MainWindowViewModel : ViewModelBase
 
     public string UiLanguageOption2Content =>
         GetUiSelectionLabel(2, "简体中文");
-
-    public string ThemeModeOption0Content =>
-        GetThemeModeSelectionLabel(0, ThemeModeValues[0]);
-
-    public string ThemeModeOption1Content =>
-        GetThemeModeSelectionLabel(1, ThemeModeValues[1]);
-
-    public string ThemeModeOption2Content =>
-        GetThemeModeSelectionLabel(2, ThemeModeValues[2]);
 
     public int SelectedUiLanguageIndex
     {
@@ -244,189 +204,21 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-
-    public int SelectedUiScale
-    {
-        get => _selectedUiScale;
-        set
-        {
-            var normalized = NormalizeUiScale(value);
-            if (_selectedUiScale == normalized)
-                return;
-
-            this.RaiseAndSetIfChanged(ref _selectedUiScale, normalized);
-            this.RaisePropertyChanged(nameof(UiScaleFactor));
-
-            if (_languageSettings is null || _languageSettings.UiScale == normalized)
-                return;
-
-            _languageSettings.UiScale = normalized;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
-        }
-    }
-
-    public double UiScaleFactor => SelectedUiScale / 100d;
-    public double WindowWidth => _languageSettings?.WindowWidth ?? LanguageSettingsService.DefaultWindowWidth;
-    public double WindowHeight => _languageSettings?.WindowHeight ?? LanguageSettingsService.DefaultWindowHeight;
-
-
-    private static int NormalizeUiScale(int value)
-    {
-        return value is 100 or 125 or 150 ? value : 100;
-    }
-
-    public string SelectedThemeMode
-    {
-        get => _selectedThemeMode;
-        set
-        {
-            var normalized = NormalizeThemeMode(value);
-            if (string.Equals(_selectedThemeMode, normalized, StringComparison.Ordinal))
-                return;
-
-            this.RaiseAndSetIfChanged(ref _selectedThemeMode, normalized);
-            var normalizedIndex = GetThemeModeIndex(normalized);
-            SetSelectedThemeModeIndex(normalizedIndex);
-            SetSelectedThemeModeOption(normalized);
-
-            ApplyThemeMode(normalized);
-
-            if (_languageSettings is null ||
-                string.Equals(_languageSettings.ThemeMode, normalized, StringComparison.Ordinal))
-                return;
-
-            _languageSettings.ThemeMode = normalized;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
-        }
-    }
-
-    public int SelectedThemeModeIndex
-    {
-        get => _selectedThemeModeIndex;
-        set
-        {
-            if (value < 0)
-                return;
-
-            var normalizedIndex = Math.Clamp(value, 0, ThemeModeValues.Length - 1);
-            if (_selectedThemeModeIndex == normalizedIndex)
-                return;
-
-            this.RaiseAndSetIfChanged(ref _selectedThemeModeIndex, normalizedIndex);
-            SelectedThemeMode = ThemeModeValues[normalizedIndex];
-        }
-    }
-
-    public ThemeModeOption? SelectedThemeModeOption
-    {
-        get => _selectedThemeModeOption;
-        set
-        {
-            var option = value ?? MatchOption(
-                ThemeModeOptions,
-                candidate => string.Equals(candidate.Value, ThemeModeValues[0], StringComparison.Ordinal));
-            if (ReferenceEquals(_selectedThemeModeOption, option))
-                return;
-
-            this.RaiseAndSetIfChanged(ref _selectedThemeModeOption, option);
-            if (option is not null)
-                SelectedThemeMode = option.Value;
-            this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-        }
-    }
-
-    private void SetSelectedThemeModeIndex(int index)
-    {
-        var normalizedIndex = Math.Clamp(index, 0, ThemeModeValues.Length - 1);
-        if (_selectedThemeModeIndex == normalizedIndex)
-        {
-            this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-            return;
-        }
-
-        this.RaiseAndSetIfChanged(ref _selectedThemeModeIndex, normalizedIndex, nameof(SelectedThemeModeIndex));
-        SetSelectedThemeModeOption(ThemeModeValues[normalizedIndex]);
-    }
-
-    private void SetSelectedThemeModeOption(string themeMode)
-    {
-        var normalized = NormalizeThemeMode(themeMode);
-        var option = MatchOption(
-            ThemeModeOptions,
-            candidate => string.Equals(candidate.Value, normalized, StringComparison.Ordinal));
-
-        if (ReferenceEquals(_selectedThemeModeOption, option))
-            return;
-
-        this.RaiseAndSetIfChanged(ref _selectedThemeModeOption, option, nameof(SelectedThemeModeOption));
-    }
-
-    // Global Conversion Dictionary
-
-    public sealed class GlobalDictionaryOption : ReactiveObject
-    {
-        private string _content;
-
-        public GlobalDictionaryOption(string value, string content)
-        {
-            Value = value;
-            _content = content;
-        }
-
-        internal string Value { get; }
-
-        public string Content
-        {
-            get => _content;
-            set => this.RaiseAndSetIfChanged(ref _content, value);
-        }
-    }
-
-    public ObservableCollection<GlobalDictionaryOption> GlobalDictionaryOptions { get; } = new();
-
-    public GlobalDictionaryOption? SelectedGlobalDictionaryOption
-    {
-        get => _selectedGlobalDictionaryOption;
-        set
-        {
-            if (ReferenceEquals(_selectedGlobalDictionaryOption, value))
-                return;
-
-            this.RaiseAndSetIfChanged(ref _selectedGlobalDictionaryOption, value);
-
-            if (value is null || _languageSettings is null)
-                return;
-
-            _languageSettings.Dictionary = value.Value;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
-        }
-    }
-
-    private static string NormalizeGlobalDictionary(string? value)
-    {
-        return value?.Trim().ToLowerInvariant() switch
-        {
-            "dicts" => "dicts",
-            "json" => "json",
-            "cbor" => "cbor",
-            // "zstd" or "default" => "zstd",
-            _ => "zstd"
-        };
-    }
+    public void PersistWindowSize(double width, double height) => Settings.PersistWindowSize(width, height);
 
     public MainWindowViewModel()
+        : this(new SettingsViewModel())
     {
+    }
+
+    private MainWindowViewModel(SettingsViewModel settings)
+    {
+        Settings = settings;
         TbSourceTextDocument = new TextDocument();
         TbDestinationTextDocument = new TextDocument();
         TbPreviewTextDocument = new TextDocument();
         LbxSourceItems = new ObservableCollection<string>();
         LbxDestinationItems = new ObservableCollection<string>();
-        foreach (var themeMode in ThemeModeValues)
-            ThemeModeOptions.Add(new ThemeModeOption(themeMode, themeMode));
-        foreach (var dictionary in GlobalDictionaryValues)
-            GlobalDictionaryOptions.Add(new GlobalDictionaryOption(dictionary, dictionary));
-
-        SelectedThemeModeOption = ThemeModeOptions[0];
         SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Destination, "Destination"));
         foreach (var deTofuLevel in DeTofuLevelValues)
             DeTofuLevelOptions.Add(new DeTofuLevelOption(deTofuLevel, $"Ext {deTofuLevel}"));
@@ -458,9 +250,10 @@ public class MainWindowViewModel : ViewModelBase
             ReactiveCommand.CreateFromTask(ValidateDialogQuotesDestinationAsync);
         BtnValidateDialogQuotesSourceCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesSourceAsync);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
-        SaveLanguageSettingsCommand = ReactiveCommand.Create(SaveLanguageSettings);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
-        ResetWindowSizeCommand = ReactiveCommand.Create(ResetWindowSize);
+
+        Settings.SettingsSaved += SettingsOnSettingsSaved;
+        TrackSubscription(Disposable.Create(() => Settings.SettingsSaved -= SettingsOnSettingsSaved));
 
         TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
             HandleUnexpectedCommandException,
@@ -488,9 +281,9 @@ public class MainWindowViewModel : ViewModelBase
                 BtnValidateDialogQuotesDestinationCommand.ThrownExceptions),
             (nameof(BtnValidateDialogQuotesSourceCommand), BtnValidateDialogQuotesSourceCommand.ThrownExceptions),
             (nameof(ShowShortHeadingDialogCommand), ShowShortHeadingDialogCommand.ThrownExceptions),
-            (nameof(SaveLanguageSettingsCommand), SaveLanguageSettingsCommand.ThrownExceptions),
+            (nameof(Settings.SaveLanguageSettingsCommand), Settings.SaveLanguageSettingsCommand.ThrownExceptions),
             (nameof(ShowAboutDialog), ShowAboutDialog.ThrownExceptions),
-            (nameof(ResetWindowSizeCommand), ResetWindowSizeCommand.ThrownExceptions)));
+            (nameof(Settings.ResetWindowSizeCommand), Settings.ResetWindowSizeCommand.ThrownExceptions)));
     }
 
     private void HandleUnexpectedCommandException(CommandExceptionInfo failure)
@@ -502,13 +295,20 @@ public class MainWindowViewModel : ViewModelBase
             failure.Exception.Message);
     }
 
+    private void SettingsOnSettingsSaved(object? sender, EventArgs e)
+    {
+        LblStatusBarContent = FormatRuntimeStatus(
+            "statusSettingsSaved",
+            "Saved: {0}",
+            LanguageSettingsService.UserSettingsPath);
+    }
+
     public MainWindowViewModel(ITopLevelService topLevelService, LanguageSettingsService languageSettingsService,
-        Opencc opencc, DictionaryGeneratorViewModel dictionaryGenerator) :
-        this()
+        Opencc opencc, DictionaryGeneratorViewModel dictionaryGenerator, SettingsViewModel settings) :
+        this(settings)
     {
         DictionaryGenerator = dictionaryGenerator;
         _topLevelService = topLevelService;
-        _languageSettingsService = languageSettingsService;
         _languageSettings = languageSettingsService.LanguageSettings;
         _selectedLanguage = ResolveSelectedLanguage(_languageSettings);
         _selectedUiLanguageIndex = NormalizeLanguageLocale(_selectedLanguage);
@@ -516,13 +316,6 @@ public class MainWindowViewModel : ViewModelBase
 
         _textFileTypes = BuildExtSet(_languageSettings!.TextFileTypes);
         _officeFileTypes = BuildExtSet(_languageSettings!.OfficeFileTypes);
-
-        _selectedThemeMode = NormalizeThemeMode(_languageSettings.ThemeMode);
-        SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
-        ApplyThemeMode(_selectedThemeMode);
-        _editorFontFamily = ResolveEditorFontFamily(_languageSettings.EditorFont);
-        _editorFontSize = NormalizeEditorFontSize(_languageSettings.EditorFontSize);
-        _selectedUiScale = NormalizeUiScale(_languageSettings.UiScale);
 
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
@@ -556,7 +349,7 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         var configuredDictionary =
-            NormalizeGlobalDictionary(_languageSettings.Dictionary);
+            SettingsViewModel.NormalizeGlobalDictionary(_languageSettings.Dictionary);
 
         if (configuredDictionary is "dicts" or "json" or "cbor")
         {
@@ -587,7 +380,7 @@ public class MainWindowViewModel : ViewModelBase
                 // A failed custom load may have changed provider state, so reset it.
                 Opencc.UseDefaultDictionary();
                 _activeDictionary = "zstd";
-                _languageSettings.Dictionary = "zstd";
+                Settings.SetGlobalDictionaryAfterStartupFallback("zstd");
             }
         }
         else
@@ -598,10 +391,6 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         _opencc = opencc;
-        _selectedGlobalDictionaryOption = GlobalDictionaryOptions.First(option =>
-            string.Equals(option.Value, NormalizeGlobalDictionary(_languageSettings.Dictionary),
-                StringComparison.Ordinal));
-
         RefreshRuntimeStatus();
     }
 
@@ -614,16 +403,6 @@ public class MainWindowViewModel : ViewModelBase
             .Select(s => s[0] == '.' ? s : "." + s),
             StringComparer.OrdinalIgnoreCase
         );
-    }
-
-    private static string NormalizeThemeMode(string? value)
-    {
-        return value switch
-        {
-            "Light" => "Light",
-            "Dark" => "Dark",
-            _ => "System"
-        };
     }
 
     private static string NormalizeDeTofuLevel(string? value)
@@ -674,47 +453,6 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         this.RaiseAndSetIfChanged(ref _selectedDeTofuLevelOption, option, nameof(SelectedDeTofuLevelOption));
-    }
-
-    private static int GetThemeModeIndex(string? value)
-    {
-        var normalized = NormalizeThemeMode(value);
-        var index = Array.IndexOf(ThemeModeValues, normalized);
-        return index >= 0 ? index : 0;
-    }
-
-    private FontFamily ResolveEditorFontFamily(string? fontName)
-    {
-        if (!string.IsNullOrWhiteSpace(fontName))
-        {
-            var matchingFont = SystemFonts.FirstOrDefault(font =>
-                string.Equals(font.Name, fontName, StringComparison.OrdinalIgnoreCase));
-            if (matchingFont != null)
-                return matchingFont;
-        }
-
-        return SystemFonts.FirstOrDefault(font =>
-                   string.Equals(font.Name, "Consolas", StringComparison.OrdinalIgnoreCase))
-               ?? FontFamily.Default;
-    }
-
-    private static double NormalizeEditorFontSize(double value)
-    {
-        return Math.Clamp(value <= 0 ? 14 : value, 8, 72);
-    }
-
-    private static void ApplyThemeMode(string themeMode)
-    {
-        var app = Application.Current;
-        if (app is null)
-            return;
-
-        app.RequestedThemeVariant = NormalizeThemeMode(themeMode) switch
-        {
-            "Light" => ThemeVariant.Light,
-            "Dark" => ThemeVariant.Dark,
-            _ => ThemeVariant.Default
-        };
     }
 
     private static Language CreateFallbackLanguage()
@@ -854,7 +592,7 @@ public class MainWindowViewModel : ViewModelBase
             if (_languageSettings.Locale != normalizedLocale)
             {
                 _languageSettings.Locale = normalizedLocale;
-                this.RaisePropertyChanged(nameof(IsSettingsDirty));
+                Settings.RefreshDirtyState();
             }
         }
 
@@ -891,15 +629,6 @@ public class MainWindowViewModel : ViewModelBase
         BtnSaveAsContent = string.IsNullOrWhiteSpace(language.BtnSaveAsContent)
             ? "Save As"
             : language.BtnSaveAsContent;
-        UnsavedChangesContent = string.IsNullOrWhiteSpace(language.UnsavedChangesContent)
-            ? "Unsaved changes"
-            : language.UnsavedChangesContent;
-        AllSettingsSavedContent = string.IsNullOrWhiteSpace(language.AllSettingsSavedContent)
-            ? "All settings saved"
-            : language.AllSettingsSavedContent;
-        BtnSaveAdvancedSettingsContent = string.IsNullOrWhiteSpace(language.BtnSaveAdvancedSettingsContent)
-            ? "Save Advanced Settings"
-            : language.BtnSaveAdvancedSettingsContent;
         ProcessContent = string.IsNullOrWhiteSpace(language.ProcessContent)
             ? "Process"
             : language.ProcessContent;
@@ -918,21 +647,12 @@ public class MainWindowViewModel : ViewModelBase
         FilenameContent = string.IsNullOrWhiteSpace(language.FilenameContent)
             ? "Filename"
             : language.FilenameContent;
-        ConversionSettingsContent = string.IsNullOrWhiteSpace(language.ConversionSettingsContent)
-            ? "Conversion Settings"
-            : language.ConversionSettingsContent;
         ConvertFilenameContent = string.IsNullOrWhiteSpace(language.ConvertFilenameContent)
             ? "Convert filename"
             : language.ConvertFilenameContent;
         DeTofuLevelContent = string.IsNullOrWhiteSpace(language.DeTofuLevelContent)
             ? "DeTofu level"
             : language.DeTofuLevelContent;
-        EditorFontContent = string.IsNullOrWhiteSpace(language.EditorFontContent)
-            ? "Editor Font"
-            : language.EditorFontContent;
-        EditorFontSizeContent = string.IsNullOrWhiteSpace(language.EditorFontSizeContent)
-            ? "Font Size"
-            : language.EditorFontSizeContent;
         PdfOptionsContent = string.IsNullOrWhiteSpace(language.PdfOptionsContent)
             ? "PDF Options"
             : language.PdfOptionsContent;
@@ -963,24 +683,9 @@ public class MainWindowViewModel : ViewModelBase
         ShortHeadingSettingsContent = string.IsNullOrWhiteSpace(language.ShortHeadingSettingsContent)
             ? "Short heading settings..."
             : language.ShortHeadingSettingsContent;
-        GlobalDictionaryContent = string.IsNullOrWhiteSpace(language.GlobalDictionaryContent)
-            ? "Global Conversion Dictionary"
-            : language.GlobalDictionaryContent;
         AboutContent = string.IsNullOrWhiteSpace(language.AboutContent)
             ? "About..."
             : language.AboutContent;
-        UiLanguageContent = string.IsNullOrWhiteSpace(language.UiLanguageContent)
-            ? "UI Language"
-            : language.UiLanguageContent;
-        ThemeModeContent = string.IsNullOrWhiteSpace(language.ThemeModeContent)
-            ? "Theme Mode"
-            : language.ThemeModeContent;
-        UiScaleContent = string.IsNullOrWhiteSpace(language.UiScaleContent)
-            ? "UI Scale"
-            : language.UiScaleContent;
-        ResetWindowSizeContent = string.IsNullOrWhiteSpace(language.ResetWindowSizeContent)
-            ? "Reset Window Size"
-            : language.ResetWindowSizeContent;
         TabMainContent = string.IsNullOrWhiteSpace(language.TabMainContent)
             ? "Main Conversion"
             : language.TabMainContent;
@@ -996,13 +701,9 @@ public class MainWindowViewModel : ViewModelBase
         TabPreviewContent = string.IsNullOrWhiteSpace(language.TabPreviewContent)
             ? "Preview"
             : language.TabPreviewContent;
+        Settings.ApplyLanguage(language);
         DictionaryGenerator.ApplyLanguage(language.DictionaryGeneratorContents);
-        SetSelectedThemeModeIndex(GetThemeModeIndex(_selectedThemeMode));
-
-        RefreshThemeModeOptionLabels(language);
         RefreshSaveTargetOptionLabels(language);
-
-        RefreshGlobalDictionaryOptionLabels(language);
         var selectedConfigKey = GetCustomConfigKey(SelectedCustomItem);
         CustomOptions.Clear();
         foreach (var option in language.CustomOptions)
@@ -1023,11 +724,6 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(UiLanguageOption0Content));
         this.RaisePropertyChanged(nameof(UiLanguageOption1Content));
         this.RaisePropertyChanged(nameof(UiLanguageOption2Content));
-        this.RaisePropertyChanged(nameof(ThemeModeOption0Content));
-        this.RaisePropertyChanged(nameof(ThemeModeOption1Content));
-        this.RaisePropertyChanged(nameof(ThemeModeOption2Content));
-        this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-        this.RaisePropertyChanged(nameof(SelectedThemeModeOption));
         foreach (var propertyName in HintPropertyNames)
             this.RaisePropertyChanged(propertyName);
     }
@@ -1062,39 +758,9 @@ public class MainWindowViewModel : ViewModelBase
             sourceOption.Content = GetListItem(language.SaveTargetSelectionContent, 1, "Source");
     }
 
-    private void RefreshThemeModeOptionLabels(Language language)
-    {
-        for (var i = 0; i < ThemeModeOptions.Count && i < ThemeModeValues.Length; i++)
-            ThemeModeOptions[i].Content = GetListItem(language.ThemeModeSelectionContent, i, ThemeModeValues[i]);
-    }
-
-    private void RefreshGlobalDictionaryOptionLabels(Language language)
-    {
-        foreach (var option in GlobalDictionaryOptions)
-        {
-            var key = option.Value == "zstd" ? "default" : option.Value;
-            option.Content = language.Runtimes.Dictionaries.TryGetValue(key, out var label) &&
-                             !string.IsNullOrWhiteSpace(label)
-                ? label
-                : option.Value switch
-                {
-                    "zstd" => "Default dictionary",
-                    "dicts" => "Folder [dicts] dictionary",
-                    "json" => "JSON dictionary",
-                    "cbor" => "CBOR dictionary",
-                    _ => option.Value
-                };
-        }
-    }
-
     private string GetUiSelectionLabel(int index, string fallback)
     {
         return GetListItem(_selectedLanguage.UiSelectionContent, index, fallback);
-    }
-
-    private string GetThemeModeSelectionLabel(int index, string fallback)
-    {
-        return GetListItem(_selectedLanguage.ThemeModeSelectionContent, index, fallback);
     }
 
     private string GetHint(string key, string fallback)
@@ -1151,12 +817,6 @@ public class MainWindowViewModel : ViewModelBase
         GetHint("shortHeadingSettingsHint",
             "Configure short heading detection rules, including maximum length and allowed character patterns.");
 
-    public string GlobalDictionaryHint =>
-        GetHint("globalDictionaryHint", "Changes take effect after restarting the application.");
-
-    public string SaveAdvancedSettingsHint =>
-        GetHint("saveAdvancedSettingsHint", "Writes UserLanguageSettings.json (advanced users only)");
-
     public string ReflowHint =>
         GetHint("reflowHint", "Reflow CJK paragraphs extracted from PDF text.");
 
@@ -1204,9 +864,6 @@ public class MainWindowViewModel : ViewModelBase
     public string ClearDisplayHint =>
         GetHint("clearDisplayHint", "Clear current display box.");
 
-    public string ThemeModeHint =>
-        GetHint("themeModeHint", "System follows the operating system theme.");
-
     public string OpenFileHint =>
         GetHint("openFileHint", "Open file for source text box contents.");
 
@@ -1219,18 +876,6 @@ public class MainWindowViewModel : ViewModelBase
     public string ExitHint =>
         GetHint("exitHint", "Exit program");
 
-    // private void ReselectThemeModeIndex()
-    // {
-    //     var selectedIndex = GetThemeModeIndex(_selectedThemeMode);
-    //     _selectedThemeModeIndex = -1;
-    //     this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-    //
-    //     Dispatcher.UIThread.Post(() =>
-    //     {
-    //         _selectedThemeModeIndex = selectedIndex;
-    //         this.RaisePropertyChanged(nameof(SelectedThemeModeIndex));
-    //     });
-    // }
 
     private void RefreshLanguageDependentUi()
     {
@@ -1296,9 +941,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesSourceCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesDestinationCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
-    public ReactiveCommand<Unit, Unit> ResetWindowSizeCommand { get; }
 
     #endregion
 
@@ -2532,73 +2175,9 @@ public class MainWindowViewModel : ViewModelBase
         // write back to LanguageSettings
         // _languageSettings!.PdfOptions.ShortHeadingSettings = result;
 
-        this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        Settings.RefreshDirtyState();
     }
 
-
-    private void ResetWindowSize()
-    {
-        if (_topLevelService is null || _languageSettingsService is null || _languageSettings is null)
-            return;
-
-        var window = _topLevelService.GetMainWindow();
-        window.WindowState = WindowState.Normal;
-        window.Width = LanguageSettingsService.DefaultWindowWidth;
-        window.Height = LanguageSettingsService.DefaultWindowHeight;
-        Dispatcher.UIThread.Post(() => CenterWindow(window));
-        PersistWindowSize(LanguageSettingsService.DefaultWindowWidth, LanguageSettingsService.DefaultWindowHeight);
-    }
-
-    private static void CenterWindow(Window window)
-    {
-        var screen = window.Screens.ScreenFromWindow(window);
-        if (screen is null)
-            return;
-
-        var scaling = window.RenderScaling;
-        var workingArea = screen.WorkingArea;
-        var widthPixels = (int)Math.Round(LanguageSettingsService.DefaultWindowWidth * scaling);
-        var heightPixels = (int)Math.Round(LanguageSettingsService.DefaultWindowHeight * scaling);
-        var x = workingArea.X + Math.Max(0, (workingArea.Width - widthPixels) / 2);
-        var y = workingArea.Y + Math.Max(0, (workingArea.Height - heightPixels) / 2);
-        window.Position = new PixelPoint(x, y);
-    }
-
-    public void PersistWindowSize(double width, double height)
-    {
-        if (_languageSettingsService is null || _languageSettings is null)
-            return;
-
-        if (!double.IsFinite(width) || !double.IsFinite(height) ||
-            width < LanguageSettingsService.MinimumWindowWidth ||
-            height < LanguageSettingsService.MinimumWindowHeight ||
-            width > int.MaxValue || height > int.MaxValue)
-            return;
-
-        var normalizedWidth = (int)Math.Round(width);
-        var normalizedHeight = (int)Math.Round(height);
-        _languageSettings.WindowWidth = normalizedWidth;
-        _languageSettings.WindowHeight = normalizedHeight;
-        _languageSettingsService.SaveDiffOnly();
-        this.RaisePropertyChanged(nameof(WindowWidth));
-        this.RaisePropertyChanged(nameof(WindowHeight));
-        this.RaisePropertyChanged(nameof(IsSettingsDirty));
-    }
-
-    private void SaveLanguageSettings()
-    {
-        // Ensure VM → LanguageSettings object is already updated before calling this
-        // _languageSettingsService!.Save();
-        _languageSettingsService!.SaveDiffOnly();
-
-        this.RaisePropertyChanged(nameof(IsSettingsDirty));
-
-        // optional: toast/statusbar message
-        LblStatusBarContent = FormatRuntimeStatus(
-            "statusSettingsSaved",
-            "Saved: {0}",
-            LanguageSettingsService.UserSettingsPath);
-    }
 
     private async Task ShowAbout()
     {
@@ -2827,24 +2406,6 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _btnSaveAsContent, value);
     }
 
-    public string? UnsavedChangesContent
-    {
-        get => _unsavedChangesContent;
-        set => this.RaiseAndSetIfChanged(ref _unsavedChangesContent, value);
-    }
-
-    public string? AllSettingsSavedContent
-    {
-        get => _allSettingsSavedContent;
-        set => this.RaiseAndSetIfChanged(ref _allSettingsSavedContent, value);
-    }
-
-    public string? BtnSaveAdvancedSettingsContent
-    {
-        get => _btnSaveAdvancedSettingsContent;
-        set => this.RaiseAndSetIfChanged(ref _btnSaveAdvancedSettingsContent, value);
-    }
-
     public string? ProcessContent
     {
         get => _processContent;
@@ -2881,12 +2442,6 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _filenameContent, value);
     }
 
-    public string? ConversionSettingsContent
-    {
-        get => _conversionSettingsContent;
-        set => this.RaiseAndSetIfChanged(ref _conversionSettingsContent, value);
-    }
-
     public string? ConvertFilenameContent
     {
         get => _convertFilenameContent;
@@ -2897,18 +2452,6 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _deTofuLevelContent;
         set => this.RaiseAndSetIfChanged(ref _deTofuLevelContent, value);
-    }
-
-    public string? EditorFontContent
-    {
-        get => _editorFontContent;
-        set => this.RaiseAndSetIfChanged(ref _editorFontContent, value);
-    }
-
-    public string? EditorFontSizeContent
-    {
-        get => _editorFontSizeContent;
-        set => this.RaiseAndSetIfChanged(ref _editorFontSizeContent, value);
     }
 
     public string? PdfOptionsContent
@@ -2971,41 +2514,10 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _shortHeadingSettingsContent, value);
     }
 
-    public string? GlobalDictionaryContent
-    {
-        get => _globalDictionaryContent;
-        set => this.RaiseAndSetIfChanged(ref _globalDictionaryContent, value);
-    }
-
     public string? AboutContent
     {
         get => _aboutContent;
         set => this.RaiseAndSetIfChanged(ref _aboutContent, value);
-    }
-
-    public string? UiLanguageContent
-    {
-        get => _uiLanguageContent;
-        set => this.RaiseAndSetIfChanged(ref _uiLanguageContent, value);
-    }
-
-    public string? UiScaleContent
-    {
-        get => _uiScaleContent;
-        set => this.RaiseAndSetIfChanged(ref _uiScaleContent, value);
-    }
-
-
-    public string? ResetWindowSizeContent
-    {
-        get => _resetWindowSizeContent;
-        set => this.RaiseAndSetIfChanged(ref _resetWindowSizeContent, value);
-    }
-
-    public string? ThemeModeContent
-    {
-        get => _themeModeContent;
-        set => this.RaiseAndSetIfChanged(ref _themeModeContent, value);
     }
 
     public string? TabMainContent
@@ -3046,27 +2558,6 @@ public class MainWindowViewModel : ViewModelBase
     {
         Destination,
         Source
-    }
-
-    public sealed class ThemeModeOption : ReactiveObject
-    {
-        private string _content;
-
-        public ThemeModeOption(string value, string content)
-        {
-            Value = value;
-            _content = content;
-        }
-
-        internal string Value { get; }
-
-        public string Content
-        {
-            get => _content;
-            set => this.RaiseAndSetIfChanged(ref _content, value);
-        }
-
-        public override string ToString() => Content;
     }
 
     public sealed class DeTofuLevelOption : ReactiveObject
@@ -3176,7 +2667,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _selectedDeTofuLevelOption, option);
             if (option is not null && _languageSettings is not null)
                 _languageSettings.DeTofuLevel = option.Value;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
@@ -3465,7 +2956,7 @@ public class MainWindowViewModel : ViewModelBase
             if (IsCbPunctuation == value) return;
             this.RaiseAndSetIfChanged(ref _isCbPunctuation, value);
             _languageSettings!.Punctuation = value;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
@@ -3477,45 +2968,8 @@ public class MainWindowViewModel : ViewModelBase
             if (IsCbConvertFilename == value) return;
             _languageSettings!.ConvertFilename = value;
             this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
-    }
-
-    public FontFamily EditorFontFamily
-    {
-        get => _editorFontFamily;
-        set
-        {
-            var normalized = value;
-            if (_editorFontFamily == normalized)
-                return;
-
-            this.RaiseAndSetIfChanged(ref _editorFontFamily, normalized);
-            _languageSettings!.EditorFont = normalized.Name;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
-        }
-    }
-
-    public double EditorFontSize
-    {
-        get => _editorFontSize;
-        set
-        {
-            var normalized = NormalizeEditorFontSize(value);
-            if (Math.Abs(_editorFontSize - normalized) < 0.001)
-                return;
-
-            this.RaiseAndSetIfChanged(ref _editorFontSize, normalized);
-            _languageSettings!.EditorFontSize = normalized;
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
-            this.RaisePropertyChanged(nameof(EditorFontSizeValue));
-        }
-    }
-
-    public decimal EditorFontSizeValue
-    {
-        get => (decimal)EditorFontSize;
-        set => EditorFontSize = (double)value;
     }
 
     public bool IsAddPdfPageHeader
@@ -3530,7 +2984,7 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings!.PdfOptions.AddPdfPageHeader = value;
 
             this.RaisePropertyChanged();
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
@@ -3546,7 +3000,7 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings!.PdfOptions.CompactPdfText = value;
 
             this.RaisePropertyChanged();
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
@@ -3562,7 +3016,7 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings!.PdfOptions.AutoReflowPdfText = value;
 
             this.RaisePropertyChanged();
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
@@ -3584,7 +3038,7 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings!.PdfOptions.IgnoreUntrustedPdfText = value;
 
             this.RaisePropertyChanged();
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
@@ -3613,7 +3067,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(IsPdfiumEngine));
             // ✅ dependent enable state
             this.RaisePropertyChanged(nameof(CanIgnoreUntrustedPdfText));
-            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+            Settings.RefreshDirtyState();
         }
     }
 
