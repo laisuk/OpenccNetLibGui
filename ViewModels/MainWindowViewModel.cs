@@ -141,7 +141,7 @@ public class MainWindowViewModel : ViewModelBase
     private FontFamily _editorFontFamily = FontFamily.Default;
     private double _editorFontSize = 14;
 
-    private string _activeDictionary = "zstd";
+    private readonly string _activeDictionary = "zstd";
     private GlobalDictionaryOption? _selectedGlobalDictionaryOption;
 
     public DictionaryGeneratorViewModel DictionaryGenerator { get; } = null!;
