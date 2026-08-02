@@ -25,10 +25,11 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Extracted a focused singleton `SettingsViewModel` from `MainWindowViewModel` to own theme mode, UI scale, editor
-  appearance, window dimensions, configured global dictionary selection, settings dirty/save state, and their localized
-  labels and hints, while keeping application-wide language coordination, PDF behavior, short-heading workflows, and
-  active dictionary-provider loading in the main view model.
+- Extracted a focused singleton SettingsViewModel from MainWindowViewModel.
+- It now owns theme mode, UI scale, editor appearance, window dimensions, global dictionary selection, settings
+  dirty/save state, and their localized labels and hints.
+- MainWindowViewModel continues to handle application-wide language coordination, PDF behavior, short-heading workflows,
+  and active dictionary-provider loading.
 - Updated Settings and main-window appearance bindings to use `Settings.*` directly, removing the temporary root-level
   forwarding properties and property-change relay while retaining the window-size persistence compatibility method used
   by the existing close handler.
