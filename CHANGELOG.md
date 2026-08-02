@@ -19,6 +19,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   safe sibling temporary-file replacement to protect existing output artifacts on failure.
 - Added an optional **Readable Unicode JSON** mode that emits unescaped Unicode text while retaining standard escaped
   JSON generation as the default.
+- Added a localized **Global Conversion Dictionary** selector to Settings for choosing the default Zstd, `dicts`, JSON,
+  or CBOR provider. The selection is saved through `UserLanguageSettings.json` and takes effect after restarting the
+  application.
 
 ### Changed
 
@@ -29,6 +32,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   migrated namespaces and application scheduler initialization to the v24 API.
 - Centralized exception observation for all ReactiveCommands so failures retain their command name and full stack trace,
   break immediately when a debugger is attached, and surface appropriate status feedback in the owning view model.
+- Avoided redundant default-provider resets at startup; only the recognized `dicts`, `json`, and `cbor` values trigger
+  custom dictionary loading, while missing or unrecognized values leave the built-in Zstd provider untouched.
 
 ### Fixed
 

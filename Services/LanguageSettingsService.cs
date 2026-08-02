@@ -364,6 +364,7 @@ public class LanguageSettingsService
       ""usePdfiumEngineContent"": ""Use Pdfium (native) engine"",
       ""headingRulesContent"": ""Heading Rules"",
       ""shortHeadingSettingsContent"": ""Short heading settings..."",
+      ""globalDictionaryContent"": ""Global Conversion Dictionary"",
       ""aboutContent"": ""About..."",
       ""hints"": {
         ""cbZhtwHint"": ""Using zh-CN, zh-HK and zh-TW idioms in conversion."",
@@ -390,6 +391,7 @@ public class LanguageSettingsService
         ""selectOutputFolderHint"": ""Select output folder."",
         ""clearDisplayHint"": ""Clear current display box."",
         ""themeModeHint"": ""System follows the operating system theme."",
+        ""globalDictionaryHint"": ""Changes take effect after restarting the application."",
         ""openFileHint"": ""Open file for source text box contents."",
         ""saveTargetHint"": ""Select target textbox contents to save as text file."",
         ""saveFileHint"": ""Save selected target as text file."",
@@ -612,6 +614,7 @@ public class LanguageSettingsService
       ""usePdfiumEngineContent"": ""使用 Pdfium（原生）引擎"",
       ""headingRulesContent"": ""標題規則"",
       ""shortHeadingSettingsContent"": ""短標題設定..."",
+      ""globalDictionaryContent"": ""全域轉換字典"",
       ""aboutContent"": ""關於..."",
       ""hints"": {
         ""cbZhtwHint"": ""轉換時使用 zh-CN，zh-HK 與 zh-TW 慣用語。"",
@@ -638,6 +641,7 @@ public class LanguageSettingsService
         ""selectOutputFolderHint"": ""選擇輸出資料夾。"",
         ""clearDisplayHint"": ""清除目前顯示框。"",
         ""themeModeHint"": ""系統模式會跟隨作業系統主題。"",
+        ""globalDictionaryHint"": ""變更將在重新啟動應用程式後生效。"",
         ""openFileHint"": ""開啟檔案並載入來源文字框。"",
         ""saveTargetHint"": ""選擇要另存為文字檔的目標文字框內容。"",
         ""saveFileHint"": ""將選取的目標另存為文字檔。"",
@@ -860,6 +864,7 @@ public class LanguageSettingsService
       ""usePdfiumEngineContent"": ""使用 Pdfium（原生）引擎"",
       ""headingRulesContent"": ""标题规则"",
       ""shortHeadingSettingsContent"": ""短标题设置..."",
+      ""globalDictionaryContent"": ""全局转换字典"",
       ""aboutContent"": ""关于..."",
       ""hints"": {
         ""cbZhtwHint"": ""转换时使用 zh-CN，zh-HK 与 zh-TW 惯用语。"",
@@ -886,6 +891,7 @@ public class LanguageSettingsService
         ""selectOutputFolderHint"": ""选择输出文件夹。"",
         ""clearDisplayHint"": ""清空当前显示框。"",
         ""themeModeHint"": ""系统模式会跟随操作系统主题。"",
+        ""globalDictionaryHint"": ""更改将在重新启动应用程序后生效。"",
         ""openFileHint"": ""打开文件并载入来源文本框。"",
         ""saveTargetHint"": ""选择要另存为文本文件的目标文本框内容。"",
         ""saveFileHint"": ""将选中的目标另存为文本文件。"",

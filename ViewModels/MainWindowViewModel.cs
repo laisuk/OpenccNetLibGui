@@ -103,6 +103,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _usePdfiumEngineContent = "Use Pdfium (native) engine";
     private string? _headingRulesContent = "Heading Rules";
     private string? _shortHeadingSettingsContent = "Short heading settings...";
+    private string? _globalDictionaryContent = "Global Conversion Dictionary";
     private string? _aboutContent = "About...";
     private string? _uiLanguageContent = "UI Language";
     private string? _uiScaleContent = "UI Scale";
@@ -140,6 +141,9 @@ public class MainWindowViewModel : ViewModelBase
     private FontFamily _editorFontFamily = FontFamily.Default;
     private double _editorFontSize = 14;
 
+    private string _activeDictionary = "zstd";
+    private GlobalDictionaryOption? _selectedGlobalDictionaryOption;
+
     public DictionaryGeneratorViewModel DictionaryGenerator { get; } = null!;
 
     public bool IsSettingsDirty =>
@@ -154,6 +158,7 @@ public class MainWindowViewModel : ViewModelBase
     public IReadOnlyList<int> UiScaleOptions { get; } = new[] { 100, 125, 150 };
 
     private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
+    private static readonly string[] GlobalDictionaryValues = { "zstd", "dicts", "json", "cbor" };
     private static readonly string[] DeTofuLevelValues = { "B", "C", "D", "E", "F", "G", "H", "I" };
 
     private static readonly string[] HintPropertyNames =
@@ -165,6 +170,7 @@ public class MainWindowViewModel : ViewModelBase
         nameof(UsePdfPigEngineHint),
         nameof(UsePdfiumEngineHint),
         nameof(ShortHeadingSettingsHint),
+        nameof(GlobalDictionaryHint),
         nameof(SaveAdvancedSettingsHint),
         nameof(ReflowHint),
         nameof(NormalizeCompatHint),
@@ -355,6 +361,59 @@ public class MainWindowViewModel : ViewModelBase
         this.RaiseAndSetIfChanged(ref _selectedThemeModeOption, option, nameof(SelectedThemeModeOption));
     }
 
+    // Global Conversion Dictionary
+
+    public sealed class GlobalDictionaryOption : ReactiveObject
+    {
+        private string _content;
+
+        public GlobalDictionaryOption(string value, string content)
+        {
+            Value = value;
+            _content = content;
+        }
+
+        internal string Value { get; }
+
+        public string Content
+        {
+            get => _content;
+            set => this.RaiseAndSetIfChanged(ref _content, value);
+        }
+    }
+
+    public ObservableCollection<GlobalDictionaryOption> GlobalDictionaryOptions { get; } = new();
+
+    public GlobalDictionaryOption? SelectedGlobalDictionaryOption
+    {
+        get => _selectedGlobalDictionaryOption;
+        set
+        {
+            if (ReferenceEquals(_selectedGlobalDictionaryOption, value))
+                return;
+
+            this.RaiseAndSetIfChanged(ref _selectedGlobalDictionaryOption, value);
+
+            if (value is null || _languageSettings is null)
+                return;
+
+            _languageSettings.Dictionary = value.Value;
+            this.RaisePropertyChanged(nameof(IsSettingsDirty));
+        }
+    }
+
+    private static string NormalizeGlobalDictionary(string? value)
+    {
+        return value?.Trim().ToLowerInvariant() switch
+        {
+            "dicts" => "dicts",
+            "json" => "json",
+            "cbor" => "cbor",
+            // "zstd" or "default" => "zstd",
+            _ => "zstd"
+        };
+    }
+
     public MainWindowViewModel()
     {
         TbSourceTextDocument = new TextDocument();
@@ -364,6 +423,8 @@ public class MainWindowViewModel : ViewModelBase
         LbxDestinationItems = new ObservableCollection<string>();
         foreach (var themeMode in ThemeModeValues)
             ThemeModeOptions.Add(new ThemeModeOption(themeMode, themeMode));
+        foreach (var dictionary in GlobalDictionaryValues)
+            GlobalDictionaryOptions.Add(new GlobalDictionaryOption(dictionary, dictionary));
 
         SelectedThemeModeOption = ThemeModeOptions[0];
         SaveTargetOptions.Add(new SaveTargetOption(SaveTarget.Destination, "Destination"));
@@ -494,46 +555,53 @@ public class MainWindowViewModel : ViewModelBase
             SentenceBoundaryLevel = _sentenceBoundaryLevel,
         };
 
-        try
+        var configuredDictionary =
+            NormalizeGlobalDictionary(_languageSettings.Dictionary);
+
+        if (configuredDictionary is "dicts" or "json" or "cbor")
         {
-            switch (_languageSettings.Dictionary)
+            try
             {
-                case "dicts":
-                    Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
-                    break;
+                switch (configuredDictionary)
+                {
+                    case "dicts":
+                        Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
+                        break;
 
-                case "json":
-                    Opencc.UseCustomDictionary(DictionaryLib.FromJson());
-                    break;
+                    case "json":
+                        Opencc.UseCustomDictionary(DictionaryLib.FromJson());
+                        break;
 
-                case "cbor":
-                    Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
-                    break;
-                
-                default:
-                    Opencc.UseDefaultDictionary();
-                    break;
+                    case "cbor":
+                        Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
+                        break;
+                }
+
+                _activeDictionary = configuredDictionary;
+            }
+            catch (Exception ex)
+            {
+                // Log the custom dictionary loading error.
+                Debug.WriteLine(ex);
+
+                // A failed custom load may have changed provider state, so reset it.
+                Opencc.UseDefaultDictionary();
+                _activeDictionary = "zstd";
+                _languageSettings.Dictionary = "zstd";
             }
         }
-        catch (FileNotFoundException)
-            when (_languageSettings.Dictionary is "json" or "cbor")
+        else
         {
-            // JSON/CBOR dictionary files are optional.
-            // Fall back to OpenccNetLib default Zstd dictionary.
-            Opencc.UseDefaultDictionary();
-            _languageSettings.Dictionary = "default";
-        }
-        catch (Exception ex)
-        {
-            // Log the custom dictionary loading error.
-            Debug.WriteLine(ex);
-
-            // Keep the GUI usable with the built-in Zstd dictionary.
-            Opencc.UseDefaultDictionary();
-            _languageSettings.Dictionary = "default";
+            // OpenccNetLib already starts with its default Zstd provider.
+            // Unknown/default values leave that provider untouched.
+            _activeDictionary = "zstd";
         }
 
         _opencc = opencc;
+        _selectedGlobalDictionaryOption = GlobalDictionaryOptions.First(option =>
+            string.Equals(option.Value, NormalizeGlobalDictionary(_languageSettings.Dictionary),
+                StringComparison.Ordinal));
+
         RefreshRuntimeStatus();
     }
 
@@ -895,6 +963,9 @@ public class MainWindowViewModel : ViewModelBase
         ShortHeadingSettingsContent = string.IsNullOrWhiteSpace(language.ShortHeadingSettingsContent)
             ? "Short heading settings..."
             : language.ShortHeadingSettingsContent;
+        GlobalDictionaryContent = string.IsNullOrWhiteSpace(language.GlobalDictionaryContent)
+            ? "Global Conversion Dictionary"
+            : language.GlobalDictionaryContent;
         AboutContent = string.IsNullOrWhiteSpace(language.AboutContent)
             ? "About..."
             : language.AboutContent;
@@ -931,6 +1002,7 @@ public class MainWindowViewModel : ViewModelBase
         RefreshThemeModeOptionLabels(language);
         RefreshSaveTargetOptionLabels(language);
 
+        RefreshGlobalDictionaryOptionLabels(language);
         var selectedConfigKey = GetCustomConfigKey(SelectedCustomItem);
         CustomOptions.Clear();
         foreach (var option in language.CustomOptions)
@@ -996,6 +1068,25 @@ public class MainWindowViewModel : ViewModelBase
             ThemeModeOptions[i].Content = GetListItem(language.ThemeModeSelectionContent, i, ThemeModeValues[i]);
     }
 
+    private void RefreshGlobalDictionaryOptionLabels(Language language)
+    {
+        foreach (var option in GlobalDictionaryOptions)
+        {
+            var key = option.Value == "zstd" ? "default" : option.Value;
+            option.Content = language.Runtimes.Dictionaries.TryGetValue(key, out var label) &&
+                             !string.IsNullOrWhiteSpace(label)
+                ? label
+                : option.Value switch
+                {
+                    "zstd" => "Default dictionary",
+                    "dicts" => "Folder [dicts] dictionary",
+                    "json" => "JSON dictionary",
+                    "cbor" => "CBOR dictionary",
+                    _ => option.Value
+                };
+        }
+    }
+
     private string GetUiSelectionLabel(int index, string fallback)
     {
         return GetListItem(_selectedLanguage.UiSelectionContent, index, fallback);
@@ -1059,6 +1150,9 @@ public class MainWindowViewModel : ViewModelBase
     public string ShortHeadingSettingsHint =>
         GetHint("shortHeadingSettingsHint",
             "Configure short heading detection rules, including maximum length and allowed character patterns.");
+
+    public string GlobalDictionaryHint =>
+        GetHint("globalDictionaryHint", "Changes take effect after restarting the application.");
 
     public string SaveAdvancedSettingsHint =>
         GetHint("saveAdvancedSettingsHint", "Writes UserLanguageSettings.json (advanced users only)");
@@ -1167,9 +1261,9 @@ public class MainWindowViewModel : ViewModelBase
         var runtimeLabel = string.IsNullOrWhiteSpace(runtimes.Label)
             ? new RuntimeContents().Label
             : runtimes.Label;
-        var dictionaryKey = string.IsNullOrWhiteSpace(_languageSettings?.Dictionary)
+        var dictionaryKey = string.IsNullOrWhiteSpace(_activeDictionary)
             ? "default"
-            : _languageSettings.Dictionary;
+            : _activeDictionary;
         var dictionaryLabel = runtimes.Dictionaries.TryGetValue(dictionaryKey, out var label)
             ? label
             : runtimes.Dictionaries.GetValueOrDefault("default", dictionaryKey);
@@ -2875,6 +2969,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _shortHeadingSettingsContent;
         set => this.RaiseAndSetIfChanged(ref _shortHeadingSettingsContent, value);
+    }
+
+    public string? GlobalDictionaryContent
+    {
+        get => _globalDictionaryContent;
+        set => this.RaiseAndSetIfChanged(ref _globalDictionaryContent, value);
     }
 
     public string? AboutContent

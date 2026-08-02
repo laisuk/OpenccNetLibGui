@@ -97,6 +97,7 @@ public class Language
     public string UsePdfiumEngineContent { get; set; } = "Use Pdfium (native) engine";
     public string HeadingRulesContent { get; set; } = "Heading Rules";
     public string ShortHeadingSettingsContent { get; set; } = "Short heading settings...";
+    public string GlobalDictionaryContent { get; set; } = "Global Conversion Dictionary";
     public string AboutContent { get; set; } = "About...";
     public string ThemeModeContent { get; set; } = "Theme Mode";
     public List<string> ThemeModeSelectionContent { get; set; } = new();

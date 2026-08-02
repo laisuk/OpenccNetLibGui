@@ -31,6 +31,10 @@ On the release page, look for assets named:
   Convert text between Simplified and Traditional Chinese using optimized OpenCC lexicons combined with an efficient
   FMM-based dictionary matcher.
 
+- **Global Conversion Dictionary**
+  Choose the default Zstd provider or a custom `dicts`, JSON, or CBOR dictionary from Settings, with localized labels
+  and persistent advanced settings.
+
 - **Single & Batch Conversion**  
   Convert individual files or entire directories in one operation.
 
@@ -54,8 +58,8 @@ On the release page, look for assets named:
   Drop text, PDF, EPUB, or Office files directly into the Source panel.
 
 - **Safe Office/EPUB Output**
-  Generated Office and EPUB packages are validated before use and written atomically. Invalid or corrupted packages
-  fail clearly without replacing an existing output file.
+  Generated Office and EPUB packages are validated before use and written atomically. Invalid or corrupted packages fail
+  clearly without replacing an existing output file.
 
 - **CJK-Aware Reflow Engine**  
   Smart handling of:
@@ -125,8 +129,8 @@ Reflow intentionally applies **conservative, general heuristics** that work reas
 rather than being optimized for any single PDF or personal formatting preference.
 
 Users should treat reflowed text as a **draft-quality starting point**.  
-If exact formatting or document-specific behavior is required, disabling Reflow and working with raw extracted text
-is recommended.
+If exact formatting or document-specific behavior is required, disabling Reflow and working with raw extracted text is
+recommended.
 
 ---
 
@@ -207,8 +211,7 @@ dotnet run
 Support most **text base** file types, OpenDocuments (`DOCX`, `ODT`, `EPUB`) and **Text-Embedded PDF documents**.
 
 1. Paste the text or open a file (text, DOCX, ODT, EPUB or PDF file) you wish to convert (file/text drag and drop are
-   supported on
-   Windows and macOS).
+   supported on Windows and macOS).
 2. Select the desired conversion configuration (e.g., Simplified to Traditional).
 3. `PDF options` can be set in reight-click context menu.
 4. Click the **Process** button to see the results.
@@ -235,7 +238,7 @@ Where:
 Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`), EPUB (
 `.epub`) and **PDF** (`.pdf`, introduced in `OpenccNetLibGui` v1.3.2).
 
-1. Select or drag file(s) into the source list box (File(s), drag and drop currently only supported on Windows and
+1. Select or drag file (s) into the source list box (File (s), drag and drop currently only supported on Windows and
    macOS).
 2. Select the desired conversion configuration.
 3. Set the output folder.
@@ -251,9 +254,18 @@ Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `
 
 ---
 
-### Custom Dictionary
+### Global Conversion Dictionary
 
-Usage of custom dictionary can be set in `LanguageSettings.json`:
+The dictionary provider used by all conversions can be selected from the **Settings** tab:
+
+1. Open **Settings** and find **Global Conversion Dictionary**.
+2. Select the desired provider and click **Save Advanced Settings**.
+3. Restart the application. Dictionary-provider changes do not affect the current session.
+
+The selection is stored in `UserLanguageSettings.json`, keeping the bundled `LanguageSettings.json` defaults unchanged.
+The runtime status displays the provider that is actually active in the current session.
+
+Advanced users can configure the same setting directly in `UserLanguageSettings.json`:
 
 ```json
 {
@@ -261,12 +273,33 @@ Usage of custom dictionary can be set in `LanguageSettings.json`:
 }
 ```
 
-Options are:
+Supported values are:
 
-1. `"dicts"` - _*.txt_ in directory `dicts`
-2. `"json"` - _dictionary_maxlength.json_
-3. `"cbor"` - _dictionary_maxlength.cbor_
-4. None of above, default to `"zstd"` - _dictionary_maxlength.zstd_
+1. `"zstd"` - default provider using `<application directory>/dicts/dictionary_maxlength.zstd`
+2. `"dicts"` - custom `*.txt` files in `<application directory>/dicts/`
+3. `"json"` - `<application directory>/dicts/dictionary_maxlength.json`
+4. `"cbor"` - `<application directory>/dicts/dictionary_maxlength.cbor`
+
+To be discovered by the conversion runtime, every custom dictionary source or generated artifact must be placed in the
+application's `dicts` directory. Dictionary files stored outside `<application directory>/dicts/` are ignored.
+
+Only `dicts`, `json`, and `cbor` trigger custom dictionary loading. A missing, empty, or unrecognized value (including
+the legacy value `default`) leaves the built-in Zstd provider untouched. If a recognized custom dictionary cannot be
+loaded, the application falls back to Zstd and reports the default provider as active.
+
+The **Dictionary** tab can generate the ZSTD, JSON, or CBOR artifacts used by this setting.
+
+#### Advanced Custom Dictionary Notes
+
+Advanced users may edit the `*.txt` files used by the `dicts` provider or use them to generate custom JSON, CBOR, and
+ZSTD dictionary artifacts.
+
+Before modifying these text dictionaries, create a backup or keep them under version control. Generated dictionary
+artifacts are built from these source files, so accidental edits or deletions will also affect subsequently generated
+JSON, CBOR, and ZSTD dictionaries.
+
+For safer customization, keep the original text dictionaries unchanged and place custom entries in separate files. Use
+the Dictionary generators' **Append** or **Override** modes to apply those custom entries when generating an artifact.
 
 ---
 

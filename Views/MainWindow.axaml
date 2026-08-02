@@ -1023,7 +1023,7 @@
                                                                     <Button Grid.Column="4"
                                                                             Command="{Binding RemoveCommand}"
                                                                             Classes="outline-button danger-outline-button"
-                                                                            ToolTip.Tip="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveRowToolTip, FallbackValue='Remove this custom dictionary row.'}" >
+                                                                            ToolTip.Tip="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveRowToolTip, FallbackValue='Remove this custom dictionary row.'}">
                                                                         <StackPanel Orientation="Horizontal"
                                                                                 Spacing="6">
                                                                             <TextBlock Classes="icon-font"
@@ -1329,6 +1329,27 @@
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
+
+                                        <Separator />
+
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="{Binding GlobalDictionaryContent}"
+                                                       FontSize="16"
+                                                       FontWeight="Bold" />
+
+                                            <ComboBox Width="220"
+                                                      HorizontalAlignment="Left"
+                                                      ItemsSource="{Binding GlobalDictionaryOptions}"
+                                                      SelectedItem="{Binding SelectedGlobalDictionaryOption, Mode=TwoWay}"
+                                                      ToolTip.Tip="{Binding GlobalDictionaryHint}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate
+                                                        x:DataType="vm:MainWindowViewModel+GlobalDictionaryOption">
+                                                        <TextBlock Text="{Binding Content}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </StackPanel>
                                     </StackPanel>
                                 </ScrollViewer>
 
@@ -1506,5 +1527,5 @@
     </LayoutTransformControl>
 
     <!--<TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
-    
+
 </Window>
