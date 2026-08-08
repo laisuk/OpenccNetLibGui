@@ -29,9 +29,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-<!--        <AvaloniaResource Include="Assets\**"/>-->
-        <AvaloniaResource Include="Assets\openccnetlib.ico" />
-        <AvaloniaResource Include="Assets\Fonts\FluentAvalonia.ttf" />
+        <!--        <AvaloniaResource Include="Assets\**"/>-->
+        <AvaloniaResource Include="Assets\openccnetlib.ico"/>
+        <AvaloniaResource Include="Assets\Fonts\FluentAvalonia.ttf"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -40,19 +40,19 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.1.1" />
-        <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+        <PackageReference Include="Avalonia" Version="12.1.1"/>
+        <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0"/>
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.1"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.11"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
-        <PackageReference Include="OpenccNetLib" Version="1.6.2" />
-        <PackageReference Include="PdfPig" Version="0.1.15" />
-        <PackageReference Include="ReactiveUI.Reactive" Version="24.1.0" />
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.5" />
+        <PackageReference Include="OpenccNetLib" Version="1.6.2"/>
+        <PackageReference Include="PdfPig" Version="0.1.15"/>
+        <PackageReference Include="ReactiveUI.Reactive" Version="24.1.0"/>
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.5"/>
     </ItemGroup>
 
     <!-- Shared files always copied -->
@@ -68,6 +68,11 @@
         </None>
 
         <None Update="THIRD_PARTY_NOTICES.md">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </None>
+
+        <None Update="dicts\Unicode_Compatibility.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </None>
@@ -151,10 +156,10 @@
 
     <Target Name="CleanPublishArtifacts" AfterTargets="Publish">
         <ItemGroup>
-            <FilesToDelete Include="$(PublishDir)**\*.pdb" />
-            <FilesToDelete Include="$(PublishDir)**\*.xml" />
+            <FilesToDelete Include="$(PublishDir)**\*.pdb"/>
+            <FilesToDelete Include="$(PublishDir)**\*.xml"/>
         </ItemGroup>
-        <Delete Files="@(FilesToDelete)" />
+        <Delete Files="@(FilesToDelete)"/>
     </Target>
 
 </Project>

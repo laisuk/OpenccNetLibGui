@@ -22,6 +22,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added a localized **Global Conversion Dictionary** selector to Settings for choosing the default Zstd, `dicts`, JSON,
   or CBOR provider. The selection is saved through `UserLanguageSettings.json` and takes effect after restarting the
   application.
+- Added Unicode Compatibility Normalization for PdfPig extracted text.
 
 ### Changed
 

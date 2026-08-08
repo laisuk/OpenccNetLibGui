@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenccNetLibGui.Helpers;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
@@ -126,6 +127,9 @@ public static class PdfPigModel
 
                 var page = document.GetPage(i);
                 var text = ContentOrderTextExtractor.GetText(page);
+                
+                // Normalize PdfPig/PDF-extracted compatibility radicals immediately.
+                text = StringUtils.NormalizeUnicodeCompatibility(text);
 
                 text = text.Trim('\r', '\n', ' ');
 

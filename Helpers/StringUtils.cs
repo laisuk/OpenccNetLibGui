@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace OpenccNetLibGui.Helpers;
 
@@ -50,5 +53,78 @@ public static class StringUtils
             ellipsis,
             input.AsSpan(input.Length - tail)
         );
+    }
+
+    // Unicode Compatibility Normalization
+
+    private const char CompatibilityMin = '\u2300';
+    private const char CompatibilityMax = '\u2FFF';
+
+    private static readonly Lazy<Dictionary<char, string>>
+        UnicodeCompatibilityMap =
+            new(LoadUnicodeCompatibilityMap);
+
+    internal static string NormalizeUnicodeCompatibility(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        var map = UnicodeCompatibilityMap.Value;
+        StringBuilder? sb = null;
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            var ch = text[i];
+
+            if (ch < CompatibilityMin || ch > CompatibilityMax ||
+                !map.TryGetValue(ch, out var replacement))
+            {
+                sb?.Append(ch);
+                continue;
+            }
+
+            if (sb is null)
+            {
+                sb = new StringBuilder(text.Length);
+                sb.Append(text, 0, i);
+            }
+
+            sb.Append(replacement);
+        }
+
+        return sb?.ToString() ?? text;
+    }
+
+    private static Dictionary<char, string>
+        LoadUnicodeCompatibilityMap()
+    {
+        var map = new Dictionary<char, string>(256);
+
+        var path = Path.Combine(
+            AppContext.BaseDirectory,
+            "dicts",
+            "Unicode_Compatibility.txt");
+
+        if (!File.Exists(path))
+            return map;
+
+        foreach (var rawLine in File.ReadLines(path, Encoding.UTF8))
+        {
+            var line = rawLine.Trim();
+
+            if (line.Length == 0 || line[0] == '#')
+                continue;
+
+            var parts = line.Split('\t');
+
+            if (parts.Length != 2 ||
+                parts[0].Length != 1 ||
+                parts[1].Length == 0)
+                continue;
+
+            map[parts[0][0]] = parts[1];
+        }
+
+        return map;
     }
 }
