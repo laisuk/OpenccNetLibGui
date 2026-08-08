@@ -23,6 +23,7 @@ public class LanguageSettings
     public double EditorFontSize { get; set; } = 14;
     public bool Punctuation { get; set; }
     public bool ConvertFilename { get; set; }
+    public bool ExtendUnicodeCompat { get; set; }
     public string DeTofuLevel { get; set; } = "B";
 
     // -------------------- NEW preferred shape --------------------
@@ -84,6 +85,7 @@ public class Language
     public string FilenameContent { get; set; } = "Filename";
     public string ConversionSettingsContent { get; set; } = "Conversion Settings";
     public string ConvertFilenameContent { get; set; } = "Convert filename";
+    public string ExtendUnicodeCompatContent { get; set; } = "Extend Unicode Compatibility for CJK text normalization";
     public string DeTofuLevelContent { get; set; } = "DeTofu level";
     public string EditorFontContent { get; set; } = "Editor Font";
     public string EditorFontSizeContent { get; set; } = "Font Size";

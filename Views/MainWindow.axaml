@@ -1138,6 +1138,10 @@
                                                       FontSize="14"
                                                       IsChecked="{Binding IsCbConvertFilename, Mode=TwoWay}"
                                                       ToolTip.Tip="{Binding ConvertFilenameHint}" />
+                                            <CheckBox Content="{Binding ExtendUnicodeCompatContent}"
+                                                      FontSize="14"
+                                                      IsChecked="{Binding IsCbExtendUnicodeCompat, Mode=TwoWay}"
+                                                      ToolTip.Tip="{Binding ExtendUnicodeCompatHint}" />
                                             <Grid ColumnDefinitions="220,140"
                                                   RowDefinitions="Auto,Auto"
                                                   ColumnSpacing="8"

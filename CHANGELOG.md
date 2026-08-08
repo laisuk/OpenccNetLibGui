@@ -22,15 +22,20 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added a localized **Global Conversion Dictionary** selector to Settings for choosing the default Zstd, `dicts`, JSON,
   or CBOR provider. The selection is saved through `UserLanguageSettings.json` and takes effect after restarting the
   application.
-- Added Unicode Compatibility Normalization for PdfPig extracted text.
+- Added extended Unicode compatibility normalization for CJK text, covering Unicode compatibility ideographs, Kangxi
+  radicals, selected CJK radical forms, and known PDF text-extraction artifacts.
+- Added a localized **Extend Unicode Compatibility for CJK text normalization** setting that optionally applies the
+  extended Unicode normalization pass after the existing compatibility normalization.
+- Applied extended Unicode compatibility normalization automatically to PdfPig-extracted text to repair compatibility
+  ideographs, radical substitutions, and other known Unicode extraction artifacts before the text reaches the editor.
 
 ### Changed
 
-- Extracted a focused singleton SettingsViewModel from MainWindowViewModel.
+- Extracted a focused singleton `SettingsViewModel` from `MainWindowViewModel`.
 - It now owns theme mode, UI scale, editor appearance, window dimensions, global dictionary selection, settings
   dirty/save state, and their localized labels and hints.
-- MainWindowViewModel continues to handle application-wide language coordination, PDF behavior, short-heading workflows,
-  and active dictionary-provider loading.
+- `MainWindowViewModel` continues to handle application-wide language coordination, PDF behavior, short-heading
+  workflows, and active dictionary-provider loading.
 - Updated Settings and main-window appearance bindings to use `Settings.*` directly, removing the temporary root-level
   forwarding properties and property-change relay while retaining the window-size persistence compatibility method used
   by the existing close handler.
@@ -42,8 +47,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   dialog. The light theme remains unchanged.
 - Updated ReactiveUI from `23.2.28` to the System.Reactive-compatible `ReactiveUI.Reactive 24.0.0` distribution and
   migrated namespaces and application scheduler initialization to the v24 API.
-- Centralized exception observation for all ReactiveCommands so failures retain their command name and full stack trace,
-  break immediately when a debugger is attached, and surface appropriate status feedback in the owning view model.
+- Centralized exception observation for all `ReactiveCommand`s so failures retain their command name and full stack
+  trace, break immediately when a debugger is attached, and surface appropriate status feedback in the owning view
+  model.
 - Avoided redundant default-provider resets at startup; only the recognized `dicts`, `json`, and `cbor` values trigger
   custom dictionary loading, while missing or unrecognized values leave the built-in Zstd provider untouched.
 
@@ -55,8 +61,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   interfere with first-line comment markers such as `#` or `//`, alter the first dictionary key, or cause subtle parsing
   and lookup issues. Batch conversion otherwise preserves the text and line-ending behavior produced by the existing
   input and PDF extraction pipelines.
-- Prevented unobserved ReactiveCommand exceptions from being rethrown on the UI thread and terminating the application,
-  while making failures such as unexpected null view-model state substantially easier to diagnose.
+- Prevented unobserved `ReactiveCommand` exceptions from being rethrown on the UI thread and terminating the
+  application, while making failures such as unexpected null view-model state substantially easier to diagnose.
 
 ---
 

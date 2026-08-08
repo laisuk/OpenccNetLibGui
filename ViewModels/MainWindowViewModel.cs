@@ -83,6 +83,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _outputContent = "Output:";
     private string? _filenameContent = "Filename";
     private string? _convertFilenameContent = "Convert filename";
+    private string? _extendUnicodeCompatContent = "Extend Unicode Compatibility for CJK text normalization";
     private string? _deTofuLevelContent = "DeTofu level";
     private string? _pdfOptionsContent = "PDF Options";
     private string? _addPdfPageHeaderContent = "Add page header";
@@ -116,6 +117,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private readonly Opencc? _opencc;
     private bool _isCbConvertFilename;
+    private bool _isCbExtendUnicodeCompat;
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
 
@@ -156,6 +158,7 @@ public class MainWindowViewModel : ViewModelBase
         nameof(AddFileHint),
         nameof(RemoveFileHint),
         nameof(ConvertFilenameHint),
+        nameof(ExtendUnicodeCompatHint),
         nameof(PreviewHint),
         nameof(DetectHint),
         nameof(ClearSourceListHint),
@@ -323,6 +326,7 @@ public class MainWindowViewModel : ViewModelBase
 
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
+        IsCbExtendUnicodeCompat = _languageSettings.ExtendUnicodeCompat;
 
         // PDF Options (from pdfOptions)
         var po = _languageSettings.PdfOptions;
@@ -497,6 +501,7 @@ public class MainWindowViewModel : ViewModelBase
             FilenameContent = "Filename",
             ConversionSettingsContent = "Conversion Settings",
             ConvertFilenameContent = "Convert filename",
+            ExtendUnicodeCompatContent = "Extend Unicode Compatibility for CJK text normalization",
             DeTofuLevelContent = "DeTofu level",
             EditorFontContent = "Editor Font",
             EditorFontSizeContent = "Font Size",
@@ -654,6 +659,9 @@ public class MainWindowViewModel : ViewModelBase
         ConvertFilenameContent = string.IsNullOrWhiteSpace(language.ConvertFilenameContent)
             ? "Convert filename"
             : language.ConvertFilenameContent;
+        ExtendUnicodeCompatContent = string.IsNullOrWhiteSpace(language.ExtendUnicodeCompatContent)
+            ? "Extend Unicode Compatibility for CJK text normalization"
+            : language.ExtendUnicodeCompatContent;
         DeTofuLevelContent = string.IsNullOrWhiteSpace(language.DeTofuLevelContent)
             ? "DeTofu level"
             : language.DeTofuLevelContent;
@@ -852,6 +860,9 @@ public class MainWindowViewModel : ViewModelBase
 
     public string ConvertFilenameHint =>
         GetHint("convertFilenameHint", "Convert output filename using current configuration.");
+
+    public string ExtendUnicodeCompatHint =>
+        GetHint("extendUnicodeCompatHint", "Extend Unicode Compatibility for CJK text normalization");
 
     public string PreviewHint =>
         GetHint("previewHint", "Preview selected file in Preview Box.");
@@ -1444,16 +1455,10 @@ public class MainWindowViewModel : ViewModelBase
         //     ReflowModel.ReflowCjkParagraphs(sourceText, PdfVm.PdfOptions,
         //         _sentenceBoundaryLevel);
 
-        var result =
-            _opencc!.NormalizeCompat(sourceText);
+        var result = _opencc!.NormalizeCompat(sourceText);
 
-        // ⭐ If only reflowing a selection → ensure trailing newline
-        if (hasSelection)
-        {
-            // Avoid double newline if already present
-            if (!result.EndsWith('\n'))
-                result += "\n";
-        }
+        if (IsCbExtendUnicodeCompat)
+            result = StringUtils.NormalizeUnicodeCompatibility(result);
 
         if (hasSelection)
         {
@@ -1464,17 +1469,15 @@ public class MainWindowViewModel : ViewModelBase
             var newFull = before + result + after;
             document.Text = newFull;
 
-            // Update selection to cover the new reflowed range
+            // Keep the normalized text selected.
             TbSourceSelectionStart = start;
             TbSourceSelectionLength = result.Length;
             TbSourceCaretOffset = start + result.Length;
         }
         else
         {
-            // Reflow entire document
             document.Text = result;
 
-            // Clear selection
             TbSourceSelectionStart = 0;
             TbSourceSelectionLength = 0;
             TbSourceCaretOffset = 0;
@@ -2453,6 +2456,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _convertFilenameContent, value);
     }
 
+    public string? ExtendUnicodeCompatContent
+    {
+        get => _extendUnicodeCompatContent;
+        set => this.RaiseAndSetIfChanged(ref _extendUnicodeCompatContent, value);
+    }
+
     public string? DeTofuLevelContent
     {
         get => _deTofuLevelContent;
@@ -2973,6 +2982,18 @@ public class MainWindowViewModel : ViewModelBase
             if (IsCbConvertFilename == value) return;
             _languageSettings!.ConvertFilename = value;
             this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
+            Settings.RefreshDirtyState();
+        }
+    }
+
+    public bool IsCbExtendUnicodeCompat
+    {
+        get => _isCbExtendUnicodeCompat;
+        set
+        {
+            if (IsCbExtendUnicodeCompat == value) return;
+            _languageSettings!.ExtendUnicodeCompat = value;
+            this.RaiseAndSetIfChanged(ref _isCbExtendUnicodeCompat, value);
             Settings.RefreshDirtyState();
         }
     }
