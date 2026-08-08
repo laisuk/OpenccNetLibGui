@@ -1526,7 +1526,8 @@ public class MainWindowViewModel : ViewModelBase
         if (result != null)
         {
             var path = result.Path.LocalPath;
-            await File.WriteAllTextAsync(path, content, Utf8NoBom);
+            var outputText = content.ReplaceLineEndings("\n");
+            await File.WriteAllTextAsync(path, outputText, Utf8NoBom);
             LblStatusBarContent = FormatRuntimeStatus(
                 "statusSaveFileSaved",
                 "{0} contents saved to file: {1}",
