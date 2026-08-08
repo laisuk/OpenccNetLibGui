@@ -49,6 +49,11 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Fixed
 
+- Changed plain-text output from the main Save As and batch conversion workflows to explicit UTF-8 **without BOM**
+  (UTF-8 signature), preventing conversion from silently inserting `EF BB BF` at the beginning of output files. This is
+  particularly important for converted dictionary and other machine-readable text files, where an unexpected BOM can
+  interfere with first-line comment markers such as `#` or `//`, alter the first dictionary key, or otherwise cause
+  difficult-to-diagnose parsing and lookup issues.
 - Prevented unobserved ReactiveCommand exceptions from being rethrown on the UI thread and terminating the application,
   while making failures such as unexpected null view-model state substantially easier to diagnose.
 

@@ -118,6 +118,10 @@ public class MainWindowViewModel : ViewModelBase
     private bool _isCbConvertFilename;
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
+
+    private static readonly Encoding Utf8NoBom =
+        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     private SaveTargetOption? _selectedSaveTargetOption;
     private DeTofuLevelOption? _selectedDeTofuLevelOption;
 
@@ -1522,7 +1526,7 @@ public class MainWindowViewModel : ViewModelBase
         if (result != null)
         {
             var path = result.Path.LocalPath;
-            await File.WriteAllTextAsync(path, content, Encoding.UTF8);
+            await File.WriteAllTextAsync(path, content, Utf8NoBom);
             LblStatusBarContent = FormatRuntimeStatus(
                 "statusSaveFileSaved",
                 "{0} contents saved to file: {1}",
@@ -1781,7 +1785,7 @@ public class MainWindowViewModel : ViewModelBase
                     Path.GetFullPath(TbOutFolderText),
                     filenameWithoutExt + suffix + ".txt");
 
-                await File.WriteAllTextAsync(pdfOutputPath, convertedText);
+                await File.WriteAllTextAsync(pdfOutputPath, convertedText, Utf8NoBom);
 
                 LbxDestinationItems.Add($"({count}) {pdfOutputPath} ({pageCount:N0} pages) -> ✅ Done");
             }
@@ -1801,7 +1805,7 @@ public class MainWindowViewModel : ViewModelBase
                 // Run the heavy conversion on a background thread
                 var convertedText = await Task.Run(() => _opencc!.Convert(inputText, IsCbPunctuation));
 
-                await File.WriteAllTextAsync(outputFilename, convertedText);
+                await File.WriteAllTextAsync(outputFilename, convertedText, Utf8NoBom);
 
                 LbxDestinationItems.Add($"({count}) {outputFilename} -> ✅ Done");
             }
