@@ -1455,10 +1455,7 @@ public class MainWindowViewModel : ViewModelBase
         //     ReflowModel.ReflowCjkParagraphs(sourceText, PdfVm.PdfOptions,
         //         _sentenceBoundaryLevel);
 
-        var result = _opencc!.NormalizeCompat(sourceText);
-
-        if (IsCbExtendUnicodeCompat)
-            result = StringUtils.NormalizeUnicodeCompatibility(result);
+        var result = _opencc!.NormalizeCompat(sourceText, IsCbExtendUnicodeCompat);
 
         if (hasSelection)
         {
