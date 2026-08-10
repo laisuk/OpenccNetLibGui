@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenccNetLib;
 using OpenccNetLibGui.Models;
 using OpenccNetLibGui.Services;
 
@@ -52,8 +53,9 @@ namespace OpenccNetLibGui.ViewModels
 
             // 1) Extract
             PdfLoadResult extract;
+            var engineUsed = PdfEngine;
 
-            switch (PdfEngine)
+            switch (engineUsed)
             {
                 case PdfEngine.Pdfium:
                     // statusCallback?.Invoke("📄 Extracting PDF text (Pdfium)...");
@@ -81,12 +83,23 @@ namespace OpenccNetLibGui.ViewModels
             var text = extract.Text;
             var pageCount = extract.PageCount;
 
-            // 2) Auto reflow (keep)
+            // 2) Normalize PdfPig extraction before reflow
+            var unicodeCompatNormalized = false;
+            if (engineUsed == PdfEngine.PdfPig &&
+                PdfOptions.NormalizeUnicodeCompat &&
+                !string.IsNullOrEmpty(text))
+            {
+                text = Opencc.NormalizeUnicodeCompat(text);
+                unicodeCompatNormalized = true;
+            }
+
+            // 3) Auto reflow
             var reflowApplied = false;
             if (!PdfOptions.AutoReflowPdfText || string.IsNullOrWhiteSpace(text))
                 return new PdfVmResult(
                     Text: text,
-                    EngineUsed: PdfEngine,
+                    EngineUsed: engineUsed,
+                    UnicodeCompatNormalized: unicodeCompatNormalized,
                     AutoReflowApplied: reflowApplied,
                     PageCount: pageCount
                 );
@@ -98,10 +111,11 @@ namespace OpenccNetLibGui.ViewModels
 
             reflowApplied = true;
 
-            // 3) Return record
+            // 4) Return record
             return new PdfVmResult(
                 Text: text,
-                EngineUsed: PdfEngine,
+                EngineUsed: engineUsed,
+                UnicodeCompatNormalized: unicodeCompatNormalized,
                 AutoReflowApplied: reflowApplied,
                 PageCount: pageCount
             );

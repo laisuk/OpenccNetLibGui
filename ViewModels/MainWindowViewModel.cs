@@ -89,6 +89,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _addPdfPageHeaderContent = "Add page header";
     private string? _compactPdfTextContent = "Compact PDF text";
     private string? _autoReflowPdfTextContent = "Auto-Reflow PDF text";
+    private string? _normalizeUnicodeCompatContent = "Normalize Unicode compatibility";
     private string? _ignoreUntrustedPdfTextContent = "Ignore untrusted PDF text";
     private string? _pdfEngineContent = "PDF Engine";
     private string? _usePdfPigEngineContent = "Use PdfPig engine";
@@ -144,6 +145,7 @@ public class MainWindowViewModel : ViewModelBase
         nameof(CbZhtwHint),
         nameof(CbPunctuationHint),
         nameof(AutoReflowPdfTextHint),
+        nameof(NormalizeUnicodeCompatHint),
         nameof(IgnoreUntrustedPdfTextHint),
         nameof(UsePdfPigEngineHint),
         nameof(UsePdfiumEngineHint),
@@ -509,6 +511,7 @@ public class MainWindowViewModel : ViewModelBase
             AddPdfPageHeaderContent = "Add page header",
             CompactPdfTextContent = "Compact PDF text",
             AutoReflowPdfTextContent = "Auto-Reflow PDF text",
+            NormalizeUnicodeCompatContent = "Normalize Unicode compatibility",
             IgnoreUntrustedPdfTextContent = "Ignore untrusted PDF text",
             PdfEngineContent = "PDF Engine",
             UsePdfPigEngineContent = "Use PdfPig engine",
@@ -677,6 +680,9 @@ public class MainWindowViewModel : ViewModelBase
         AutoReflowPdfTextContent = string.IsNullOrWhiteSpace(language.AutoReflowPdfTextContent)
             ? "Auto-Reflow PDF text"
             : language.AutoReflowPdfTextContent;
+        NormalizeUnicodeCompatContent = string.IsNullOrWhiteSpace(language.NormalizeUnicodeCompatContent)
+            ? "Normalize Unicode compatibility"
+            : language.NormalizeUnicodeCompatContent;
         IgnoreUntrustedPdfTextContent = string.IsNullOrWhiteSpace(language.IgnoreUntrustedPdfTextContent)
             ? "Ignore untrusted PDF text"
             : language.IgnoreUntrustedPdfTextContent;
@@ -813,6 +819,10 @@ public class MainWindowViewModel : ViewModelBase
 
     public string AutoReflowPdfTextHint =>
         GetHint("autoReflowPdfTextHint", "Auto-Reflow extracted CJK text when open PDF file.");
+
+    public string NormalizeUnicodeCompatHint =>
+        GetHint("normalizeUnicodeCompatHint",
+            "Normalize Kangxi radicals, CJK radical variants, compatibility punctuation, and known PdfPig extraction artifacts before reflow.");
 
     public string IgnoreUntrustedPdfTextHint =>
         GetHint("ignoreUntrustedPdfTextHint",
@@ -1297,14 +1307,18 @@ public class MainWindowViewModel : ViewModelBase
             var autoReflowedStatus = result.AutoReflowApplied
                 ? GetRuntimeStatus("statusPdfAutoReflowed", ", Auto-Reflowed")
                 : string.Empty;
+            var unicodeNormalizedStatus = result.UnicodeCompatNormalized
+                ? GetRuntimeStatus("statusPdfUnicodeNormalized", ", Unicode-Normalized")
+                : string.Empty;
             var ignoreUntrustedStatus = IsIgnoreUntrustedPdfText
                 ? GetRuntimeStatus("statusPdfIgnoreUntrusted", ", Ignore-Untrusted")
                 : string.Empty;
             LblStatusBarContent = FormatRuntimeStatus(
                 "statusPdfLoaded",
-                "PDF loaded ({0:N0} pages, {1}{2}{3}): {4}",
+                "PDF loaded ({0:N0} pages, {1}{2}{3}{4}): {5}",
                 result.PageCount,
                 result.EngineUsed.ToDisplayName(),
+                unicodeNormalizedStatus,
                 autoReflowedStatus,
                 ignoreUntrustedStatus,
                 displayName);
@@ -2489,6 +2503,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _autoReflowPdfTextContent, value);
     }
 
+    public string? NormalizeUnicodeCompatContent
+    {
+        get => _normalizeUnicodeCompatContent;
+        set => this.RaiseAndSetIfChanged(ref _normalizeUnicodeCompatContent, value);
+    }
+
     public string? IgnoreUntrustedPdfTextContent
     {
         get => _ignoreUntrustedPdfTextContent;
@@ -3043,6 +3063,23 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public bool CanNormalizeUnicodeCompat => IsPdfPigEngine;
+
+    public bool NormalizeUnicodeCompat
+    {
+        get => PdfVm.PdfOptions.NormalizeUnicodeCompat;
+        set
+        {
+            if (PdfVm.PdfOptions.NormalizeUnicodeCompat == value)
+                return;
+
+            PdfVm.PdfOptions.NormalizeUnicodeCompat = value;
+            _languageSettings!.PdfOptions.NormalizeUnicodeCompat = value;
+            this.RaisePropertyChanged();
+            Settings.RefreshDirtyState();
+        }
+    }
+
     public bool CanIgnoreUntrustedPdfText => IsPdfiumEngine;
 
     public bool IsIgnoreUntrustedPdfText
@@ -3089,6 +3126,7 @@ public class MainWindowViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(IsPdfPigEngine));
             this.RaisePropertyChanged(nameof(IsPdfiumEngine));
             // ✅ dependent enable state
+            this.RaisePropertyChanged(nameof(CanNormalizeUnicodeCompat));
             this.RaisePropertyChanged(nameof(CanIgnoreUntrustedPdfText));
             Settings.RefreshDirtyState();
         }

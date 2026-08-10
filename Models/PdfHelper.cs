@@ -192,12 +192,17 @@ namespace OpenccNetLibGui.Models
     /// Indicates whether automatic CJK paragraph reflow was applied
     /// by the ViewModel after text extraction.
     /// </param>
+    /// <param name="UnicodeCompatNormalized">
+    /// Indicates whether Unicode compatibility normalization was applied
+    /// to text extracted by PdfPig.
+    /// </param>
     /// <param name="PageCount">
     /// The total number of pages in the source PDF document.
     /// </param>
     public sealed record PdfVmResult(
         string Text,
         PdfEngine EngineUsed,
+        bool UnicodeCompatNormalized,
         bool AutoReflowApplied,
         int PageCount
     );

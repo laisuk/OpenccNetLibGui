@@ -12,6 +12,9 @@ namespace OpenccNetLibGui.Services;
 public class LanguageSettingsService
 {
     private const string AppName = "OpenccNetLibGui";
+    private static readonly int[] UiScaleValues = { 85, 100, 125, 150 };
+
+    public static IReadOnlyList<int> SupportedUiScales { get; } = Array.AsReadOnly(UiScaleValues);
     public const int DefaultWindowWidth = 1000;
     public const int DefaultWindowHeight = 750;
     public const int MinimumWindowWidth = 1000;
@@ -175,15 +178,17 @@ public class LanguageSettingsService
 
         File.WriteAllText(UserSettingsPath, diff.ToString(Formatting.Indented), new UTF8Encoding(false));
 
-        _lastSavedSnapshot = JsonConvert.SerializeObject(LanguageSettings, Formatting.None);
+        _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
     }
 
     private static string CreateSnapshot(LanguageSettings settings)
     {
-        return JsonConvert.SerializeObject(
-            settings,
-            Formatting.None
-        );
+        // Auto-persisted UI state does not contribute to the explicit-save dirty state.
+        var snapshot = JObject.FromObject(settings);
+        snapshot.Remove(nameof(settings.UiScale));
+        snapshot.Remove(nameof(settings.WindowWidth));
+        snapshot.Remove(nameof(settings.WindowHeight));
+        return snapshot.ToString(Formatting.None);
     }
 
     private static LanguageSettings ReadMergedLanguageSettings(
@@ -204,7 +209,7 @@ public class LanguageSettingsService
             if (uiScaleToken is not null &&
                 (uiScaleToken.Type != JTokenType.Integer ||
                  !int.TryParse(uiScaleToken.ToString(), out var uiScale) ||
-                 uiScale is not (100 or 125 or 150)))
+                 !IsSupportedUiScale(uiScale)))
             {
                 uiScaleToken.Replace(100);
             }
@@ -229,7 +234,7 @@ public class LanguageSettingsService
 
     private static LanguageSettings Normalize(LanguageSettings settings)
     {
-        settings.UiScale = settings.UiScale is 100 or 125 or 150 ? settings.UiScale : 100;
+        settings.UiScale = NormalizeUiScale(settings.UiScale);
         settings.WindowWidth = settings.WindowWidth <= 0
             ? DefaultWindowWidth
             : Math.Max(MinimumWindowWidth, settings.WindowWidth);
@@ -239,6 +244,10 @@ public class LanguageSettingsService
         settings.DeTofuLevel = NormalizeDeTofuLevel(settings.DeTofuLevel);
         return settings;
     }
+
+    public static int NormalizeUiScale(int value) => IsSupportedUiScale(value) ? value : 100;
+
+    private static bool IsSupportedUiScale(int value) => Array.IndexOf(UiScaleValues, value) >= 0;
 
     private static string NormalizeDeTofuLevel(string? value)
     {
@@ -261,6 +270,7 @@ public class LanguageSettingsService
             _ => "B"
         };
     }
+
     private static void NormalizeWindowDimensionToken(
         JObject settings,
         string propertyName,
@@ -360,6 +370,7 @@ public class LanguageSettingsService
       ""addPdfPageHeaderContent"": ""Add page header"",
       ""compactPdfTextContent"": ""Compact PDF text"",
       ""autoReflowPdfTextContent"": ""Auto-Reflow PDF text"",
+      ""normalizeUnicodeCompatContent"": ""Normalize Unicode compatibility"",
       ""ignoreUntrustedPdfTextContent"": ""Ignore untrusted PDF text"",
       ""pdfEngineContent"": ""PDF Engine"",
       ""usePdfPigEngineContent"": ""Use PdfPig engine"",
@@ -372,6 +383,7 @@ public class LanguageSettingsService
         ""cbZhtwHint"": ""Using zh-CN, zh-HK and zh-TW idioms in conversion."",
         ""cbPunctuationHint"": ""Convert CJK punctuations between Simplified/Traditional Chinese."",
         ""autoReflowPdfTextHint"": ""Auto-Reflow extracted CJK text when open PDF file."",
+        ""normalizeUnicodeCompatHint"": ""Normalize Kangxi radicals, CJK radical variants, compatibility punctuation, and known PdfPig extraction artifacts before reflow."",
         ""ignoreUntrustedPdfTextHint"": ""Ignores repeated or overlaid text commonly used for watermarks or visual noise. Enable this only if extracted text contains obvious duplicates or interference."",
         ""usePdfPigEngineHint"": ""Managed PdfPig engine - fast and great for simple text-based PDFs."",
         ""usePdfiumEngineHint"": ""Native Pdfium engine - better for complex layout, rotated text, and tricky PDFs."",
@@ -512,7 +524,7 @@ public class LanguageSettingsService
           ""statusOpenFileLoaded"": ""File: {0}"",
           ""statusPdfLoading"": ""Loading PDF ({0})..."",
           ""statusPdfLoadingProgress"": ""Loading PDF {0}  {1,3}%"",
-          ""statusPdfLoaded"": ""PDF loaded ({0:N0} pages, {1}{2}{3}): {4}"",
+          ""statusPdfLoaded"": ""PDF loaded ({0:N0} pages, {1}{2}{3}{4}): {5}"",
           ""statusPdfCancelled"": ""PDF loading cancelled: {0}"",
           ""statusPdfLoadFailed"": ""PDF load failed: {0}"",
           ""statusReflowEmpty"": ""Nothing to reflow"",
@@ -559,6 +571,7 @@ public class LanguageSettingsService
           ""statusOutputFolderSet"": ""Output folder set: {0}"",
           ""statusSettingsSaved"": ""Saved: {0}"",
           ""statusPdfAutoReflowed"": "", Auto-Reflowed"",
+          ""statusPdfUnicodeNormalized"": "", Unicode-Normalized"",
           ""statusPdfIgnoreUntrusted"": "", Ignore-Untrusted""
         }
       }
@@ -612,6 +625,7 @@ public class LanguageSettingsService
       ""addPdfPageHeaderContent"": ""加入頁首"",
       ""compactPdfTextContent"": ""壓縮 PDF 文字空行"",
       ""autoReflowPdfTextContent"": ""自動重排 PDF 文字"",
+      ""normalizeUnicodeCompatContent"": ""正規化 Unicode 相容字元"",
       ""ignoreUntrustedPdfTextContent"": ""忽略不可信任的 PDF 文字"",
       ""pdfEngineContent"": ""PDF 引擎"",
       ""usePdfPigEngineContent"": ""使用 PdfPig 引擎"",
@@ -624,6 +638,7 @@ public class LanguageSettingsService
         ""cbZhtwHint"": ""轉換時使用 zh-CN，zh-HK 與 zh-TW 慣用語。"",
         ""cbPunctuationHint"": ""在簡體與繁體中文之間轉換 CJK 標點。"",
         ""autoReflowPdfTextHint"": ""開啟 PDF 檔案時自動重排擷取出的 CJK 文字。"",
+        ""normalizeUnicodeCompatHint"": ""在重排前正規化 PdfPig 擷取文字中的康熙部首、CJK 部首變體、相容標點及已知擷取異常字元。"",
         ""ignoreUntrustedPdfTextHint"": ""忽略常見於浮水印或視覺雜訊的重複或覆疊文字。只有在擷取文字出現明顯重複或干擾時才啟用。"",
         ""usePdfPigEngineHint"": ""受控管的 PdfPig 引擎，速度快，適合簡單的純文字 PDF。"",
         ""usePdfiumEngineHint"": ""原生 Pdfium 引擎，較適合複雜版面、旋轉文字與棘手 PDF。"",
@@ -764,7 +779,7 @@ public class LanguageSettingsService
           ""statusOpenFileLoaded"": ""檔案：{0}"",
           ""statusPdfLoading"": ""正在載入 PDF（{0}）..."",
           ""statusPdfLoadingProgress"": ""正在載入 PDF {0}  {1,3}%"",
-          ""statusPdfLoaded"": ""PDF 已載入（{0:N0} 頁，{1}{2}{3}）：{4}"",
+          ""statusPdfLoaded"": ""PDF 已載入（{0:N0} 頁，{1}{2}{3}{4}）：{5}"",
           ""statusPdfCancelled"": ""PDF 載入已取消：{0}"",
           ""statusPdfLoadFailed"": ""PDF 載入失敗：{0}"",
           ""statusReflowEmpty"": ""沒有可重排的內容"",
@@ -811,6 +826,7 @@ public class LanguageSettingsService
           ""statusOutputFolderSet"": ""輸出資料夾已設定：{0}"",
           ""statusSettingsSaved"": ""已儲存：{0}"",
           ""statusPdfAutoReflowed"": ""，已自動重排"",
+          ""statusPdfUnicodeNormalized"": ""，已正規化 Unicode"",
           ""statusPdfIgnoreUntrusted"": ""，已忽略不可信任文字""
         }
       }
@@ -864,6 +880,7 @@ public class LanguageSettingsService
       ""addPdfPageHeaderContent"": ""添加页眉"",
       ""compactPdfTextContent"": ""压缩 PDF 文本空行"",
       ""autoReflowPdfTextContent"": ""自动重排 PDF 文本"",
+      ""normalizeUnicodeCompatContent"": ""规范化 Unicode 兼容字符"",
       ""ignoreUntrustedPdfTextContent"": ""忽略不受信任的 PDF 文本"",
       ""pdfEngineContent"": ""PDF 引擎"",
       ""usePdfPigEngineContent"": ""使用 PdfPig 引擎"",
@@ -876,6 +893,7 @@ public class LanguageSettingsService
         ""cbZhtwHint"": ""转换时使用 zh-CN，zh-HK 与 zh-TW 惯用语。"",
         ""cbPunctuationHint"": ""在简体与繁体中文之间转换 CJK 标点。"",
         ""autoReflowPdfTextHint"": ""打开 PDF 文件时自动重排提取出的 CJK 文本。"",
+        ""normalizeUnicodeCompatHint"": ""在重排前规范化 PdfPig 提取文本中的康熙部首、CJK 部首变体、兼容标点及已知提取异常字符。"",
         ""ignoreUntrustedPdfTextHint"": ""忽略常见于水印或视觉噪声的重复或叠加文本。仅在提取文本出现明显重复或干扰时启用。"",
         ""usePdfPigEngineHint"": ""托管 PdfPig 引擎，速度快，适合简单的纯文本 PDF。"",
         ""usePdfiumEngineHint"": ""原生 Pdfium 引擎，更适合复杂版面、旋转文本和棘手 PDF。"",
@@ -1016,7 +1034,7 @@ public class LanguageSettingsService
           ""statusOpenFileLoaded"": ""文件：{0}"",
           ""statusPdfLoading"": ""正在加载 PDF（{0}）..."",
           ""statusPdfLoadingProgress"": ""正在加载 PDF {0}  {1,3}%"",
-          ""statusPdfLoaded"": ""PDF 已加载（{0:N0} 页，{1}{2}{3}）：{4}"",
+          ""statusPdfLoaded"": ""PDF 已加载（{0:N0} 页，{1}{2}{3}{4}）：{5}"",
           ""statusPdfCancelled"": ""PDF 加载已取消：{0}"",
           ""statusPdfLoadFailed"": ""PDF 加载失败：{0}"",
           ""statusReflowEmpty"": ""没有可重排的内容"",
@@ -1063,6 +1081,7 @@ public class LanguageSettingsService
           ""statusOutputFolderSet"": ""输出文件夹已设置：{0}"",
           ""statusSettingsSaved"": ""已保存：{0}"",
           ""statusPdfAutoReflowed"": ""，已自动重排"",
+          ""statusPdfUnicodeNormalized"": ""，已规范化 Unicode"",
           ""statusPdfIgnoreUntrusted"": ""，已忽略不受信任文本""
         }
       }
@@ -1104,6 +1123,7 @@ public class LanguageSettingsService
     ""addPdfPageHeader"": false,
     ""compactPdfText"": false,
     ""autoReflowPdfText"": true,
+    ""normalizeUnicodeCompat"": true,
     ""ignoreUntrustedPdfText"": false,
     ""pdfEngine"": 2,
     ""shortHeadingSettings"": {

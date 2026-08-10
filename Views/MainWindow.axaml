@@ -243,6 +243,20 @@
                                                 </MenuItem.Header>
                                             </MenuItem>
 
+                                            <!-- 🔤 Normalize Unicode compatibility (PdfPig only) -->
+                                            <MenuItem ToggleType="CheckBox"
+                                                      IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanNormalizeUnicodeCompat, FallbackValue=false}"
+                                                      IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).NormalizeUnicodeCompat, Mode=TwoWay, FallbackValue=true}"
+                                                      ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).NormalizeUnicodeCompatHint, FallbackValue=''}">
+                                                <MenuItem.Header>
+                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <TextBlock Text="🔤" />
+                                                        <TextBlock
+                                                            Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).NormalizeUnicodeCompatContent, FallbackValue=''}" />
+                                                    </StackPanel>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+
                                             <!-- 🛡️ Ignore untrusted / overlay PDF text -->
                                             <MenuItem ToggleType="CheckBox"
                                                       IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanIgnoreUntrustedPdfText, FallbackValue=false}"
@@ -668,6 +682,20 @@
                                                     <TextBlock Text="🔃" />
                                                     <TextBlock
                                                         Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).AutoReflowPdfTextContent, FallbackValue=''}" />
+                                                </StackPanel>
+                                            </MenuItem.Header>
+                                        </MenuItem>
+
+                                        <!-- 🔤 Normalize Unicode compatibility (PdfPig only) -->
+                                        <MenuItem ToggleType="CheckBox"
+                                                  IsEnabled="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).CanNormalizeUnicodeCompat, FallbackValue=false}"
+                                                  IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).NormalizeUnicodeCompat, Mode=TwoWay, FallbackValue=true}"
+                                                  ToolTip.Tip="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).NormalizeUnicodeCompatHint, FallbackValue=''}">
+                                            <MenuItem.Header>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="🔤" />
+                                                    <TextBlock
+                                                        Text="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).NormalizeUnicodeCompatContent, FallbackValue=''}" />
                                                 </StackPanel>
                                             </MenuItem.Header>
                                         </MenuItem>
@@ -1290,6 +1318,11 @@
                                                       FontSize="14"
                                                       IsChecked="{Binding IsAutoReflow, Mode=TwoWay}"
                                                       ToolTip.Tip="{Binding AutoReflowPdfTextHint}" />
+                                            <CheckBox Content="{Binding NormalizeUnicodeCompatContent}"
+                                                      FontSize="14"
+                                                      IsEnabled="{Binding CanNormalizeUnicodeCompat}"
+                                                      IsChecked="{Binding NormalizeUnicodeCompat, Mode=TwoWay}"
+                                                      ToolTip.Tip="{Binding NormalizeUnicodeCompatHint}" />
                                             <CheckBox Content="{Binding IgnoreUntrustedPdfTextContent}"
                                                       FontSize="14"
                                                       IsEnabled="{Binding CanIgnoreUntrustedPdfText}"

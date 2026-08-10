@@ -37,6 +37,7 @@ public sealed class PdfOptions
     public bool AddPdfPageHeader { get; set; }
     public bool CompactPdfText { get; set; }
     public bool AutoReflowPdfText { get; set; } = true;
+    public bool NormalizeUnicodeCompat { get; set; } = true;
     public bool IgnoreUntrustedPdfText { get; set; }
 
     /// <summary>1 = PdfPig, 2 = Pdfium</summary>
@@ -93,6 +94,7 @@ public class Language
     public string AddPdfPageHeaderContent { get; set; } = "Add page header";
     public string CompactPdfTextContent { get; set; } = "Compact PDF text";
     public string AutoReflowPdfTextContent { get; set; } = "Auto-Reflow PDF text";
+    public string NormalizeUnicodeCompatContent { get; set; } = "Normalize Unicode compatibility";
     public string IgnoreUntrustedPdfTextContent { get; set; } = "Ignore untrusted PDF text";
     public string PdfEngineContent { get; set; } = "PDF Engine";
     public string UsePdfPigEngineContent { get; set; } = "Use PdfPig engine";
@@ -194,7 +196,7 @@ public sealed class RuntimeContents
         ["statusOpenFileLoaded"] = "File: {0}",
         ["statusPdfLoading"] = "Loading PDF ({0})...",
         ["statusPdfLoadingProgress"] = "Loading PDF {0}  {1}%",
-        ["statusPdfLoaded"] = "PDF loaded ({0:N0} pages, {1}{2}{3}): {4}",
+        ["statusPdfLoaded"] = "PDF loaded ({0:N0} pages, {1}{2}{3}{4}): {5}",
         ["statusPdfCancelled"] = "PDF loading cancelled: {0}",
         ["statusPdfLoadFailed"] = "PDF load failed: {0}",
         ["statusReflowEmpty"] = "Nothing to reflow",
@@ -241,6 +243,7 @@ public sealed class RuntimeContents
         ["statusOutputFolderSet"] = "Output folder set: {0}",
         ["statusSettingsSaved"] = "Saved: {0}",
         ["statusPdfAutoReflowed"] = ", Auto-Reflowed",
+        ["statusPdfUnicodeNormalized"] = ", Unicode-Normalized",
         ["statusPdfIgnoreUntrusted"] = ", Ignore-Untrusted"
     };
 }

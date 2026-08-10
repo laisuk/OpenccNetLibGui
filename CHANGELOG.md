@@ -23,11 +23,14 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   or CBOR provider. The selection is saved through `UserLanguageSettings.json` and takes effect after restarting the
   application.
 - Added extended Unicode compatibility normalization for CJK text, covering Unicode compatibility ideographs, Kangxi
-  radicals, selected CJK radical forms, and known PDF text-extraction artifacts.
+  radicals, selected CJK radical forms, compatibility punctuation, and known PDF text-extraction artifacts.
 - Added a localized **Extend Unicode Compatibility for CJK text normalization** setting that optionally applies the
   extended Unicode normalization pass after the existing compatibility normalization.
-- Applied extended Unicode compatibility normalization automatically to PdfPig-extracted text to repair compatibility
-  ideographs, radical substitutions, and other known Unicode extraction artifacts before the text reaches the editor.
+- Added a localized **Normalize Unicode compatibility** PDF option for PdfPig extraction. The option is enabled only
+  when PdfPig is selected, retains the user's preference when Pdfium is active, and is synchronized between Settings and
+  the existing editor PDF context menus.
+- Added PDF load status reporting for Unicode compatibility normalization so the `Unicode-Normalized` state is shown
+  only when the normalization pass was actually applied.
 
 ### Changed
 
@@ -52,6 +55,18 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   model.
 - Avoided redundant default-provider resets at startup; only the recognized `dicts`, `json`, and `cbor` values trigger
   custom dictionary loading, while missing or unrecognized values leave the built-in Zstd provider untouched.
+- Centralized PdfPig Unicode compatibility normalization in the PDF view-model pipeline. PdfPig text is now processed as
+  extraction → Unicode compatibility normalization → optional auto-reflow → display, allowing single-file and batch PDF
+  workflows that use the shared pipeline to receive the same preprocessing behavior.
+- Made PdfPig Unicode compatibility normalization configurable and persistent, with normalization enabled by default.
+  Selecting Pdfium disables the option in the UI without clearing its stored value, while the PDF pipeline independently
+  enforces the PdfPig-only runtime gate.
+- Added an 85% UI scale option for lower-resolution displays and compact workstation layouts. Supported UI scale values
+  are now centralized so selection, validation, settings loading, and future scale additions share a single source of
+  truth.
+- Refined settings dirty-state tracking to exclude auto-persisted UI scale and window geometry from the explicit-save
+  snapshot. UI scale, window width, and window height continue to persist automatically through
+  `UserLanguageSettings.json` without incorrectly marking Settings as having unsaved changes.
 
 ### Fixed
 
@@ -63,6 +78,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   input and PDF extraction pipelines.
 - Prevented unobserved `ReactiveCommand` exceptions from being rethrown on the UI thread and terminating the
   application, while making failures such as unexpected null view-model state substantially easier to diagnose.
+- Corrected PdfPig Unicode compatibility preprocessing so known extraction artifacts are normalized before CJK reflow.
+  Scalar-preserving mappings such as `⸺ → —` repair extracted punctuation without expanding a single extracted character
+  into multiple characters or altering the multiplicity of repeated dash characters.
 
 ---
 

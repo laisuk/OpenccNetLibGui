@@ -55,7 +55,7 @@ public sealed class SettingsViewModel : ViewModelBase
         {
             _selectedThemeMode = NormalizeThemeMode(_languageSettings.ThemeMode);
             _selectedThemeModeIndex = GetThemeModeIndex(_selectedThemeMode);
-            _selectedUiScale = NormalizeUiScale(_languageSettings.UiScale);
+            _selectedUiScale = LanguageSettingsService.NormalizeUiScale(_languageSettings.UiScale);
             _editorFontFamily = ResolveEditorFontFamily(_languageSettings.EditorFont);
             _editorFontSize = NormalizeEditorFontSize(_languageSettings.EditorFontSize);
             _selectedGlobalDictionaryOption = FindDictionaryOption(
@@ -80,7 +80,7 @@ public sealed class SettingsViewModel : ViewModelBase
     public ObservableCollection<ThemeModeOption> ThemeModeOptions { get; } = new();
     public ObservableCollection<GlobalDictionaryOption> GlobalDictionaryOptions { get; } = new();
     public IReadOnlyList<FontFamily> SystemFonts { get; } = FontManager.Current.SystemFonts;
-    public IReadOnlyList<int> UiScaleOptions { get; } = new[] { 100, 125, 150 };
+    public IReadOnlyList<int> UiScaleOptions { get; } = LanguageSettingsService.SupportedUiScales;
 
     public ReactiveCommand<Unit, Unit> SaveLanguageSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> ResetWindowSizeCommand { get; }
@@ -95,7 +95,7 @@ public sealed class SettingsViewModel : ViewModelBase
         get => _selectedUiScale;
         set
         {
-            var normalized = NormalizeUiScale(value);
+            var normalized = LanguageSettingsService.NormalizeUiScale(value);
             if (_selectedUiScale == normalized)
                 return;
             this.RaiseAndSetIfChanged(ref _selectedUiScale, normalized);
@@ -103,7 +103,6 @@ public sealed class SettingsViewModel : ViewModelBase
             if (_languageSettings is null || _languageSettings.UiScale == normalized)
                 return;
             _languageSettings.UiScale = normalized;
-            RefreshDirtyState();
         }
     }
 
@@ -344,7 +343,6 @@ public sealed class SettingsViewModel : ViewModelBase
         return index >= 0 ? index : 0;
     }
 
-    private static int NormalizeUiScale(int value) => value is 100 or 125 or 150 ? value : 100;
     private static double NormalizeEditorFontSize(double value) => Math.Clamp(value <= 0 ? 14 : value, 8, 72);
 
     private FontFamily ResolveEditorFontFamily(string? fontName)
