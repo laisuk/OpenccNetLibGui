@@ -14,6 +14,8 @@ namespace OpenccNetLibGui.Views;
 
 public partial class MainWindow : Window
 {
+    private SettingsView? _settingsView;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -39,6 +41,15 @@ public partial class MainWindow : Window
         DataContext = vm;
 
         vm.RequestGoToSuspiciousLine += OnRequestGoToSuspiciousLine;
+    }
+
+    private void MainTabs_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (TabSettings?.IsSelected == true && _settingsView is null)
+        {
+            _settingsView = new SettingsView();
+            TabSettings.Content = _settingsView;
+        }
     }
 
     private void OnRequestGoToSuspiciousLine(bool isSource, int lineNumber)

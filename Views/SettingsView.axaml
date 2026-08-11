@@ -1,0 +1,288 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OpenccNetLibGui.ViewModels"
+             xmlns:local="clr-namespace:OpenccNetLibGui.Constants"
+             xmlns:media="using:Avalonia.Media"
+             mc:Ignorable="d"
+             x:Class="OpenccNetLibGui.Views.SettingsView"
+             x:DataType="vm:MainWindowViewModel">
+    <Border Margin="8"
+            Padding="18"
+            Background="{DynamicResource SettingsCardBackgroundBrush}"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+            BorderThickness="2"
+            CornerRadius="6">
+        <Grid RowDefinitions="*,Auto">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="18"
+                            Margin="0,0,18,0">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding Settings.ConversionSettingsContent}"
+                                   FontSize="16"
+                                   FontWeight="Bold" />
+                        <CheckBox Content="{Binding ConvertFilenameContent}"
+                                  FontSize="14"
+                                  IsChecked="{Binding IsCbConvertFilename, Mode=TwoWay}"
+                                  ToolTip.Tip="{Binding ConvertFilenameHint}" />
+                        <CheckBox Content="{Binding ExtendUnicodeCompatContent}"
+                                  FontSize="14"
+                                  IsChecked="{Binding IsCbExtendUnicodeCompat, Mode=TwoWay}"
+                                  ToolTip.Tip="{Binding ExtendUnicodeCompatHint}" />
+                        <Grid ColumnDefinitions="220,140"
+                              RowDefinitions="Auto,Auto"
+                              ColumnSpacing="8"
+                              RowSpacing="4">
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Margin="0,0,0,2"
+                                       Text="{Binding DeTofuLevelContent}"
+                                       FontWeight="SemiBold" />
+                            <ComboBox Grid.Row="1"
+                                      Grid.Column="0"
+                                      Width="140"
+                                      HorizontalAlignment="Left"
+                                      ItemsSource="{Binding DeTofuLevelOptions}"
+                                      SelectedItem="{Binding SelectedDeTofuLevelOption, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:MainWindowViewModel+DeTofuLevelOption">
+                                        <TextBlock Text="{Binding Content}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="220,100"
+                              RowDefinitions="Auto,Auto"
+                              ColumnSpacing="8"
+                              RowSpacing="4"
+                              Margin="0,8,0,0">
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Margin="0,0,0,2"
+                                       Text="{Binding Settings.EditorFontContent}"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="1"
+                                       Margin="0,0,0,2"
+                                       Text="{Binding Settings.EditorFontSizeContent}"
+                                       FontWeight="SemiBold" />
+                            <ComboBox Width="220"
+                                      Grid.Row="1"
+                                      Grid.Column="0"
+                                      ItemsSource="{Binding Settings.SystemFonts}"
+                                      SelectedItem="{Binding Settings.EditorFontFamily, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="media:FontFamily">
+                                        <TextBlock Text="{Binding Name}" FontFamily="{Binding}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <NumericUpDown Grid.Row="1"
+                                           Grid.Column="1"
+                                           Width="110"
+                                           Minimum="8"
+                                           Maximum="72"
+                                           Increment="1"
+                                           Value="{Binding Settings.EditorFontSizeValue, Mode=TwoWay}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <Grid ColumnDefinitions="Auto,Auto"
+                          ColumnSpacing="24">
+                        <StackPanel Grid.Column="0" Spacing="10">
+                            <TextBlock Text="{Binding Settings.UiLanguageContent}"
+                                       FontSize="16"
+                                       FontWeight="Bold" />
+                            <ComboBox SelectedIndex="{Binding SelectedUiLanguageIndex, Mode=TwoWay}"
+                                      Width="220"
+                                      HorizontalAlignment="Left"
+                                      FontSize="14">
+                                <ComboBoxItem Content="{Binding UiLanguageOption0Content}" />
+                                <ComboBoxItem Content="{Binding UiLanguageOption1Content}" />
+                                <ComboBoxItem Content="{Binding UiLanguageOption2Content}" />
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="10">
+                            <TextBlock Text="{Binding Settings.UiScaleContent}"
+                                       FontSize="16"
+                                       FontWeight="Bold" />
+                            <ComboBox ItemsSource="{Binding Settings.UiScaleOptions}"
+                                      SelectedItem="{Binding Settings.SelectedUiScale, Mode=TwoWay}"
+                                      Width="220"
+                                      HorizontalAlignment="Left"
+                                      FontSize="14">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding StringFormat={}{0}%}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+                    <Button Command="{Binding Settings.ResetWindowSizeCommand}"
+                            Width="220"
+                            HorizontalAlignment="Left"
+                            FontSize="14">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Classes="icon-font"
+                                       Text="{x:Static local:Icons.BackToWindow}" />
+                            <TextBlock Text="{Binding Settings.ResetWindowSizeContent}" />
+                        </StackPanel>
+                    </Button>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding Settings.ThemeModeContent}"
+                                   FontSize="16"
+                                   FontWeight="Bold" />
+                        <Grid ColumnDefinitions="*,*">
+                            <ComboBox ItemsSource="{Binding Settings.ThemeModeOptions}"
+                                      SelectedItem="{Binding Settings.SelectedThemeModeOption, Mode=TwoWay}"
+                                      Width="220"
+                                      HorizontalAlignment="Left"
+                                      FontSize="14"
+                                      ToolTip.Tip="{Binding Settings.ThemeModeHint}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SettingsViewModel+ThemeModeOption">
+                                        <TextBlock Text="{Binding Content}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding PdfOptionsContent}"
+                                   FontSize="16"
+                                   FontWeight="Bold" />
+                        <CheckBox Content="{Binding AddPdfPageHeaderContent}"
+                                  FontSize="14"
+                                  IsChecked="{Binding IsAddPdfPageHeader, Mode=TwoWay}" />
+                        <CheckBox Content="{Binding CompactPdfTextContent}"
+                                  FontSize="14"
+                                  IsChecked="{Binding IsCompactPdfText, Mode=TwoWay}" />
+                        <CheckBox Content="{Binding AutoReflowPdfTextContent}"
+                                  FontSize="14"
+                                  IsChecked="{Binding IsAutoReflow, Mode=TwoWay}"
+                                  ToolTip.Tip="{Binding AutoReflowPdfTextHint}" />
+                        <CheckBox Content="{Binding NormalizeUnicodeCompatContent}"
+                                  FontSize="14"
+                                  IsEnabled="{Binding CanNormalizeUnicodeCompat}"
+                                  IsChecked="{Binding NormalizeUnicodeCompat, Mode=TwoWay}"
+                                  ToolTip.Tip="{Binding NormalizeUnicodeCompatHint}" />
+                        <CheckBox Content="{Binding IgnoreUntrustedPdfTextContent}"
+                                  FontSize="14"
+                                  IsEnabled="{Binding CanIgnoreUntrustedPdfText}"
+                                  IsChecked="{Binding IsIgnoreUntrustedPdfText, Mode=TwoWay}"
+                                  ToolTip.Tip="{Binding IgnoreUntrustedPdfTextHint}" />
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding PdfEngineContent}"
+                                   FontSize="16"
+                                   FontWeight="Bold" />
+                        <RadioButton Content="{Binding UsePdfPigEngineContent}"
+                                     FontSize="14"
+                                     GroupName="SettingsPdfEngine"
+                                     IsChecked="{Binding IsPdfPigEngine, Mode=TwoWay}"
+                                     ToolTip.Tip="{Binding UsePdfPigEngineHint}" />
+                        <RadioButton Content="{Binding UsePdfiumEngineContent}"
+                                     FontSize="14"
+                                     GroupName="SettingsPdfEngine"
+                                     IsChecked="{Binding IsPdfiumEngine, Mode=TwoWay}"
+                                     ToolTip.Tip="{Binding UsePdfiumEngineHint}" />
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding HeadingRulesContent}"
+                                   FontSize="16"
+                                   FontWeight="Bold" />
+                        <Button HorizontalAlignment="Left"
+                                Height="34"
+                                Padding="12,0"
+                                Command="{Binding ShowShortHeadingDialogCommand}"
+                                ToolTip.Tip="{Binding ShortHeadingSettingsHint}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}" />
+                                <TextBlock Text="{Binding ShortHeadingSettingsContent}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding Settings.GlobalDictionaryContent}"
+                                   FontSize="16"
+                                   FontWeight="Bold" />
+
+                        <ComboBox Width="220"
+                                  HorizontalAlignment="Left"
+                                  ItemsSource="{Binding Settings.GlobalDictionaryOptions}"
+                                  SelectedItem="{Binding Settings.SelectedGlobalDictionaryOption, Mode=TwoWay}"
+                                  ToolTip.Tip="{Binding Settings.GlobalDictionaryHint}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:SettingsViewModel+GlobalDictionaryOption">
+                                    <TextBlock Text="{Binding Content}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Grid Grid.Row="1"
+                  ColumnDefinitions="*,Auto"
+                  Margin="0,16,0,0"
+                  ColumnSpacing="16"
+                  VerticalAlignment="Bottom"
+                  Background="{DynamicResource SettingsSaveRowBackgroundBrush}">
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}"
+                               IsVisible="{Binding Settings.IsSettingsDirty}" />
+                    <TextBlock Text="{Binding Settings.UnsavedChangesContent}"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding Settings.IsSettingsDirty}" />
+                    <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Completed}"
+                               Opacity="0.8"
+                               IsVisible="{Binding !Settings.IsSettingsDirty}" FontSize="22" />
+                    <TextBlock Text="{Binding Settings.AllSettingsSavedContent}"
+                               Opacity="0.8"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding !Settings.IsSettingsDirty}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        MinWidth="180"
+                        Height="36"
+                        Padding="14,0"
+                        HorizontalAlignment="Right"
+                        Command="{Binding Settings.SaveLanguageSettingsCommand}"
+                        IsEnabled="{Binding Settings.IsSettingsDirty}"
+                        ToolTip.Tip="{Binding Settings.SaveAdvancedSettingsHint}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
+                        <TextBlock Text="{Binding Settings.BtnSaveAdvancedSettingsContent}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>
