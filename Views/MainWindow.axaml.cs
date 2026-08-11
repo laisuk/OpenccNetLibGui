@@ -14,6 +14,7 @@ namespace OpenccNetLibGui.Views;
 
 public partial class MainWindow : Window
 {
+    private DictionaryView? _dictionaryView;
     private SettingsView? _settingsView;
 
     public MainWindow()
@@ -45,6 +46,12 @@ public partial class MainWindow : Window
 
     private void MainTabs_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (TabDictionary?.IsSelected == true && _dictionaryView is null)
+        {
+            _dictionaryView = new DictionaryView();
+            TabDictionary.Content = _dictionaryView;
+        }
+
         if (TabSettings?.IsSelected == true && _settingsView is null)
         {
             _settingsView = new SettingsView();

@@ -67,9 +67,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Refined settings dirty-state tracking to exclude auto-persisted UI scale and window geometry from the explicit-save
   snapshot. UI scale, window width, and window height continue to persist automatically through
   `UserLanguageSettings.json` without incorrectly marking Settings as having unsaved changes.
-- Improved application startup performance by lazily creating the Settings tab content on first selection instead of
-  constructing its visual tree during `MainWindow` initialization. The Settings view is cached after first use and
-  reused for subsequent tab switches.
+- Improved application startup performance by lazily creating the Settings and Dictionary tab contents on first
+  selection instead of constructing their visual trees during `MainWindow` initialization. Each view is cached after
+  first use and reused for subsequent tab switches.
 
 ### Fixed
 
