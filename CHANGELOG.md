@@ -70,6 +70,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Improved application startup performance by lazily creating the Settings and Dictionary tab contents on first
   selection instead of constructing their visual trees during `MainWindow` initialization. Each view is cached after
   first use and reused for subsequent tab switches.
+- Replaced the duplicated temporary-directory Office/EPUB conversion pipeline with direct delegation to
+  `OpenccNetLib.OfficeDocConverter`; supported-format validation now comes from the library, and conversion output log
+  inherits the shared in-memory conversion and atomic file-publishing behavior.
 
 ### Fixed
 
