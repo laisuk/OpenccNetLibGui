@@ -405,16 +405,17 @@
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center">
-                                        <Label Content="{Binding SourceContent}" FontSize="16" Padding="8,4" />
-                                        <Label x:Name="LblSourceCode"
-                                               Content="{Binding LblSourceCodeContent}"
-                                               FontSize="16" />
+                                        <TextBlock Text="{Binding SourceContent}" FontSize="16" Padding="8,4" />
+                                        <TextBlock x:Name="LblSourceCode" VerticalAlignment="Center"
+                                                   HorizontalAlignment="Left"
+                                                   Text="{Binding LblSourceCodeContent}"
+                                                   FontSize="16" />
                                     </StackPanel>
                                     <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" Margin="0 0 8 0"
                                                 HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <Label x:Name="LblTotalChars" FontSize="14" VerticalAlignment="Center"
-                                               Content="{Binding LblTotalCharsContent}" />
+                                        <TextBlock x:Name="LblTotalChars" FontSize="14" VerticalAlignment="Center"
+                                                   Text="{Binding LblTotalCharsContent}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -512,10 +513,11 @@
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left"
                                                 VerticalAlignment="Center" Spacing="5">
-                                        <Label Content="{Binding DestinationContent}"
-                                               FontSize="16" Padding="8,4" />
-                                        <Label x:Name="LblDestinationCode" FontSize="16"
-                                               Content="{Binding LblDestinationCodeContent}" HorizontalAlignment="Left" />
+                                        <TextBlock Text="{Binding DestinationContent}"
+                                                   FontSize="16" Padding="8,4" />
+                                        <TextBlock x:Name="LblDestinationCode" FontSize="16" VerticalAlignment="Center"
+                                                   Text="{Binding LblDestinationCodeContent}"
+                                                   HorizontalAlignment="Left" />
                                     </StackPanel>
                                     <Border Grid.Column="1" Width="9999" HorizontalAlignment="Stretch" />
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
@@ -1036,12 +1038,12 @@
                     </StackPanel>
                 </Button>
 
-                <Label x:Name="LblFileName"
-                       Content="{Binding LblFileNameContent}"
-                       Padding="0 2"
-                       IsVisible="{Binding IsLblFileNameVisible}"
-                       VerticalAlignment="Center"
-                       FontSize="14" />
+                <TextBlock x:Name="LblFileName"
+                           Text="{Binding LblFileNameContent}"
+                           Padding="0 2"
+                           IsVisible="{Binding IsLblFileNameVisible}"
+                           VerticalAlignment="Center"
+                           FontSize="14" />
             </StackPanel>
 
             <StackPanel Grid.Row="2"
@@ -1097,8 +1099,8 @@
                 </Button>
             </StackPanel>
             <StackPanel x:Name="StbStatusBar" Grid.Row="3" Height="30">
-                <Label x:Name="LblStatusBar" Content="{Binding LblStatusBarContent}" Padding="0 2" Margin="10,0,0,0"
-                       HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" />
+                <TextBlock x:Name="LblStatusBar" Text="{Binding LblStatusBarContent}" Padding="0 2" Margin="10,0,0,0"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="14" />
             </StackPanel>
         </Grid>
     </LayoutTransformControl>
