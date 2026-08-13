@@ -2085,37 +2085,6 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    /*private string GetCurrentConfig()
-    {
-        if (IsRbCustom)
-        {
-            var s = SelectedCustomItem;
-            if (string.IsNullOrWhiteSpace(s))
-                return "s2t";
-
-            var i = s.IndexOf(' ');
-            return i > 0 ? s[..i] : s;
-        }
-
-        var config = IsRbS2T
-            ? IsRbStd
-                ? "s2t"
-                : IsRbHk
-                    ? "s2hk"
-                    : IsCbRegionalTerms
-                        ? "s2twp"
-                        : "s2tw"
-            : IsRbStd
-                ? "t2s"
-                : IsRbHk
-                    ? "hk2s"
-                    : IsCbRegionalTerms
-                        ? "tw2sp"
-                        : "tw2s";
-        return config;
-    }
-    */
-
     private string GetCurrentConfig()
     {
         return GetCurrentConfigId().ToCanonicalName();
