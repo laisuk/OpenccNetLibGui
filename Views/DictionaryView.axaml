@@ -82,6 +82,7 @@
                                                           ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.ModeToolTip, FallbackValue='Append merges entries; Override replaces the selected slot.'}" />
                                                 <TextBox Grid.Column="2"
                                                          Text="{Binding DictionaryPath, Mode=TwoWay}"
+                                                         VerticalContentAlignment="Center"
                                                          PlaceholderText="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.DictionaryFilePlaceholder, FallbackValue='Dictionary file path'}"
                                                          ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.DictionaryFileToolTip, FallbackValue='Path to a custom dictionary text file.'}" />
                                                 <Button Grid.Column="3"
