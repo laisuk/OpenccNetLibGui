@@ -2554,7 +2554,7 @@ public class MainWindowViewModel : ViewModelBase
 
     #region Save Target Region
 
-    public enum SaveTarget
+    internal enum SaveTarget
     {
         Destination,
         Source
@@ -2585,7 +2585,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         private string _content;
 
-        public SaveTargetOption(SaveTarget target, string content)
+        internal SaveTargetOption(SaveTarget target, string content)
         {
             Target = target;
             _content = content;
@@ -2604,7 +2604,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private SaveTarget _selectedSaveTarget = SaveTarget.Destination;
 
-    public SaveTarget SelectedSaveTarget
+    internal SaveTarget SelectedSaveTarget
     {
         get => _selectedSaveTarget;
         set
