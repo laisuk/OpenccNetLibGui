@@ -233,7 +233,6 @@ Where:
 ### Batch Mode
 
 ![image02](./Assets/image02.png)
-![image03](./Assets/image03.png)
 
 Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp`), EPUB (
 `.epub`) and **PDF** (`.pdf`, introduced in `OpenccNetLibGui` v1.3.2).
@@ -245,6 +244,14 @@ Support most **text base** file types, **Office documents** (`.docx`, `.xlsx`, `
 4. For **PDF document** conversion, **right-click** List Box to set `PDF Options`. (`PDF engine`, `add page header`,
    `auto-reflow CJK text` etc.)
 5. Click the **Batch Start** button to begin batch conversion.
+
+---
+
+### Dictionary Generation
+
+![image03](./Assets/image03.png)
+
+---
 
 ### Dark Theme
 
