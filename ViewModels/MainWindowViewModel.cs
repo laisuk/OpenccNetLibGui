@@ -414,7 +414,9 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            ApplyCustomSlots(DictionaryGenerator.GetValidatedCustomDictSpecs());
+            ApplyCustomSlotsDuringStartup(
+                _languageSettings.ApplyCustomSlotsDuringStartup,
+                () => ApplyCustomSlots(DictionaryGenerator.GetValidatedCustomDictSpecs()));
         }
         catch (Exception exception) when (
             DictionaryGeneratorViewModel.IsExpectedCustomDictionaryException(exception))
@@ -444,6 +446,14 @@ public class MainWindowViewModel : ViewModelBase
         ArgumentNullException.ThrowIfNull(baseOpencc);
         ArgumentNullException.ThrowIfNull(specs);
         return specs.Count == 0 ? baseOpencc : baseOpencc.WithCustomDictionary(specs);
+    }
+
+    internal static void ApplyCustomSlotsDuringStartup(bool enabled, Action applyCustomSlots)
+    {
+        ArgumentNullException.ThrowIfNull(applyCustomSlots);
+
+        if (enabled)
+            applyCustomSlots();
     }
 
     private static HashSet<string> BuildExtSet(IEnumerable<string>? src)

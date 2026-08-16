@@ -17,7 +17,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   the existing slot, append/override mode, and dictionary-file configuration.
 - Added persistence for custom dictionary rows through the existing application settings system. Adding, editing, or
   removing rows participates in the normal unsaved-settings state, while applying a custom dictionary remains
-  independent from saving settings.
+  independent of saving settings.
 - Added automatic restoration of saved custom dictionary rows at startup. Valid saved custom dictionaries are reapplied
   to the runtime converter automatically.
 - Added safe startup fallback for invalid, missing, or inaccessible saved custom dictionary files. The application

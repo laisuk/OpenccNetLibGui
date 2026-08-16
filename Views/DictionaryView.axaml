@@ -130,6 +130,9 @@
                                         <TextBlock Text="{Binding Contents.ApplyCustomSlotsButton}" />
                                     </StackPanel>
                                 </Button>
+                                <CheckBox Content="{Binding Contents.ApplyCustomSlotsDuringStartupLabel}"
+                                          IsChecked="{Binding ApplyCustomSlotsDuringStartup, Mode=TwoWay}"
+                                          VerticalAlignment="Center" />
                             </StackPanel>
                         </StackPanel>
                     </Border>

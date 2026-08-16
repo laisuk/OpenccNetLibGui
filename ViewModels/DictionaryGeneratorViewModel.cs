@@ -26,6 +26,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     private string _generationStatus = string.Empty;
     private bool _hasGenerationError;
     private bool _readableUnicodeJson;
+    private bool _applyCustomSlotsDuringStartup;
     private DictionaryGeneratorContents _contents = new();
     private string? _lastGeneratedOutputPath;
     private GenerationStatusKind _generationStatusKind;
@@ -36,6 +37,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         _topLevelService = topLevelService;
         _generatorService = generatorService;
         _languageSettingsService = languageSettingsService;
+        _applyCustomSlotsDuringStartup = languageSettingsService.LanguageSettings.ApplyCustomSlotsDuringStartup;
         AvailableSlots = GetSlotsInDisplayOrder();
         AvailableModes = Enum.GetValues<CustomDictMode>();
         AddCustomDictionaryCommand = ReactiveCommand.Create(AddCustomDictionary);
@@ -107,6 +109,20 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     {
         get => _readableUnicodeJson;
         set => this.RaiseAndSetIfChanged(ref _readableUnicodeJson, value);
+    }
+
+    public bool ApplyCustomSlotsDuringStartup
+    {
+        get => _applyCustomSlotsDuringStartup;
+        set
+        {
+            if (_applyCustomSlotsDuringStartup == value)
+                return;
+
+            this.RaiseAndSetIfChanged(ref _applyCustomSlotsDuringStartup, value);
+            _languageSettingsService.LanguageSettings.ApplyCustomSlotsDuringStartup = value;
+            CustomDictionarySettingsChanged?.Invoke();
+        }
     }
 
     public DictionaryGeneratorContents Contents

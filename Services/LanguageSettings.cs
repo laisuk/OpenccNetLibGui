@@ -26,6 +26,7 @@ public class LanguageSettings
     public bool ExtendUnicodeCompat { get; set; }
     public string DeTofuLevel { get; set; } = "B";
     public List<CustomDictionarySetting> CustomDictionaries { get; set; } = new();
+    public bool ApplyCustomSlotsDuringStartup { get; set; }
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
@@ -141,6 +142,7 @@ public sealed class DictionaryGeneratorContents
     public string GenerateZstdButton { get; set; } = "Generate ZSTD";
     public string GenerateCborButton { get; set; } = "Generate CBOR";
     public string ApplyCustomSlotsButton { get; set; } = "Apply to Current Converter";
+    public string ApplyCustomSlotsDuringStartupLabel { get; set; } = "Apply to Converter during startup";
     public string GenerateJsonButton { get; set; } = "Generate JSON";
     public string ReadableUnicodeJsonLabel { get; set; } = "Readable Unicode JSON";
     public string BaseDirectoryToolTip { get; set; } = "Directory containing the standard OpenccNet text dictionaries.";
