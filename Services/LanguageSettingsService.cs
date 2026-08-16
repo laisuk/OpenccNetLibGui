@@ -93,6 +93,7 @@ public class LanguageSettingsService
     {
         "charCheck",
         "convertFilename",
+        "customDictionaries",
         "extendUnicodeCompat",
         "deTofuLevel",
         "dictionary",
@@ -234,6 +235,7 @@ public class LanguageSettingsService
 
     private static LanguageSettings Normalize(LanguageSettings settings)
     {
+        settings.CustomDictionaries ??= new List<CustomDictionarySetting>();
         settings.UiScale = NormalizeUiScale(settings.UiScale);
         settings.WindowWidth = settings.WindowWidth <= 0
             ? DefaultWindowWidth
@@ -462,6 +464,7 @@ public class LanguageSettingsService
         ""browseButton"": ""Browse"",
         ""removeButton"": ""Remove"",
         ""addCustomDictionaryButton"": ""Add Custom Dictionary"",
+        ""applyCustomSlotsButton"": ""Apply to Current Converter"",
         ""generateZstdButton"": ""Generate ZSTD"",
         ""generateCborButton"": ""Generate CBOR"",
         ""generateJsonButton"": ""Generate JSON"",
@@ -476,6 +479,7 @@ public class LanguageSettingsService
         ""browseDictionaryFileToolTip"": ""Select a custom dictionary text file."",
         ""removeRowToolTip"": ""Remove this custom dictionary row."",
         ""addRowToolTip"": ""Add a custom dictionary row at the end."",
+        ""applyCustomSlotsToolTip"": ""Apply these custom slots to the current converter without saving settings."",
         ""generateZstdToolTip"": ""Generate dictionary_maxlength.zstd."",
         ""generateCborToolTip"": ""Generate dictionary_maxlength.cbor."",
         ""generateJsonToolTip"": ""Generate dictionary_maxlength.json."",
@@ -488,6 +492,9 @@ public class LanguageSettingsService
         ""generatingStatus"": ""Generating dictionary…"",
         ""generationSuccessFormat"": ""Dictionary generated successfully:{0}{1}"",
         ""generationFailedFormat"": ""Dictionary generation failed: {0}"",
+        ""applySuccess"": ""Custom dictionary slots applied to the current converter."",
+        ""applyFailedFormat"": ""Could not apply custom dictionary slots: {0}"",
+        ""startupApplyFailedFormat"": ""Saved custom dictionary slots could not be applied; the base dictionary is active: {0}"",
         ""baseDirectoryRequired"": ""Base dictionary directory is required."",
         ""baseDirectoryNotFoundFormat"": ""Base dictionary directory not found: {0}"",
         ""outputDirectoryRequired"": ""Output directory is required."",
@@ -508,6 +515,7 @@ public class LanguageSettingsService
       },
       ""runtimes"": {
         ""label"": ""Runtime"",
+        ""customSlotsFormat"": ""{0} + Custom Slots ({1})"",
         ""dictionaries"": {
           ""default"": ""Default dictionary"",
           ""dicts"": ""Folder [dicts] dictionary"",
@@ -717,6 +725,7 @@ public class LanguageSettingsService
         ""browseButton"": ""瀏覽"",
         ""removeButton"": ""移除"",
         ""addCustomDictionaryButton"": ""新增自訂字典"",
+        ""applyCustomSlotsButton"": ""套用至目前轉換器"",
         ""generateZstdButton"": ""產生 ZSTD"",
         ""generateCborButton"": ""產生 CBOR"",
         ""generateJsonButton"": ""產生 JSON"",
@@ -731,6 +740,7 @@ public class LanguageSettingsService
         ""browseDictionaryFileToolTip"": ""選擇自訂字典文字檔。"",
         ""removeRowToolTip"": ""移除此自訂字典列。"",
         ""addRowToolTip"": ""在末端新增自訂字典列。"",
+        ""applyCustomSlotsToolTip"": ""將這些自訂槽位套用至目前轉換器，但不儲存設定。"",
         ""generateZstdToolTip"": ""產生 dictionary_maxlength.zstd。"",
         ""generateCborToolTip"": ""產生 dictionary_maxlength.cbor。"",
         ""generateJsonToolTip"": ""產生 dictionary_maxlength.json。"",
@@ -743,6 +753,9 @@ public class LanguageSettingsService
         ""generatingStatus"": ""正在產生字典…"",
         ""generationSuccessFormat"": ""字典已成功產生：{0}{1}"",
         ""generationFailedFormat"": ""字典產生失敗：{0}"",
+        ""applySuccess"": ""已將自訂字典槽位套用至目前轉換器。"",
+        ""applyFailedFormat"": ""無法套用自訂字典槽位：{0}"",
+        ""startupApplyFailedFormat"": ""無法套用已儲存的自訂字典槽位；目前使用基礎字典：{0}"",
         ""baseDirectoryRequired"": ""必須指定基礎字典資料夾。"",
         ""baseDirectoryNotFoundFormat"": ""找不到基礎字典資料夾：{0}"",
         ""outputDirectoryRequired"": ""必須指定輸出資料夾。"",
@@ -763,6 +776,7 @@ public class LanguageSettingsService
       },
       ""runtimes"": {
         ""label"": ""執行環境"",
+        ""customSlotsFormat"": ""{0} + 自訂槽位 ({1})"",
         ""dictionaries"": {
           ""default"": ""預設字典"",
           ""dicts"": ""資料夾 [dicts] 字典"",
@@ -972,6 +986,7 @@ public class LanguageSettingsService
         ""browseButton"": ""浏览"",
         ""removeButton"": ""移除"",
         ""addCustomDictionaryButton"": ""添加自定义字典"",
+        ""applyCustomSlotsButton"": ""应用到当前转换器"",
         ""generateZstdButton"": ""生成 ZSTD"",
         ""generateCborButton"": ""生成 CBOR"",
         ""generateJsonButton"": ""生成 JSON"",
@@ -986,6 +1001,7 @@ public class LanguageSettingsService
         ""browseDictionaryFileToolTip"": ""选择自定义字典文本文件。"",
         ""removeRowToolTip"": ""移除此自定义字典行。"",
         ""addRowToolTip"": ""在末尾添加自定义字典行。"",
+        ""applyCustomSlotsToolTip"": ""将这些自定义槽位应用到当前转换器，但不保存设置。"",
         ""generateZstdToolTip"": ""生成 dictionary_maxlength.zstd。"",
         ""generateCborToolTip"": ""生成 dictionary_maxlength.cbor。"",
         ""generateJsonToolTip"": ""生成 dictionary_maxlength.json。"",
@@ -998,6 +1014,9 @@ public class LanguageSettingsService
         ""generatingStatus"": ""正在生成字典…"",
         ""generationSuccessFormat"": ""字典已成功生成：{0}{1}"",
         ""generationFailedFormat"": ""字典生成失败：{0}"",
+        ""applySuccess"": ""已将自定义字典槽位应用到当前转换器。"",
+        ""applyFailedFormat"": ""无法应用自定义字典槽位：{0}"",
+        ""startupApplyFailedFormat"": ""无法应用已保存的自定义字典槽位；当前使用基础字典：{0}"",
         ""baseDirectoryRequired"": ""必须指定基础字典文件夹。"",
         ""baseDirectoryNotFoundFormat"": ""找不到基础字典文件夹：{0}"",
         ""outputDirectoryRequired"": ""必须指定输出文件夹。"",
@@ -1018,6 +1037,7 @@ public class LanguageSettingsService
       },
       ""runtimes"": {
         ""label"": ""运行环境"",
+        ""customSlotsFormat"": ""{0} + 自定义槽位 ({1})"",
         ""dictionaries"": {
           ""default"": ""默认字典"",
           ""dicts"": ""文件夹 [dicts] 字典"",
@@ -1144,6 +1164,7 @@ public class LanguageSettingsService
   ""extendUnicodeCompat"": true,
   ""deTofuLevel"": ""B"",
   ""dictionary"": ""zstd"",
+  ""customDictionaries"": [],
   ""editorFont"": ""Consolas"",
   ""editorFontSize"": 16,
   ""themeMode"": ""System"",

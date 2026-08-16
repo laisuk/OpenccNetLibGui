@@ -25,12 +25,21 @@ public class LanguageSettings
     public bool ConvertFilename { get; set; }
     public bool ExtendUnicodeCompat { get; set; }
     public string DeTofuLevel { get; set; } = "B";
+    public List<CustomDictionarySetting> CustomDictionaries { get; set; } = new();
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
     public SentenceBoundaryModeSetting? SentenceBoundaryMode { get; set; } = new();
 }
 
+
+[Serializable]
+public sealed class CustomDictionarySetting
+{
+    public string Slot { get; set; } = string.Empty;
+    public string Mode { get; set; } = nameof(OpenccNetLib.CustomDictMode.Append);
+    public string Path { get; set; } = string.Empty;
+}
 [Serializable]
 public sealed class PdfOptions
 {
@@ -131,6 +140,7 @@ public sealed class DictionaryGeneratorContents
     public string AddCustomDictionaryButton { get; set; } = "Add Custom Dictionary";
     public string GenerateZstdButton { get; set; } = "Generate ZSTD";
     public string GenerateCborButton { get; set; } = "Generate CBOR";
+    public string ApplyCustomSlotsButton { get; set; } = "Apply to Current Converter";
     public string GenerateJsonButton { get; set; } = "Generate JSON";
     public string ReadableUnicodeJsonLabel { get; set; } = "Readable Unicode JSON";
     public string BaseDirectoryToolTip { get; set; } = "Directory containing the standard OpenccNet text dictionaries.";
@@ -148,6 +158,9 @@ public sealed class DictionaryGeneratorContents
     public string AddRowToolTip { get; set; } = "Add a custom dictionary row at the end.";
     public string GenerateZstdToolTip { get; set; } = "Generate dictionary_maxlength.zstd.";
     public string GenerateCborToolTip { get; set; } = "Generate dictionary_maxlength.cbor.";
+    public string ApplyCustomSlotsToolTip { get; set; } =
+        "Apply these custom slots to the current converter without saving settings.";
+
     public string GenerateJsonToolTip { get; set; } = "Generate dictionary_maxlength.json.";
 
     public string ReadableUnicodeJsonToolTip { get; set; } =
@@ -163,6 +176,12 @@ public sealed class DictionaryGeneratorContents
     public string GenerationFailedFormat { get; set; } = "Dictionary generation failed: {0}";
     public string BaseDirectoryRequired { get; set; } = "Base dictionary directory is required.";
     public string BaseDirectoryNotFoundFormat { get; set; } = "Base dictionary directory not found: {0}";
+    public string ApplySuccess { get; set; } =
+        "Custom dictionary slots applied to the current converter.";
+    public string ApplyFailedFormat { get; set; } = "Could not apply custom dictionary slots: {0}";
+    public string StartupApplyFailedFormat { get; set; } =
+        "Saved custom dictionary slots could not be applied; the base dictionary is active: {0}";
+
     public string OutputDirectoryRequired { get; set; } = "Output directory is required.";
     public string OutputDirectoryNotFoundFormat { get; set; } = "Output directory not found: {0}";
     public string UnsupportedSlotFormat { get; set; } = "Custom dictionary row {0}: unsupported dictionary slot: {1}.";
@@ -177,6 +196,7 @@ public sealed class RuntimeContents
 {
     public string Label { get; set; } = "Runtime";
 
+    public string CustomSlotsFormat { get; set; } = "{0} + Custom Slots ({1})";
     public Dictionary<string, string> Dictionaries { get; set; } = new()
     {
         ["default"] = "Default dictionary",

@@ -7,12 +7,10 @@ namespace OpenccNetLibGui.Services;
 
 public enum DictionaryOutputFormat { Zstd, Cbor, Json }
 
-public sealed record CustomDictionaryRequest(DictSlot Slot, CustomDictMode Mode, string Path);
-
 public sealed record DictionaryGenerationRequest(
     string BaseDirectory,
     string OutputDirectory,
-    IReadOnlyList<CustomDictionaryRequest> CustomDictionaries,
+    IReadOnlyList<CustomDictSpec> CustomDictionaries,
     DictionaryOutputFormat Format,
     bool ReadableUnicodeJson);
 
@@ -35,19 +33,7 @@ public sealed class DictionaryGeneratorService : IDictionaryGeneratorService
             var dictionary = DictionaryLib.FromDicts(request.BaseDirectory);
             if (request.CustomDictionaries.Count > 0)
             {
-                var specs = new CustomDictSpec[request.CustomDictionaries.Count];
-                for (var index = 0; index < request.CustomDictionaries.Count; index++)
-                {
-                    var item = request.CustomDictionaries[index];
-                    specs[index] = new CustomDictSpec
-                    {
-                        Slot = item.Slot,
-                        Mode = item.Mode,
-                        Paths = new[] { item.Path }
-                    };
-                }
-
-                dictionary = DictionaryLib.WithCustomDicts(dictionary, specs);
+                dictionary = DictionaryLib.WithCustomDicts(dictionary, request.CustomDictionaries);
             }
 
             switch (request.Format)

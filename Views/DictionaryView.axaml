@@ -113,15 +113,24 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
-                            <Button HorizontalAlignment="Left"
-                                    Command="{Binding AddCustomDictionaryCommand}"
-                                    ToolTip.Tip="{Binding Contents.AddRowToolTip}">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Classes="icon-font"
-                                               Text="{x:Static local:Icons.AddTo}" />
-                                    <TextBlock Text="{Binding Contents.AddCustomDictionaryButton}" />
-                                </StackPanel>
-                            </Button>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Command="{Binding AddCustomDictionaryCommand}"
+                                        ToolTip.Tip="{Binding Contents.AddRowToolTip}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Classes="icon-font"
+                                                   Text="{x:Static local:Icons.AddTo}" />
+                                        <TextBlock Text="{Binding Contents.AddCustomDictionaryButton}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ApplyCustomSlotsCommand}"
+                                        ToolTip.Tip="{Binding Contents.ApplyCustomSlotsToolTip}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Classes="icon-font"
+                                                   Text="{x:Static local:Icons.ReadingMode}" />
+                                        <TextBlock Text="{Binding Contents.ApplyCustomSlotsButton}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </StackPanel>

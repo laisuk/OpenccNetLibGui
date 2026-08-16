@@ -7,13 +7,39 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.7.0] - Unrelease
+## [1.7.0] - Unreleased
 
 ### Added
+
+- Added runtime custom-dictionary application from the Dictionary tab. Custom dictionary slots can now be applied
+  directly to the current converter without generating a replacement base dictionary or restarting the application.
+- Added an **Apply to Current Converter** action for custom dictionary rows. Multiple custom slots are supported using
+  the existing slot, append/override mode, and dictionary-file configuration.
+- Added persistence for custom dictionary rows through the existing application settings system. Adding, editing, or
+  removing rows participates in the normal unsaved-settings state, while applying a custom dictionary remains
+  independent from saving settings.
+- Added automatic restoration of saved custom dictionary rows at startup. Valid saved custom dictionaries are reapplied
+  to the runtime converter automatically.
+- Added safe startup fallback for invalid, missing, or inaccessible saved custom dictionary files. The application
+  continues with the configured base dictionary while preserving the custom rows for correction.
+- Added active custom-slot information to the runtime status bar, including canonical and deduplicated slot names such
+  as `HKPhrasesRev`.
+- Added localized runtime custom-dictionary controls, status text, validation messages, and startup warnings for all
+  supported interface languages.
+- Added regression tests covering runtime custom dictionaries, base-converter isolation, repeated application without
+  custom-slot stacking, reset to the base converter, failed-apply atomicity, runtime status formatting, and custom-row
+  persistence and dirty-state tracking.
 
 ### Changed
 
 - Updated OpenccNetLib to preview version v1.7.0.
+- Changed custom dictionary rows to serve as editable runtime configuration: modifying a row does not affect the active
+  converter until **Apply to Current Converter** is explicitly invoked.
+- Changed runtime custom-dictionary application to always derive from the configured base converter. Reapplying custom
+  slots therefore replaces the previous custom configuration instead of accumulating or stacking earlier applications.
+- Changed an empty custom-slot application to restore the configured base converter directly.
+- Refactored custom dictionary row parsing and validation into a shared path used by both dictionary generation and
+  runtime application, keeping slot, mode, path, and file validation consistent.
 
 ---
 

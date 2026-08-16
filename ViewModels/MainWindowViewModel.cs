@@ -116,7 +116,9 @@ public class MainWindowViewModel : ViewModelBase
     private string? _currentOpenFileName = string.Empty;
     private string? _selectedCustomItem;
 
-    private readonly Opencc? _opencc;
+    private readonly Opencc? _baseOpencc;
+    private Opencc? _opencc;
+    private CustomDictSpec[] _activeCustomSpecs = Array.Empty<CustomDictSpec>();
     private bool _isCbConvertFilename;
     private bool _isCbExtendUnicodeCompat;
     private PdfViewModel PdfVm { get; }
@@ -400,8 +402,48 @@ public class MainWindowViewModel : ViewModelBase
             _activeDictionary = "zstd";
         }
 
+        _baseOpencc = opencc;
         _opencc = opencc;
+        DictionaryGenerator.CustomSlotsApplyRequested += ApplyCustomSlots;
+        DictionaryGenerator.CustomDictionarySettingsChanged += Settings.RefreshDirtyState;
+        TrackSubscription(Disposable.Create(() =>
+        {
+            DictionaryGenerator.CustomSlotsApplyRequested -= ApplyCustomSlots;
+            DictionaryGenerator.CustomDictionarySettingsChanged -= Settings.RefreshDirtyState;
+        }));
+
+        try
+        {
+            ApplyCustomSlots(DictionaryGenerator.GetValidatedCustomDictSpecs());
+        }
+        catch (Exception exception) when (
+            DictionaryGeneratorViewModel.IsExpectedCustomDictionaryException(exception))
+        {
+            Debug.WriteLine(exception);
+            _activeCustomSpecs = Array.Empty<CustomDictSpec>();
+            _opencc = _baseOpencc;
+            DictionaryGenerator.ReportStartupApplyFailure(exception);
+            RefreshRuntimeStatus();
+        }
+    }
+
+    private void ApplyCustomSlots(CustomDictSpec[] specs)
+    {
+        ArgumentNullException.ThrowIfNull(specs);
+        var appliedSpecs = specs.ToArray();
+        var candidate = CreateAppliedConverter(_baseOpencc!, appliedSpecs);
+
+        _opencc = candidate;
+        _activeCustomSpecs = appliedSpecs;
         RefreshRuntimeStatus();
+    }
+
+
+    internal static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs)
+    {
+        ArgumentNullException.ThrowIfNull(baseOpencc);
+        ArgumentNullException.ThrowIfNull(specs);
+        return specs.Count == 0 ? baseOpencc : baseOpencc.WithCustomDictionary(specs);
     }
 
     private static HashSet<string> BuildExtSet(IEnumerable<string>? src)
@@ -938,7 +980,33 @@ public class MainWindowViewModel : ViewModelBase
             ? label
             : runtimes.Dictionaries.GetValueOrDefault("default", dictionaryKey);
 
+        dictionaryLabel = FormatDictionaryLabel(runtimes, dictionaryLabel, _activeCustomSpecs);
+
         LblStatusBarContent = $"{runtimeLabel}: {runtimeVersion} | OpenccNetLib {openccVer} | {dictionaryLabel}";
+    }
+
+    internal static string FormatDictionaryLabel(RuntimeContents runtimes, string dictionaryLabel,
+        IEnumerable<CustomDictSpec> specs)
+    {
+        var slots = specs
+            .Select(spec => spec.Slot.ToCanonicalName())
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (slots.Length == 0)
+            return dictionaryLabel;
+
+        var format = string.IsNullOrWhiteSpace(runtimes.CustomSlotsFormat)
+            ? new RuntimeContents().CustomSlotsFormat
+            : runtimes.CustomSlotsFormat;
+        try
+        {
+            return string.Format(format, dictionaryLabel, string.Join(", ", slots));
+        }
+        catch (FormatException)
+        {
+            return string.Format(
+                new RuntimeContents().CustomSlotsFormat, dictionaryLabel, string.Join(", ", slots));
+        }
     }
 
     #region Reactive Command Region

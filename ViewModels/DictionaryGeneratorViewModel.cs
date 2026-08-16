@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -18,6 +19,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
 {
     private readonly ITopLevelService _topLevelService;
     private readonly IDictionaryGeneratorService _generatorService;
+    private readonly LanguageSettingsService _languageSettingsService;
     private string _baseDictionaryDirectory = "dicts";
     private string _outputDirectory = AppContext.BaseDirectory;
     private bool _isGenerating;
@@ -28,13 +30,16 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     private string? _lastGeneratedOutputPath;
     private GenerationStatusKind _generationStatusKind;
 
-    public DictionaryGeneratorViewModel(ITopLevelService topLevelService, IDictionaryGeneratorService generatorService)
+    public DictionaryGeneratorViewModel(ITopLevelService topLevelService, IDictionaryGeneratorService generatorService,
+        LanguageSettingsService languageSettingsService)
     {
         _topLevelService = topLevelService;
         _generatorService = generatorService;
+        _languageSettingsService = languageSettingsService;
         AvailableSlots = GetSlotsInDisplayOrder();
         AvailableModes = Enum.GetValues<CustomDictMode>();
         AddCustomDictionaryCommand = ReactiveCommand.Create(AddCustomDictionary);
+        ApplyCustomSlotsCommand = ReactiveCommand.CreateFromTask(ApplyCustomSlotsAsync);
         BrowseBaseDirectoryCommand = ReactiveCommand.CreateFromTask(() => BrowseDirectoryAsync(true));
         BrowseOutputDirectoryCommand = ReactiveCommand.CreateFromTask(() => BrowseDirectoryAsync(false));
         GenerateZstdCommand = ReactiveCommand.CreateFromTask(() => GenerateAsync(DictionaryOutputFormat.Zstd));
@@ -44,18 +49,25 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
             HandleUnexpectedCommandException,
             (nameof(AddCustomDictionaryCommand), AddCustomDictionaryCommand.ThrownExceptions),
+            (nameof(ApplyCustomSlotsCommand), ApplyCustomSlotsCommand.ThrownExceptions),
             (nameof(BrowseBaseDirectoryCommand), BrowseBaseDirectoryCommand.ThrownExceptions),
             (nameof(BrowseOutputDirectoryCommand), BrowseOutputDirectoryCommand.ThrownExceptions),
             (nameof(GenerateZstdCommand), GenerateZstdCommand.ThrownExceptions),
             (nameof(GenerateCborCommand), GenerateCborCommand.ThrownExceptions),
             (nameof(GenerateJsonCommand), GenerateJsonCommand.ThrownExceptions)));
+
+        RestoreCustomDictionaries();
     }
 
+
+    public event Action<CustomDictSpec[]>? CustomSlotsApplyRequested;
+    public event Action? CustomDictionarySettingsChanged;
     public ObservableCollection<CustomDictionaryRowViewModel> CustomDictionaries { get; } = new();
     private IReadOnlyList<DictSlot> AvailableSlots { get; }
     private IReadOnlyList<CustomDictMode> AvailableModes { get; }
     public ReactiveCommand<Unit, Unit> AddCustomDictionaryCommand { get; }
     public ReactiveCommand<Unit, Unit> BrowseBaseDirectoryCommand { get; }
+    public ReactiveCommand<Unit, Unit> ApplyCustomSlotsCommand { get; }
     public ReactiveCommand<Unit, Unit> BrowseOutputDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> GenerateZstdCommand { get; }
     public ReactiveCommand<Unit, Unit> GenerateCborCommand { get; }
@@ -111,6 +123,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             GenerationStatusKind.Generating => Contents.GeneratingStatus,
             GenerationStatusKind.Success when _lastGeneratedOutputPath is not null =>
                 string.Format(Contents.GenerationSuccessFormat, Environment.NewLine, _lastGeneratedOutputPath),
+            GenerationStatusKind.ApplySuccess => Contents.ApplySuccess,
             _ => GenerationStatus
         };
     }
@@ -159,14 +172,75 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             .ToArray();
     }
 
-    private void AddCustomDictionary() => CustomDictionaries.Add(new CustomDictionaryRowViewModel(
-        _topLevelService, AvailableSlots, AvailableModes, () => Contents,
-        RemoveCustomDictionary, HandleUnexpectedCommandException));
+    private void AddCustomDictionary()
+    {
+        AddRow();
+        PersistCustomDictionaries();
+    }
+
+    private CustomDictionaryRowViewModel AddRow(DictSlot? slot = null, CustomDictMode? mode = null,
+        string? path = null)
+    {
+        var row = new CustomDictionaryRowViewModel(
+            _topLevelService, AvailableSlots, AvailableModes, () => Contents,
+            RemoveCustomDictionary, HandleUnexpectedCommandException);
+        if (slot.HasValue) row.SelectedSlot = slot.Value;
+        if (mode.HasValue) row.SelectedMode = mode.Value;
+        if (path is not null) row.DictionaryPath = path;
+        row.PropertyChanged += CustomDictionaryRowOnPropertyChanged;
+        CustomDictionaries.Add(row);
+        return row;
+    }
 
     private void RemoveCustomDictionary(CustomDictionaryRowViewModel row)
     {
-        if (CustomDictionaries.Remove(row))
-            row.Dispose();
+        if (!CustomDictionaries.Remove(row))
+            return;
+
+        row.PropertyChanged -= CustomDictionaryRowOnPropertyChanged;
+        row.Dispose();
+        PersistCustomDictionaries();
+    }
+
+    private void CustomDictionaryRowOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(CustomDictionaryRowViewModel.SelectedSlot) or
+            nameof(CustomDictionaryRowViewModel.SelectedMode) or
+            nameof(CustomDictionaryRowViewModel.DictionaryPath))
+            PersistCustomDictionaries();
+    }
+
+    private void RestoreCustomDictionaries()
+    {
+        var settings = _languageSettingsService.LanguageSettings.CustomDictionaries;
+        var skippedInvalidSetting = false;
+        foreach (var item in settings)
+        {
+            if (item is null || !DictSlotExtensions.TryParse(item.Slot, out var slot) || !slot.IsActive() ||
+                !Enum.TryParse<CustomDictMode>(item.Mode, true, out var mode) || !AvailableModes.Contains(mode))
+            {
+                skippedInvalidSetting = true;
+                continue;
+            }
+
+            AddRow(slot, mode, item.Path);
+        }
+
+        if (skippedInvalidSetting)
+            PersistCustomDictionaries();
+    }
+
+    private void PersistCustomDictionaries()
+    {
+        _languageSettingsService.LanguageSettings.CustomDictionaries = CustomDictionaries
+            .Select(row => new CustomDictionarySetting
+            {
+                Slot = row.SelectedSlot.ToCanonicalName(),
+                Mode = row.SelectedMode.ToString(),
+                Path = row.DictionaryPath
+            })
+            .ToList();
+        CustomDictionarySettingsChanged?.Invoke();
     }
 
     private void HandleUnexpectedCommandException(CommandExceptionInfo failure)
@@ -234,6 +308,57 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         }
     }
 
+    private async Task ApplyCustomSlotsAsync()
+    {
+        try
+        {
+            var specs = GetValidatedCustomDictSpecs();
+            CustomSlotsApplyRequested?.Invoke(specs);
+            HasGenerationError = false;
+            _generationStatusKind = GenerationStatusKind.ApplySuccess;
+            GenerationStatus = Contents.ApplySuccess;
+        }
+        catch (Exception exception) when (IsExpectedCustomDictionaryException(exception))
+        {
+            await ShowErrorAsync(string.Format(Contents.ApplyFailedFormat, exception.Message));
+        }
+    }
+
+    internal CustomDictSpec[] GetValidatedCustomDictSpecs()
+    {
+        var activeSlots = AvailableSlots.ToHashSet();
+        var activeModes = AvailableModes.ToHashSet();
+        var specs = new CustomDictSpec[CustomDictionaries.Count];
+        for (var index = 0; index < CustomDictionaries.Count; index++)
+        {
+            var row = CustomDictionaries[index];
+            var rowNumber = index + 1;
+            if (!activeSlots.Contains(row.SelectedSlot))
+                throw new ArgumentException(string.Format(Contents.UnsupportedSlotFormat, rowNumber, row.SelectedSlot));
+            if (!activeModes.Contains(row.SelectedMode))
+                throw new ArgumentException(string.Format(Contents.UnsupportedModeFormat, rowNumber, row.SelectedMode));
+            if (string.IsNullOrWhiteSpace(row.DictionaryPath))
+                throw new ArgumentException(string.Format(Contents.RowFileRequiredFormat, rowNumber));
+            var path = ResolvePath(row.DictionaryPath.Trim());
+            if (!File.Exists(path))
+                throw new FileNotFoundException(string.Format(Contents.RowFileNotFoundFormat, rowNumber, path), path);
+            specs[index] = CustomDictSpec.FromFile(row.SelectedSlot, path, row.SelectedMode);
+        }
+
+        return specs;
+    }
+
+    internal void ReportStartupApplyFailure(Exception exception)
+    {
+        HasGenerationError = true;
+        _generationStatusKind = GenerationStatusKind.StartupApplyError;
+        GenerationStatus = string.Format(Contents.StartupApplyFailedFormat, exception.Message);
+    }
+
+    internal static bool IsExpectedCustomDictionaryException(Exception exception) =>
+        exception is ArgumentException or DirectoryNotFoundException or FileNotFoundException or
+            UnauthorizedAccessException or IOException or InvalidDataException or FormatException;
+
     private DictionaryGenerationRequest CreateValidatedRequest(DictionaryOutputFormat format)
     {
         if (string.IsNullOrWhiteSpace(BaseDictionaryDirectory))
@@ -248,29 +373,12 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             throw new DirectoryNotFoundException(string.Format(Contents.OutputDirectoryNotFoundFormat,
                 outputDirectory));
 
-        var activeSlots = AvailableSlots.ToHashSet();
-        var activeModes = AvailableModes.ToHashSet();
-        var customRequests = new List<CustomDictionaryRequest>(CustomDictionaries.Count);
-        for (var index = 0; index < CustomDictionaries.Count; index++)
-        {
-            var row = CustomDictionaries[index];
-            var rowNumber = index + 1;
-            if (!activeSlots.Contains(row.SelectedSlot))
-                throw new ArgumentException(string.Format(Contents.UnsupportedSlotFormat, rowNumber, row.SelectedSlot));
-            if (!activeModes.Contains(row.SelectedMode))
-                throw new ArgumentException(string.Format(Contents.UnsupportedModeFormat, rowNumber, row.SelectedMode));
-            if (string.IsNullOrWhiteSpace(row.DictionaryPath))
-                throw new ArgumentException(string.Format(Contents.RowFileRequiredFormat, rowNumber));
-            var path = ResolvePath(row.DictionaryPath.Trim());
-            if (!File.Exists(path))
-                throw new FileNotFoundException(string.Format(Contents.RowFileNotFoundFormat, rowNumber, path), path);
-            customRequests.Add(new CustomDictionaryRequest(row.SelectedSlot, row.SelectedMode, path));
-        }
+        var customSpecs = GetValidatedCustomDictSpecs();
 
         return new DictionaryGenerationRequest(
             baseDirectory,
             outputDirectory,
-            customRequests,
+            customSpecs,
             format,
             format == DictionaryOutputFormat.Json && ReadableUnicodeJson);
     }
@@ -288,6 +396,8 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         Idle,
         Generating,
         Success,
+        ApplySuccess,
+        StartupApplyError,
         Error
     }
 }
