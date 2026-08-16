@@ -7,6 +7,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.7.0] - Unrelease
+
+### Added
+
+### Changed
+
+- Updated OpenccNetLib to preview version v1.7.0.
+
+---
+
 ## [1.6.2] - 2026-08-15
 
 ### Added
