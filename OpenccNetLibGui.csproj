@@ -127,6 +127,14 @@
         </None>
     </ItemGroup>
 
+    <!-- Windows arm64 -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' == 'win-arm64'">
+        <None Update="runtimes\win-arm64\native\pdfium.dll">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <TargetPath>pdfium.dll</TargetPath>
+        </None>
+    </ItemGroup>
+
     <!-- Local build: Debug/Release without -r (no RuntimeIdentifier) -->
     <ItemGroup Condition="'$(RuntimeIdentifier)' == '' AND ('$(Configuration)' == 'Debug' OR '$(Configuration)' == 'Release')">
         <None Update="runtimes\win-x64\native\pdfium.dll">
@@ -145,6 +153,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="runtimes\win-x86\native\pdfium.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="runtimes\win-arm64\native\pdfium.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
