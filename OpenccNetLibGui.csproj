@@ -8,12 +8,12 @@
         <ApplicationIcon>Assets/openccnetlib.ico</ApplicationIcon>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>10</LangVersion>
-        <AssemblyVersion>1.6.2.0</AssemblyVersion>
-        <FileVersion>1.6.2.0</FileVersion>
+        <AssemblyVersion>1.7.0.0</AssemblyVersion>
+        <FileVersion>1.7.0.0</FileVersion>
         <Copyright>© 2026 Laisuk Lai. All rights reserved.</Copyright>
-        <AssemblyInformationalVersion>1.6.2.0</AssemblyInformationalVersion>
+        <AssemblyInformationalVersion>1.7.0.0</AssemblyInformationalVersion>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-        <Version>1.6.2.0</Version>
+        <Version>1.7.0.0</Version>
         <Title>OpenccNetLibGui</Title>
         <Authors>laisuk</Authors>
         <IsPackable>false</IsPackable>
@@ -50,9 +50,9 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageReference Include="OpenccNetLib" Version="1.7.0" />
-        <PackageReference Include="PdfPig" Version="0.1.15"/>
+        <PackageReference Include="PdfPig" Version="0.1.16" />
         <PackageReference Include="ReactiveUI.Reactive" Version="24.1.0"/>
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.5"/>
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.7" />
     </ItemGroup>
 
     <!-- Shared files always copied -->
