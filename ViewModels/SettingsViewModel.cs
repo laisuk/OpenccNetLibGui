@@ -90,6 +90,18 @@ public sealed class SettingsViewModel : ViewModelBase
     public double WindowWidth => _languageSettings?.WindowWidth ?? LanguageSettingsService.DefaultWindowWidth;
     public double WindowHeight => _languageSettings?.WindowHeight ?? LanguageSettingsService.DefaultWindowHeight;
 
+    public bool IsSaveUnsavedSettingsOnExit
+    {
+        get => _languageSettings?.SaveUnsavedSettingsOnExit ?? false;
+        set
+        {
+            if (_languageSettings is null || _languageSettings.SaveUnsavedSettingsOnExit == value)
+                return;
+            _languageSettings.SaveUnsavedSettingsOnExit = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
     public int SelectedUiScale
     {
         get => _selectedUiScale;
@@ -233,12 +245,34 @@ public sealed class SettingsViewModel : ViewModelBase
             height < LanguageSettingsService.MinimumWindowHeight ||
             width > int.MaxValue || height > int.MaxValue)
             return;
-        _languageSettings.WindowWidth = (int)Math.Round(width);
-        _languageSettings.WindowHeight = (int)Math.Round(height);
-        _languageSettingsService.SaveDiffOnly();
-        this.RaisePropertyChanged(nameof(WindowWidth));
-        this.RaisePropertyChanged(nameof(WindowHeight));
-        RefreshDirtyState();
+        var roundedWidth = (int)Math.Round(width);
+        var roundedHeight = (int)Math.Round(height);
+        var sizeChanged = _languageSettings.WindowWidth != roundedWidth ||
+                          _languageSettings.WindowHeight != roundedHeight;
+
+        _languageSettings.WindowWidth = roundedWidth;
+        _languageSettings.WindowHeight = roundedHeight;
+        _languageSettingsService.SaveWindowSize(roundedWidth, roundedHeight);
+
+        if (sizeChanged)
+        {
+            this.RaisePropertyChanged(nameof(WindowWidth));
+            this.RaisePropertyChanged(nameof(WindowHeight));
+        }
+    }
+
+    public void PersistOnExit(double? width, double? height)
+    {
+        if (_languageSettingsService is null || _languageSettings is null)
+            return;
+
+        if (width.HasValue && height.HasValue)
+            PersistWindowSize(width.Value, height.Value);
+
+        if (_languageSettings.SaveUnsavedSettingsOnExit)
+            _languageSettingsService.SaveDiffOnly();
+        else
+            _languageSettingsService.SaveExitAutoSavePreference(false);
     }
 
     public void RefreshDirtyState() => this.RaisePropertyChanged(nameof(IsSettingsDirty));
@@ -256,6 +290,8 @@ public sealed class SettingsViewModel : ViewModelBase
         ResetWindowSizeContent = ValueOrFallback(language.ResetWindowSizeContent, "Reset Window Size");
         BtnSaveAdvancedSettingsContent = ValueOrFallback(language.BtnSaveAdvancedSettingsContent,
             "Save Advanced Settings");
+        SaveUnsavedSettingsOnExitContent = ValueOrFallback(language.SaveUnsavedSettingsOnExitContent,
+            "Save unsaved settings on exit");
         UnsavedChangesContent = ValueOrFallback(language.UnsavedChangesContent, "Unsaved changes");
         AllSettingsSavedContent = ValueOrFallback(language.AllSettingsSavedContent, "All settings saved");
         RefreshThemeModeOptionLabels(language);
@@ -269,6 +305,7 @@ public sealed class SettingsViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(ThemeModeContent));
         this.RaisePropertyChanged(nameof(ResetWindowSizeContent));
         this.RaisePropertyChanged(nameof(BtnSaveAdvancedSettingsContent));
+        this.RaisePropertyChanged(nameof(SaveUnsavedSettingsOnExitContent));
         this.RaisePropertyChanged(nameof(UnsavedChangesContent));
         this.RaisePropertyChanged(nameof(AllSettingsSavedContent));
         this.RaisePropertyChanged(nameof(ThemeModeHint));
@@ -287,6 +324,7 @@ public sealed class SettingsViewModel : ViewModelBase
     public string ThemeModeContent { get; private set; } = "Theme Mode";
     public string ResetWindowSizeContent { get; private set; } = "Reset Window Size";
     public string BtnSaveAdvancedSettingsContent { get; private set; } = "Save Advanced Settings";
+    public string SaveUnsavedSettingsOnExitContent { get; private set; } = "Save unsaved settings on exit";
     public string UnsavedChangesContent { get; private set; } = "Unsaved changes";
     public string AllSettingsSavedContent { get; private set; } = "All settings saved";
     public string ThemeModeHint => GetHint("themeModeHint", "System follows the operating system theme.");

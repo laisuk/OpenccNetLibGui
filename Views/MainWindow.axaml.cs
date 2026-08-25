@@ -227,11 +227,12 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (WindowState != WindowState.Normal)
+        if (DataContext is not MainWindowViewModel viewModel)
             return;
 
-        if (DataContext is MainWindowViewModel viewModel)
-            viewModel.PersistWindowSize(Bounds.Width, Bounds.Height);
+        viewModel.PersistOnExit(
+            WindowState == WindowState.Normal ? Bounds.Width : null,
+            WindowState == WindowState.Normal ? Bounds.Height : null);
     }
 
     private void TbSource_TextChanged(object? sender, EventArgs eventArgs)

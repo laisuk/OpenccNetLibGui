@@ -245,7 +245,7 @@
             </ScrollViewer>
 
             <Grid Grid.Row="1"
-                  ColumnDefinitions="*,Auto"
+                  ColumnDefinitions="*,Auto,Auto"
                   Margin="0,16,0,0"
                   ColumnSpacing="16"
                   VerticalAlignment="Bottom"
@@ -268,7 +268,13 @@
                                IsVisible="{Binding !Settings.IsSettingsDirty}" />
                 </StackPanel>
 
-                <Button Grid.Column="1"
+                <CheckBox Grid.Column="1"
+                          Content="{Binding Settings.SaveUnsavedSettingsOnExitContent}"
+                          IsChecked="{Binding Settings.IsSaveUnsavedSettingsOnExit, Mode=TwoWay}"
+                          FontSize="14"
+                          VerticalAlignment="Center" />
+
+                <Button Grid.Column="2"
                         MinWidth="180"
                         Height="36"
                         Padding="14,0"

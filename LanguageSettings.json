@@ -33,6 +33,7 @@
       "unsavedChangesContent": "Unsaved changes",
       "allSettingsSavedContent": "All settings saved",
       "btnSaveAdvancedSettingsContent": "Save Advanced Settings",
+      "saveUnsavedSettingsOnExitContent": "Save unsaved settings on exit",
       "processContent": "Process",
       "batchStartContent": "Batch Start",
       "sourceContent": "Source:",
@@ -295,6 +296,7 @@
       "unsavedChangesContent": "變更尚未儲存",
       "allSettingsSavedContent": "所有設定已儲存",
       "btnSaveAdvancedSettingsContent": "儲存進階設定",
+      "saveUnsavedSettingsOnExitContent": "結束時儲存未儲存的設定",
       "processContent": "開始轉換",
       "batchStartContent": "開始批次轉換",
       "sourceContent": "來源：",
@@ -557,6 +559,7 @@
       "unsavedChangesContent": "更改未保存",
       "allSettingsSavedContent": "所有设置已保存",
       "btnSaveAdvancedSettingsContent": "保存高级设置",
+      "saveUnsavedSettingsOnExitContent": "退出时保存未保存的设置",
       "processContent": "开始转换",
       "batchStartContent": "开始批量转换",
       "sourceContent": "来源：",
@@ -852,5 +855,6 @@
   "uiScale": 100,
   "windowWidth": 1000,
   "windowHeight": 750,
+  "saveUnsavedSettingsOnExit": false,
   "locale": 2
 }

@@ -21,6 +21,7 @@ public class LanguageSettingsService
     public const int MinimumWindowHeight = 300;
 
     private readonly string _defaultSettingsPath;
+    private readonly string _userSettingsPath;
     private string _lastSavedSnapshot = string.Empty;
 
     public static string UserSettingsPath => Path.Combine(
@@ -39,8 +40,14 @@ public class LanguageSettingsService
     public LanguageSettings LanguageSettings { get; private set; }
 
     public LanguageSettingsService(string defaultSettingsPath)
+        : this(defaultSettingsPath, UserSettingsPath)
+    {
+    }
+
+    internal LanguageSettingsService(string defaultSettingsPath, string userSettingsPath)
     {
         _defaultSettingsPath = defaultSettingsPath;
+        _userSettingsPath = userSettingsPath;
 
         // Defensive: ensure invariant for computed properties after ctor returns.
         Reload();
@@ -57,7 +64,7 @@ public class LanguageSettingsService
         // Re-merge user overrides onto defaults (no file writes)
         LanguageSettings = ReadMergedLanguageSettings(
             _defaultSettingsPath,
-            UserSettingsPath
+            _userSettingsPath
         );
 
         _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
@@ -69,7 +76,7 @@ public class LanguageSettingsService
     /// </summary>
     public void Save()
     {
-        var dir = Path.GetDirectoryName(UserSettingsPath);
+        var dir = Path.GetDirectoryName(_userSettingsPath);
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
@@ -79,7 +86,7 @@ public class LanguageSettingsService
         );
 
         File.WriteAllText(
-            UserSettingsPath,
+            _userSettingsPath,
             json,
             new UTF8Encoding(false) // 🔑 preserve CJK, no BOM
         );
@@ -107,7 +114,8 @@ public class LanguageSettingsService
         "themeMode",
         "uiScale",
         "windowWidth",
-        "windowHeight"
+        "windowHeight",
+        "saveUnsavedSettingsOnExit"
     };
 
     private static readonly JsonSerializerSettings JsonSaveSettings =
@@ -174,13 +182,111 @@ public class LanguageSettingsService
 
         var diff = (JObject?)DiffToken(defaultPick, currentPick) ?? new JObject();
 
-        var dir = Path.GetDirectoryName(UserSettingsPath);
+        var dir = Path.GetDirectoryName(_userSettingsPath);
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        File.WriteAllText(UserSettingsPath, diff.ToString(Formatting.Indented), new UTF8Encoding(false));
+        File.WriteAllText(_userSettingsPath, diff.ToString(Formatting.Indented), new UTF8Encoding(false));
 
         _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
+    }
+
+    /// <summary>
+    /// Persists only the automatically saved window dimensions. Existing explicit
+    /// user settings are preserved and the explicit-save dirty snapshot is unchanged.
+    /// </summary>
+    public void SaveWindowSize(int width, int height)
+    {
+        width = Math.Max(MinimumWindowWidth, width);
+        height = Math.Max(MinimumWindowHeight, height);
+
+        JObject userSettings;
+        try
+        {
+            userSettings = File.Exists(_userSettingsPath)
+                ? JObject.Parse(File.ReadAllText(_userSettingsPath))
+                : new JObject();
+        }
+        catch
+        {
+            // Do not fall back to the current in-memory settings: they may contain
+            // unsaved edits. Replace an unreadable user file with dimensions only.
+            userSettings = new JObject();
+        }
+
+        var widthToken = userSettings.GetValue("windowWidth", StringComparison.OrdinalIgnoreCase);
+        var heightToken = userSettings.GetValue("windowHeight", StringComparison.OrdinalIgnoreCase);
+        if (IsIntegerValue(widthToken, width) && IsIntegerValue(heightToken, height))
+            return;
+
+        SetWindowDimension(userSettings, "windowWidth", width);
+        SetWindowDimension(userSettings, "windowHeight", height);
+
+        var dir = Path.GetDirectoryName(_userSettingsPath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
+
+        File.WriteAllText(
+            _userSettingsPath,
+            userSettings.ToString(Formatting.Indented),
+            new UTF8Encoding(false));
+    }
+
+    /// <summary>
+    /// Persists only the exit auto-save preference without saving other in-memory edits.
+    /// </summary>
+    public void SaveExitAutoSavePreference(bool enabled)
+    {
+        JObject userSettings;
+        try
+        {
+            userSettings = File.Exists(_userSettingsPath)
+                ? JObject.Parse(File.ReadAllText(_userSettingsPath))
+                : new JObject();
+        }
+        catch
+        {
+            userSettings = new JObject();
+        }
+
+        var existing = userSettings.GetValue("saveUnsavedSettingsOnExit", StringComparison.OrdinalIgnoreCase);
+        if (enabled)
+        {
+            if (existing?.Type == JTokenType.Boolean && existing.Value<bool>())
+                return;
+
+            if (existing is null)
+                userSettings["saveUnsavedSettingsOnExit"] = true;
+            else
+                existing.Replace(true);
+        }
+        else
+        {
+            if (existing?.Parent is not JProperty property)
+                return;
+            property.Remove();
+        }
+
+        var dir = Path.GetDirectoryName(_userSettingsPath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
+
+        File.WriteAllText(
+            _userSettingsPath,
+            userSettings.ToString(Formatting.Indented),
+            new UTF8Encoding(false));
+    }
+
+    private static bool IsIntegerValue(JToken? token, int expected) =>
+        token?.Type == JTokenType.Integer && token.Value<long>() == expected;
+
+    private static void SetWindowDimension(JObject settings, string propertyName, int value)
+    {
+        var existing = settings.GetValue(propertyName, StringComparison.OrdinalIgnoreCase);
+        if (existing is null)
+            settings[propertyName] = value;
+        else
+            existing.Replace(value);
     }
 
     private static string CreateSnapshot(LanguageSettings settings)
@@ -190,6 +296,7 @@ public class LanguageSettingsService
         snapshot.Remove(nameof(settings.UiScale));
         snapshot.Remove(nameof(settings.WindowWidth));
         snapshot.Remove(nameof(settings.WindowHeight));
+        snapshot.Remove(nameof(settings.SaveUnsavedSettingsOnExit));
         return snapshot.ToString(Formatting.None);
     }
 
@@ -236,7 +343,8 @@ public class LanguageSettingsService
 
     private static LanguageSettings Normalize(LanguageSettings settings)
     {
-        settings.CustomDictionaries ??= new List<CustomDictionarySetting>();
+        // '??' left operand is never 'null' according to nullable reference types' annotations
+        // settings.CustomDictionaries ??= new List<CustomDictionarySetting>();
         settings.UiScale = NormalizeUiScale(settings.UiScale);
         settings.WindowWidth = settings.WindowWidth <= 0
             ? DefaultWindowWidth
@@ -357,6 +465,7 @@ public class LanguageSettingsService
       ""unsavedChangesContent"": ""Unsaved changes"",
       ""allSettingsSavedContent"": ""All settings saved"",
       ""btnSaveAdvancedSettingsContent"": ""Save Advanced Settings"",
+      ""saveUnsavedSettingsOnExitContent"": ""Save unsaved settings on exit"",
       ""processContent"": ""Process"",
       ""batchStartContent"": ""Batch Start"",
       ""sourceContent"": ""Source:"",
@@ -619,6 +728,7 @@ public class LanguageSettingsService
       ""unsavedChangesContent"": ""變更尚未儲存"",
       ""allSettingsSavedContent"": ""所有設定已儲存"",
       ""btnSaveAdvancedSettingsContent"": ""儲存進階設定"",
+      ""saveUnsavedSettingsOnExitContent"": ""結束時儲存未儲存的設定"",
       ""processContent"": ""開始轉換"",
       ""batchStartContent"": ""開始批次轉換"",
       ""sourceContent"": ""來源："",
@@ -881,6 +991,7 @@ public class LanguageSettingsService
       ""unsavedChangesContent"": ""更改未保存"",
       ""allSettingsSavedContent"": ""所有设置已保存"",
       ""btnSaveAdvancedSettingsContent"": ""保存高级设置"",
+      ""saveUnsavedSettingsOnExitContent"": ""退出时保存未保存的设置"",
       ""processContent"": ""开始转换"",
       ""batchStartContent"": ""开始批量转换"",
       ""sourceContent"": ""来源："",
@@ -1176,6 +1287,7 @@ public class LanguageSettingsService
   ""uiScale"": 100,
   ""windowWidth"": 1000,
   ""windowHeight"": 750,
+  ""saveUnsavedSettingsOnExit"": false,
   ""locale"": 2
 }
 ";

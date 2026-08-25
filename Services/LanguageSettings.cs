@@ -18,6 +18,7 @@ public class LanguageSettings
     public int UiScale { get; set; } = 100;
     public int WindowWidth { get; set; } = 1000;
     public int WindowHeight { get; set; } = 750;
+    public bool SaveUnsavedSettingsOnExit { get; set; }
     public string ThemeMode { get; set; } = "System";
     public string EditorFont { get; set; } = "Consolas";
     public double EditorFontSize { get; set; } = 14;
@@ -88,6 +89,7 @@ public class Language
     public string UnsavedChangesContent { get; set; } = "Unsaved changes";
     public string AllSettingsSavedContent { get; set; } = "All settings saved";
     public string BtnSaveAdvancedSettingsContent { get; set; } = "Save Advanced Settings";
+    public string SaveUnsavedSettingsOnExitContent { get; set; } = "Save unsaved settings on exit";
     public string ProcessContent { get; set; } = "Process";
     public string BatchStartContent { get; set; } = "Batch Start";
     public string SourceContent { get; set; } = "Source:";

@@ -217,6 +217,8 @@ public class MainWindowViewModel : ViewModelBase
 
     public void PersistWindowSize(double width, double height) => Settings.PersistWindowSize(width, height);
 
+    public void PersistOnExit(double? width, double? height) => Settings.PersistOnExit(width, height);
+
     public MainWindowViewModel()
         : this(new SettingsViewModel())
     {
@@ -547,6 +549,7 @@ public class MainWindowViewModel : ViewModelBase
             UnsavedChangesContent = "Unsaved changes",
             AllSettingsSavedContent = "All settings saved",
             BtnSaveAdvancedSettingsContent = "Save Advanced Settings",
+            SaveUnsavedSettingsOnExitContent = "Save unsaved settings on exit",
             ProcessContent = "Process",
             BatchStartContent = "Batch Start",
             SourceContent = "Source:",
@@ -1547,7 +1550,9 @@ public class MainWindowViewModel : ViewModelBase
         //     ReflowModel.ReflowCjkParagraphs(sourceText, PdfVm.PdfOptions,
         //         _sentenceBoundaryLevel);
 
-        var result = _opencc!.NormalizeCompat(sourceText, IsCbExtendUnicodeCompat);
+        var result = IsCbExtendUnicodeCompat
+            ? _opencc!.NormalizeCompatExtended(sourceText)
+            : _opencc!.NormalizeCompat(sourceText);
 
         if (hasSelection)
         {
