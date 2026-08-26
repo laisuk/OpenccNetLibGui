@@ -41,6 +41,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Refactored custom dictionary row parsing and validation into a shared path used by both dictionary generation and
   runtime application, keeping slot, mode, path, and file validation consistent.
 
+### Fixed
+
+- Improved EPUB text extraction compatibility with XHTML files containing common HTML named entities such as `&nbsp;`,
+  typographic spaces, dashes, quotation marks, and ellipses. These entities are normalized before XML parsing without
+  enabling external DTD resolution.
+
 ---
 
 ## [1.6.2] - 2026-08-15

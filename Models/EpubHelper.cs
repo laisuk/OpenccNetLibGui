@@ -206,6 +206,19 @@ public static class EpubHelper
 
     private static string ExtractXhtmlText(Stream xhtmlStream)
     {
+        using var sr = new StreamReader(
+            xhtmlStream,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: true);
+
+        var xhtml = sr.ReadToEnd();
+
+        // XHTML commonly contains HTML's &nbsp;, which is not a
+        // predefined XML entity when the DTD is deliberately ignored.
+        xhtml = NormalizeXhtmlEntities(xhtml);
+
+        using var textReader = new StringReader(xhtml);
+
         var sb = new StringBuilder(32 * 1024);
 
         // Stackless simple state is enough for plain text.
@@ -220,7 +233,7 @@ public static class EpubHelper
             XmlResolver = null // ✅ extra safety (no external fetch)
         };
 
-        using var reader = XmlReader.Create(xhtmlStream, settings);
+        using var reader = XmlReader.Create(textReader, settings);
 
         while (reader.Read())
         {
@@ -288,6 +301,102 @@ public static class EpubHelper
         text = text.Replace("\u00AD", ""); // soft hyphen
         text = text.Replace("\u00A0", " "); // nbsp
         return text;
+    }
+
+    private static string NormalizeXhtmlEntities(ReadOnlySpan<char> xhtmlSpan)
+    {
+        var pos = 0;
+        var copyFrom = 0;
+        StringBuilder? sb = null;
+
+        while (pos < xhtmlSpan.Length)
+        {
+            var offset = xhtmlSpan[pos..].IndexOf('&');
+            if (offset < 0)
+                break;
+
+            var i = pos + offset;
+            var remaining = xhtmlSpan[i..];
+
+            ReadOnlySpan<char> replacement = default;
+            var consumed = 0;
+
+            if (remaining.StartsWith("&nbsp;"))
+            {
+                replacement = "&#160;";
+                consumed = 6;
+            }
+            else if (remaining.StartsWith("&ensp;"))
+            {
+                replacement = "&#8194;";
+                consumed = 6;
+            }
+            else if (remaining.StartsWith("&emsp;"))
+            {
+                replacement = "&#8195;";
+                consumed = 6;
+            }
+            else if (remaining.StartsWith("&thinsp;"))
+            {
+                replacement = "&#8201;";
+                consumed = 8;
+            }
+            else if (remaining.StartsWith("&ndash;"))
+            {
+                replacement = "&#8211;";
+                consumed = 7;
+            }
+            else if (remaining.StartsWith("&mdash;"))
+            {
+                replacement = "&#8212;";
+                consumed = 7;
+            }
+            else if (remaining.StartsWith("&lsquo;"))
+            {
+                replacement = "&#8216;";
+                consumed = 7;
+            }
+            else if (remaining.StartsWith("&rsquo;"))
+            {
+                replacement = "&#8217;";
+                consumed = 7;
+            }
+            else if (remaining.StartsWith("&ldquo;"))
+            {
+                replacement = "&#8220;";
+                consumed = 7;
+            }
+            else if (remaining.StartsWith("&rdquo;"))
+            {
+                replacement = "&#8221;";
+                consumed = 7;
+            }
+            else if (remaining.StartsWith("&hellip;"))
+            {
+                replacement = "&#8230;";
+                consumed = 8;
+            }
+
+            if (consumed == 0)
+            {
+                pos = i + 1;
+                continue;
+            }
+
+            sb ??= new StringBuilder(xhtmlSpan.Length + 32);
+
+            sb.Append(xhtmlSpan[copyFrom..i]);
+            sb.Append(replacement);
+
+            copyFrom = i + consumed;
+            pos = copyFrom;
+        }
+
+        if (sb == null)
+            return xhtmlSpan.ToString();
+
+        sb.Append(xhtmlSpan[copyFrom..]);
+        return sb.ToString();
     }
 
     private static bool IsSkipElement(string localName)
