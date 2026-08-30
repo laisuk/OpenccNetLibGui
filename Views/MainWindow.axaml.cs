@@ -255,7 +255,7 @@ public partial class MainWindow : Window
                 return;
 
             e.Handled = true;
-            
+
             var mainTab = this.FindControl<TabItem>("TabMain");
             if (mainTab?.IsSelected != true)
                 return;
@@ -440,5 +440,15 @@ public partial class MainWindow : Window
         editor.ScrollToLine(visualLine);
 
         editor.TextArea.Caret.BringCaretToView();
+    }
+
+    private void LblFileName_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm ||
+            !vm.CanReloadOpenFileEncoding)
+            return;
+
+        if (sender is TextBlock textBlock)
+            textBlock.ContextMenu?.Open(textBlock);
     }
 }

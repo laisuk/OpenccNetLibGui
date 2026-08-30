@@ -264,6 +264,7 @@ public class MainWindowViewModel : ViewModelBase
         BtnValidateDialogQuotesSourceCommand = ReactiveCommand.CreateFromTask(ValidateDialogQuotesSourceAsync);
         ShowShortHeadingDialogCommand = ReactiveCommand.CreateFromTask(ShowShortHeadingDialogAsync);
         ShowAboutDialog = ReactiveCommand.CreateFromTask(ShowAbout);
+        ReloadEncodingCommand = ReactiveCommand.CreateFromTask<string>(ReloadCurrentTextFileAsync);
 
         Settings.SettingsSaved += SettingsOnSettingsSaved;
         TrackSubscription(Disposable.Create(() => Settings.SettingsSaved -= SettingsOnSettingsSaved));
@@ -296,6 +297,7 @@ public class MainWindowViewModel : ViewModelBase
             (nameof(ShowShortHeadingDialogCommand), ShowShortHeadingDialogCommand.ThrownExceptions),
             (nameof(Settings.SaveLanguageSettingsCommand), Settings.SaveLanguageSettingsCommand.ThrownExceptions),
             (nameof(ShowAboutDialog), ShowAboutDialog.ThrownExceptions),
+            (nameof(ReloadEncodingCommand), ReloadEncodingCommand.ThrownExceptions),
             (nameof(Settings.ResetWindowSizeCommand), Settings.ResetWindowSizeCommand.ThrownExceptions)));
     }
 
@@ -1048,6 +1050,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnValidateDialogQuotesDestinationCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowShortHeadingDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowAboutDialog { get; }
+    public ReactiveCommand<string, Unit> ReloadEncodingCommand { get; }
 
     #endregion
 
@@ -1340,6 +1343,52 @@ public class MainWindowViewModel : ViewModelBase
         const int tail = 15;
 
         return StringUtils.MiddleEllipsis(fileName, maxLength, head, tail);
+    }
+
+    internal async Task ReloadCurrentTextFileAsync(string encodingName)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentOpenFilename))
+            return;
+
+        if (!File.Exists(CurrentOpenFilename))
+            return;
+
+        var extension = Path.GetExtension(CurrentOpenFilename);
+
+        if (_textFileTypes == null || !_textFileTypes.Contains(extension))
+            return;
+
+        try
+        {
+            var encoding = encodingName switch
+            {
+                "utf-8" => Encoding.UTF8,
+                "gb18030" => Encoding.GetEncoding("GB18030"),
+                "big5" => Encoding.GetEncoding("Big5"),
+                "utf-16le" => Encoding.Unicode,
+                "utf-16be" => Encoding.BigEndianUnicode,
+                _ => Encoding.UTF8
+            };
+
+            using var reader = new StreamReader(
+                CurrentOpenFilename,
+                encoding,
+                detectEncodingFromByteOrderMarks: true);
+
+            var text = await reader.ReadToEndAsync();
+
+            TbSourceTextDocument!.Text = text;
+            TbSourceTextDocument.UndoStack.ClearAll();
+
+            UpdateEncodeInfo(Opencc.ZhoCheck(text));
+
+            LblStatusBarContent =
+                $"Reloaded as {encoding.WebName}: {Path.GetFileName(CurrentOpenFilename)}";
+        }
+        catch (Exception ex)
+        {
+            LblStatusBarContent = $"Error decoding file: {ex.Message}";
+        }
     }
 
     #endregion // File Open Region
@@ -2306,7 +2355,39 @@ public class MainWindowViewModel : ViewModelBase
     public string? LblFileNameContent
     {
         get => _lblFilenameContent;
-        set => this.RaiseAndSetIfChanged(ref _lblFilenameContent, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _lblFilenameContent, value);
+            this.RaisePropertyChanged(nameof(OpenFileEncodingHint));
+        }
+    }
+
+    public string? OpenFileEncodingHint
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(CurrentOpenFilename))
+                return null;
+
+            var extension = Path.GetExtension(CurrentOpenFilename);
+
+            return _textFileTypes?.Contains(extension) == true
+                ? "Click to select text encoding"
+                : null;
+        }
+    }
+
+    public bool CanReloadOpenFileEncoding
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(CurrentOpenFilename))
+                return false;
+
+            var extension = Path.GetExtension(CurrentOpenFilename);
+
+            return _textFileTypes?.Contains(extension) == true;
+        }
     }
 
     public TextDocument? TbSourceTextDocument

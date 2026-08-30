@@ -1040,10 +1040,45 @@
 
                 <TextBlock x:Name="LblFileName"
                            Text="{Binding LblFileNameContent}"
+                           ToolTip.Tip="{Binding OpenFileEncodingHint}"
                            Padding="0 2"
                            IsVisible="{Binding IsLblFileNameVisible}"
                            VerticalAlignment="Center"
-                           FontSize="14" />
+                           FontSize="14"
+                           Cursor="Hand"
+                           PointerPressed="LblFileName_PointerPressed">
+
+                    <TextBlock.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="UTF-8"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="utf-8" />
+
+                            <MenuItem Header="GB18030 / GBK"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="gb18030" />
+
+                            <MenuItem Header="Big5"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="big5" />
+
+                            <Separator />
+
+                            <MenuItem Header="UTF-16 LE"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="utf-16le" />
+
+                            <MenuItem Header="UTF-16 BE"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="utf-16be" />
+                        </ContextMenu>
+                    </TextBlock.ContextMenu>
+                </TextBlock>
             </StackPanel>
 
             <StackPanel Grid.Row="2"

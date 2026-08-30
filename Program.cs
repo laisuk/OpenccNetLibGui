@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Concurrency;
+using System.Text;
 using Avalonia;
 using Avalonia.Threading;
 using ReactiveUI.Reactive;
@@ -14,6 +15,7 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }

@@ -29,6 +29,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added regression tests covering runtime custom dictionaries, base-converter isolation, repeated application without
   custom-slot stacking, reset to the base converter, failed-apply atomicity, runtime status formatting, and custom-row
   persistence and dirty-state tracking.
+- feat: add text encoding menu to opened filename, enable file to be reloaded with the selected encoding.
 
 ### Changed
 
