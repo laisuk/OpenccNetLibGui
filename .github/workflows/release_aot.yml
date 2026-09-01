@@ -1,0 +1,78 @@
+﻿name: Build Avalonia GUI NativeAOT
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build-aot:
+    name: Build NativeAOT ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: windows-latest
+            rid: win-arm64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore OpenccNetLibGui.sln
+
+      - name: Publish NativeAOT
+        run: >
+          dotnet publish OpenccNetLibGui.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --self-contained true
+          --output publish/
+          -p:PublishAot=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $folder = "OpenccNetLibGui-${{ matrix.rid }}-aot"
+          Rename-Item -Path publish -NewName $folder
+          Compress-Archive -Path "$folder\*" -DestinationPath "$folder.zip"
+
+      - name: Package (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          folder="OpenccNetLibGui-${{ matrix.rid }}-aot"
+          mv publish "$folder"
+          tar -czf "$folder.tar.gz" "$folder"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenccNetLibGui-${{ matrix.rid }}-aot
+          path: |
+            OpenccNetLibGui-*-aot.zip
+            OpenccNetLibGui-*-aot.tar.gz
+          if-no-files-found: error

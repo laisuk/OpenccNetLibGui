@@ -36,6 +36,7 @@
 
     <ItemGroup>
         <Content Include=".github\workflows\release.yml"/>
+        <Content Include=".github\workflows\release_aot.yml" />
         <Content Include="Assets\openccnetlib.ico"/>
     </ItemGroup>
 
