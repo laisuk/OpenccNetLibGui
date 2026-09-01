@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace OpenccNetLibGui.Services;
 
@@ -23,6 +24,23 @@ public class LanguageSettingsService
     private readonly string _defaultSettingsPath;
     private readonly string _userSettingsPath;
     private string _lastSavedSnapshot = string.Empty;
+
+    private static readonly JsonSerializerOptions JsonReadOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
+
+    private static readonly JsonSerializerOptions JsonWriteOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    private static readonly LanguageSettingsJsonContext JsonReadContext = new(JsonReadOptions);
+    private static readonly LanguageSettingsJsonContext JsonWriteContext = new(JsonWriteOptions);
 
     public static string UserSettingsPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -80,10 +98,8 @@ public class LanguageSettingsService
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        var json = JsonConvert.SerializeObject(
-            LanguageSettings,
-            Formatting.Indented
-        );
+        var node = SerializeSettingsToObject(LanguageSettings);
+        var json = node.ToJsonString(CreateIndentedNodeOptions());
 
         File.WriteAllText(
             _userSettingsPath,
@@ -118,75 +134,61 @@ public class LanguageSettingsService
         "saveUnsavedSettingsOnExit"
     };
 
-    private static readonly JsonSerializerSettings JsonSaveSettings =
-        new()
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-            Formatting = Formatting.None
-        };
-
-    private static JObject Pick(JObject src, IEnumerable<string> rootPaths)
+    private static JsonObject Pick(JsonObject src, IEnumerable<string> rootPaths)
     {
-        var dst = new JObject();
+        var dst = new JsonObject();
         foreach (var p in rootPaths)
         {
-            if (src.TryGetValue(p, out var token))
-                dst[p] = token.DeepClone();
+            if (src.TryGetPropertyValue(p, out var node) && node is not null)
+                dst[p] = node.DeepClone();
         }
 
         return dst;
     }
 
-    private static JToken? DiffToken(JToken? defTok, JToken? curTok)
+    private static JsonNode? DiffToken(JsonNode? defaultNode, JsonNode? currentNode)
     {
-        if (curTok is null) return null;
-        if (defTok is null) return curTok.DeepClone();
-        if (JToken.DeepEquals(defTok, curTok)) return null;
+        if (currentNode is null) return null;
+        if (defaultNode is null) return currentNode.DeepClone();
+        if (JsonNode.DeepEquals(defaultNode, currentNode)) return null;
 
-        if (defTok is not JObject dObj || curTok is not JObject cObj) return curTok.DeepClone();
-        var diff = new JObject();
-        foreach (var prop in cObj.Properties())
+        if (defaultNode is not JsonObject defaultObject || currentNode is not JsonObject currentObject)
+            return currentNode.DeepClone();
+
+        var diff = new JsonObject();
+        foreach (var (name, value) in currentObject)
         {
-            var dChild = dObj[prop.Name];
-            var cChild = prop.Value;
-
-            var childDiff = DiffToken(dChild, cChild);
-            if (childDiff != null)
-                diff[prop.Name] = childDiff;
+            defaultObject.TryGetPropertyValue(name, out var defaultChild);
+            var childDiff = DiffToken(defaultChild, value);
+            if (childDiff is not null)
+                diff[name] = childDiff;
         }
 
-        return diff.HasValues ? diff : null;
-
-        // Arrays (and values): treat as atomic
+        return diff.Count > 0 ? diff : null;
     }
 
     public void SaveDiffOnly()
     {
-        // default JSON (shipped)
-        var defaultObj = JObject.Parse(File.ReadAllText(_defaultSettingsPath));
-
-        // IMPORTANT: use the SAME serializer settings (camelCase) as in default JSON
-        var serializer = JsonSerializer.Create(JsonSaveSettings);
-        var currentObj = JObject.FromObject(LanguageSettings, serializer);
-
-        // current effective settings in memory
-        // var currentObj = JObject.FromObject(LanguageSettings);
+        var defaultObj = ParseToJsonObjectAllowDuplicates(File.ReadAllText(_defaultSettingsPath));
+        var currentObj = SerializeSettingsToObject(LanguageSettings);
 
         // Optional: drop meta "info" so it never pollutes user file
-        if (currentObj["sentenceBoundaryMode"] is JObject sbm)
+        if (currentObj["sentenceBoundaryMode"] is JsonObject sbm)
             sbm.Remove("info");
 
         var defaultPick = Pick(defaultObj, DiffRootPaths);
         var currentPick = Pick(currentObj, DiffRootPaths);
 
-        var diff = (JObject?)DiffToken(defaultPick, currentPick) ?? new JObject();
+        var diff = DiffToken(defaultPick, currentPick) as JsonObject ?? new JsonObject();
 
         var dir = Path.GetDirectoryName(_userSettingsPath);
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        File.WriteAllText(_userSettingsPath, diff.ToString(Formatting.Indented), new UTF8Encoding(false));
+        File.WriteAllText(
+            _userSettingsPath,
+            diff.ToJsonString(CreateIndentedNodeOptions()),
+            new UTF8Encoding(false));
 
         _lastSavedSnapshot = CreateSnapshot(LanguageSettings);
     }
@@ -200,22 +202,22 @@ public class LanguageSettingsService
         width = Math.Max(MinimumWindowWidth, width);
         height = Math.Max(MinimumWindowHeight, height);
 
-        JObject userSettings;
+        JsonObject userSettings;
         try
         {
             userSettings = File.Exists(_userSettingsPath)
-                ? JObject.Parse(File.ReadAllText(_userSettingsPath))
-                : new JObject();
+                ? ParseToJsonObjectAllowDuplicates(File.ReadAllText(_userSettingsPath))
+                : new JsonObject();
         }
         catch
         {
             // Do not fall back to the current in-memory settings: they may contain
             // unsaved edits. Replace an unreadable user file with dimensions only.
-            userSettings = new JObject();
+            userSettings = new JsonObject();
         }
 
-        var widthToken = userSettings.GetValue("windowWidth", StringComparison.OrdinalIgnoreCase);
-        var heightToken = userSettings.GetValue("windowHeight", StringComparison.OrdinalIgnoreCase);
+        var widthToken = GetPropertyValueIgnoreCase(userSettings, "windowWidth");
+        var heightToken = GetPropertyValueIgnoreCase(userSettings, "windowHeight");
         if (IsIntegerValue(widthToken, width) && IsIntegerValue(heightToken, height))
             return;
 
@@ -228,7 +230,7 @@ public class LanguageSettingsService
 
         File.WriteAllText(
             _userSettingsPath,
-            userSettings.ToString(Formatting.Indented),
+            userSettings.ToJsonString(CreateIndentedNodeOptions()),
             new UTF8Encoding(false));
     }
 
@@ -237,34 +239,35 @@ public class LanguageSettingsService
     /// </summary>
     public void SaveExitAutoSavePreference(bool enabled)
     {
-        JObject userSettings;
+        JsonObject userSettings;
         try
         {
             userSettings = File.Exists(_userSettingsPath)
-                ? JObject.Parse(File.ReadAllText(_userSettingsPath))
-                : new JObject();
+                ? ParseToJsonObjectAllowDuplicates(File.ReadAllText(_userSettingsPath))
+                : new JsonObject();
         }
         catch
         {
-            userSettings = new JObject();
+            userSettings = new JsonObject();
         }
 
-        var existing = userSettings.GetValue("saveUnsavedSettingsOnExit", StringComparison.OrdinalIgnoreCase);
+        var existingName = GetPropertyNameIgnoreCase(userSettings, "saveUnsavedSettingsOnExit");
+        var existing = existingName is null ? null : userSettings[existingName];
         if (enabled)
         {
-            if (existing?.Type == JTokenType.Boolean && existing.Value<bool>())
+            if (existing is JsonValue value && value.TryGetValue<bool>(out var current) && current)
                 return;
 
             if (existing is null)
                 userSettings["saveUnsavedSettingsOnExit"] = true;
             else
-                existing.Replace(true);
+                userSettings[existingName!] = true;
         }
         else
         {
-            if (existing?.Parent is not JProperty property)
+            if (existingName is null)
                 return;
-            property.Remove();
+            userSettings.Remove(existingName);
         }
 
         var dir = Path.GetDirectoryName(_userSettingsPath);
@@ -273,31 +276,33 @@ public class LanguageSettingsService
 
         File.WriteAllText(
             _userSettingsPath,
-            userSettings.ToString(Formatting.Indented),
+            userSettings.ToJsonString(CreateIndentedNodeOptions()),
             new UTF8Encoding(false));
     }
 
-    private static bool IsIntegerValue(JToken? token, int expected) =>
-        token?.Type == JTokenType.Integer && token.Value<long>() == expected;
+    private static bool IsIntegerValue(JsonNode? node, int expected) =>
+        node is JsonValue value &&
+        (value.TryGetValue<int>(out var intValue) && intValue == expected ||
+         value.TryGetValue<long>(out var longValue) && longValue == expected);
 
-    private static void SetWindowDimension(JObject settings, string propertyName, int value)
+    private static void SetWindowDimension(JsonObject settings, string propertyName, int value)
     {
-        var existing = settings.GetValue(propertyName, StringComparison.OrdinalIgnoreCase);
-        if (existing is null)
+        var existingName = GetPropertyNameIgnoreCase(settings, propertyName);
+        if (existingName is null)
             settings[propertyName] = value;
         else
-            existing.Replace(value);
+            settings[existingName] = value;
     }
 
     private static string CreateSnapshot(LanguageSettings settings)
     {
         // Auto-persisted UI state does not contribute to the explicit-save dirty state.
-        var snapshot = JObject.FromObject(settings);
-        snapshot.Remove(nameof(settings.UiScale));
-        snapshot.Remove(nameof(settings.WindowWidth));
-        snapshot.Remove(nameof(settings.WindowHeight));
-        snapshot.Remove(nameof(settings.SaveUnsavedSettingsOnExit));
-        return snapshot.ToString(Formatting.None);
+        var snapshot = SerializeSettingsToObject(settings);
+        snapshot.Remove("uiScale");
+        snapshot.Remove("windowWidth");
+        snapshot.Remove("windowHeight");
+        snapshot.Remove("saveUnsavedSettingsOnExit");
+        return snapshot.ToJsonString(JsonWriteOptions);
     }
 
     private static LanguageSettings ReadMergedLanguageSettings(
@@ -312,27 +317,16 @@ public class LanguageSettingsService
 
         try
         {
-            var userJson = File.ReadAllText(userPath);
-            var userObject = JObject.Parse(userJson);
-            var uiScaleToken = userObject.GetValue("uiScale", StringComparison.OrdinalIgnoreCase);
-            if (uiScaleToken is not null &&
-                (uiScaleToken.Type != JTokenType.Integer ||
-                 !int.TryParse(uiScaleToken.ToString(), out var uiScale) ||
-                 !IsSupportedUiScale(uiScale)))
-            {
-                uiScaleToken.Replace(100);
-            }
+            var defaultObject = SerializeSettingsToObject(defaultSettings);
+            var userObject = ParseToJsonObjectAllowDuplicates(File.ReadAllText(userPath));
+            NormalizeUserSettings(userObject);
+            MergeInto(defaultObject, userObject);
 
-            NormalizeWindowDimensionToken(userObject, "windowWidth", DefaultWindowWidth, MinimumWindowWidth);
-            NormalizeWindowDimensionToken(userObject, "windowHeight", DefaultWindowHeight, MinimumWindowHeight);
+            var merged = JsonSerializer.Deserialize(
+                defaultObject.ToJsonString(JsonWriteOptions),
+                JsonReadContext.LanguageSettings);
 
-            // 🔑 Merge user → default
-            JsonConvert.PopulateObject(
-                userObject.ToString(Formatting.None),
-                defaultSettings
-            );
-
-            return Normalize(defaultSettings);
+            return Normalize(merged ?? defaultSettings);
         }
         catch
         {
@@ -382,31 +376,143 @@ public class LanguageSettingsService
         };
     }
 
-    private static void NormalizeWindowDimensionToken(
-        JObject settings,
-        string propertyName,
-        int defaultValue,
-        int minimumValue)
+    private static void NormalizeUserSettings(JsonObject settings)
     {
-        var token = settings.GetValue(propertyName, StringComparison.OrdinalIgnoreCase);
-        if (token is null)
-            return;
+        NormalizeProperty(settings, "uiScale", node =>
+            JsonValue.Create(NormalizeUiScale(CoercePositiveInt(node, 100))));
+        NormalizeProperty(settings, "windowWidth", node =>
+            CoerceWindowDimension(node, DefaultWindowWidth, MinimumWindowWidth));
+        NormalizeProperty(settings, "windowHeight", node =>
+            CoerceWindowDimension(node, DefaultWindowHeight, MinimumWindowHeight));
+    }
 
-        try
+    private static void NormalizeProperty(
+        JsonObject settings,
+        string propertyName,
+        Func<JsonNode?, JsonNode?> normalize)
+    {
+        var actualName = GetPropertyNameIgnoreCase(settings, propertyName);
+        if (actualName is not null)
+            settings[actualName] = normalize(settings[actualName]);
+    }
+
+    private static int CoercePositiveInt(JsonNode? node, int fallback)
+    {
+        if (node is not JsonValue value)
+            return fallback;
+        if (value.TryGetValue<int>(out var intValue) && intValue > 0)
+            return intValue;
+        if (value.TryGetValue<long>(out var longValue) && longValue is > 0 and <= int.MaxValue)
+            return (int)longValue;
+        if (value.TryGetValue<string>(out var text) &&
+            int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0)
+            return parsed;
+        return fallback;
+    }
+
+    private static JsonValue CoerceWindowDimension(JsonNode? node, int fallback, int minimum)
+    {
+        double result = fallback;
+        if (node is JsonValue value)
         {
-            var value = token.Type is JTokenType.Integer or JTokenType.Float
-                ? token.Value<double>()
-                : double.NaN;
-            var normalized = !double.IsFinite(value) || value <= 0 || value > int.MaxValue
-                ? defaultValue
-                : Math.Max(minimumValue, (int)Math.Round(value));
-            token.Replace(normalized);
+            if (value.TryGetValue<double>(out var doubleValue))
+                result = doubleValue;
+            else if (value.TryGetValue<string>(out var text) &&
+                     double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+                result = parsed;
         }
-        catch (Exception)
+
+        var normalized = !double.IsFinite(result) || result <= 0 || result > int.MaxValue
+            ? fallback
+            : Math.Max(minimum, (int)Math.Round(result));
+        return JsonValue.Create(normalized);
+    }
+
+    private static void MergeInto(JsonObject target, JsonObject overlay)
+    {
+        foreach (var (key, overlayValue) in overlay)
         {
-            token.Replace(defaultValue);
+            var targetKey = GetPropertyNameIgnoreCase(target, key) ?? key;
+            target.TryGetPropertyValue(targetKey, out var targetValue);
+
+            if (targetValue is JsonObject targetObject && overlayValue is JsonObject overlayObject)
+                MergeInto(targetObject, overlayObject);
+            else
+                target[targetKey] = overlayValue?.DeepClone();
         }
     }
+
+    private static JsonObject ParseToJsonObjectAllowDuplicates(string json)
+    {
+        var documentOptions = new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        };
+
+        using var document = JsonDocument.Parse(json, documentOptions);
+        return ConvertElementToNode(document.RootElement) as JsonObject
+               ?? throw new JsonException("The settings JSON root must be an object.");
+    }
+
+    private static JsonNode? ConvertElementToNode(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                var jsonObject = new JsonObject();
+                foreach (var property in element.EnumerateObject())
+                    jsonObject[property.Name] = ConvertElementToNode(property.Value); // last duplicate wins
+                return jsonObject;
+            case JsonValueKind.Array:
+                var jsonArray = new JsonArray();
+                foreach (var item in element.EnumerateArray())
+                    jsonArray.Add(ConvertElementToNode(item));
+                return jsonArray;
+            case JsonValueKind.String:
+                return JsonValue.Create(element.GetString());
+            case JsonValueKind.Number:
+                if (element.TryGetInt64(out var integer))
+                    return JsonValue.Create(integer);
+                return element.TryGetDouble(out var number)
+                    ? JsonValue.Create(number)
+                    : JsonValue.Create(element.GetRawText());
+            case JsonValueKind.True:
+                return JsonValue.Create(true);
+            case JsonValueKind.False:
+                return JsonValue.Create(false);
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+                return null;
+            default:
+                return JsonValue.Create(element.GetRawText());
+        }
+    }
+
+    private static string? GetPropertyNameIgnoreCase(JsonObject settings, string propertyName)
+    {
+        if (settings.ContainsKey(propertyName))
+            return propertyName;
+        foreach (var (name, _) in settings)
+            if (string.Equals(name, propertyName, StringComparison.OrdinalIgnoreCase))
+                return name;
+        return null;
+    }
+
+    private static JsonNode? GetPropertyValueIgnoreCase(JsonObject settings, string propertyName)
+    {
+        var actualName = GetPropertyNameIgnoreCase(settings, propertyName);
+        return actualName is null ? null : settings[actualName];
+    }
+
+    private static JsonObject SerializeSettingsToObject(LanguageSettings settings) =>
+        JsonSerializer.SerializeToNode(settings, JsonWriteContext.LanguageSettings) as JsonObject
+        ?? new JsonObject();
+
+    private static JsonSerializerOptions CreateIndentedNodeOptions() => new(JsonWriteOptions)
+    {
+        WriteIndented = true
+    };
 
     private static LanguageSettings ReadOrCreateLanguageSettings(string filePath)
     {
@@ -416,7 +522,7 @@ public class LanguageSettingsService
             try
             {
                 var json = File.ReadAllText(filePath);
-                var settings = JsonConvert.DeserializeObject<LanguageSettings>(json);
+                var settings = JsonSerializer.Deserialize(json, JsonReadContext.LanguageSettings);
                 if (settings is not null)
                 {
                     return settings;
@@ -1295,8 +1401,8 @@ public class LanguageSettingsService
 }
 ";
 
-        File.WriteAllText(filePath, languageSettingsText);
-        var defaultSettings = JsonConvert.DeserializeObject<LanguageSettings>(languageSettingsText)!;
-        return defaultSettings;
+        File.WriteAllText(filePath, languageSettingsText, new UTF8Encoding(false));
+        return JsonSerializer.Deserialize(languageSettingsText, JsonReadContext.LanguageSettings)
+               ?? throw new InvalidOperationException("Failed to deserialize default LanguageSettings JSON.");
     }
 }

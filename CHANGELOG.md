@@ -48,6 +48,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   runtime application, keeping slot, mode, path, and file validation consistent.
 - Refactored view resolution and UI focus handling to remove unnecessary reflection and behavior-based command dispatch,
   improving trimming and NativeAOT compatibility.
+- Migrated settings persistence from Newtonsoft.Json to System.Text.Json with source-generated metadata, improving
+  trimming and NativeAOT compatibility while preserving existing settings merge, diff, recovery, and persistence
+  behavior.
 
 ### Fixed
 

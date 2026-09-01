@@ -146,7 +146,7 @@ recommended.
   Core conversion engine providing optimized OpenCC dictionary handling, FMM segmentation and multi-stage dictionary
   pipelines for Simplified/Traditional conversion.
 
-- **[Newtonsoft.Json](https://www.newtonsoft.com/json)**  
+- **System.Text.Json**
   High-performance JSON serialization/deserialization library used for settings, layout recovery,  
   and application configuration files.
 
@@ -350,7 +350,7 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
   For the modern, cross-platform UI framework powering the application.
 - **[AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)**  
   For the performant text editor component with line numbers and virtualization.
-- **[Newtonsoft.Json](https://www.newtonsoft.com/json)**  
+- **System.Text.Json**
   For the robust and flexible JSON serialization and configuration handling.
 - **[PdfPig](https://github.com/UglyToad/PdfPig)**  
   For the fully-managed PDF text extraction engine used in the standard extraction mode.
