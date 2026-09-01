@@ -203,7 +203,8 @@ public sealed class RuntimeContents
     public string CustomSlotsFormat { get; set; } = "{0} + Custom Slots ({1})";
     public Dictionary<string, string> Dictionaries { get; set; } = new()
     {
-        ["default"] = "Default dictionary",
+        ["default"] = "Built-in dictionary",
+        ["zstd"] = "ZSTD dictionary",
         ["dicts"] = "Folder [dicts] dictionary",
         ["json"] = "JSON dictionary",
         ["cbor"] = "CBOR dictionary"

@@ -628,7 +628,8 @@ public class LanguageSettingsService
         ""label"": ""Runtime"",
         ""customSlotsFormat"": ""{0} + Custom Slots ({1})"",
         ""dictionaries"": {
-          ""default"": ""Default dictionary"",
+          ""default"": ""Built-in dictionary"",
+          ""zstd"": ""ZSTD dictionary"",
           ""dicts"": ""Folder [dicts] dictionary"",
           ""json"": ""JSON dictionary"",
           ""cbor"": ""CBOR dictionary""
@@ -891,7 +892,8 @@ public class LanguageSettingsService
         ""label"": ""執行環境"",
         ""customSlotsFormat"": ""{0} + 自訂槽位 ({1})"",
         ""dictionaries"": {
-          ""default"": ""預設字典"",
+          ""default"": ""內建字典"",
+          ""zstd"": ""ZSTD 字典"",
           ""dicts"": ""資料夾 [dicts] 字典"",
           ""json"": ""JSON 字典"",
           ""cbor"": ""CBOR 字典""
@@ -1154,7 +1156,8 @@ public class LanguageSettingsService
         ""label"": ""运行环境"",
         ""customSlotsFormat"": ""{0} + 自定义槽位 ({1})"",
         ""dictionaries"": {
-          ""default"": ""默认字典"",
+          ""default"": ""内置字典"",
+          ""zstd"": ""ZSTD 字典"",
           ""dicts"": ""文件夹 [dicts] 字典"",
           ""json"": ""JSON 字典"",
           ""cbor"": ""CBOR 字典""
@@ -1278,7 +1281,7 @@ public class LanguageSettingsService
   ""convertFilename"": false,
   ""extendUnicodeCompat"": true,
   ""deTofuLevel"": ""B"",
-  ""dictionary"": ""zstd"",
+  ""dictionary"": ""default"",
   ""customDictionaries"": [],
   ""applyCustomSlotsDuringStartup"": false,
   ""editorFont"": ""Consolas"",

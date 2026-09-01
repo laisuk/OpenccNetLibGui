@@ -11,6 +11,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Added
 
+- Added a separately selectable, localized **ZSTD dictionary** item to **Settings > Global Conversion Dictionary**. The
+  built-in OpenccNetLib dictionary remains available as its own **Built-in dictionary** option.
 - Added runtime custom-dictionary application from the Dictionary tab. Custom dictionary slots can now be applied
   directly to the current converter without generating a replacement base dictionary or restarting the application.
 - Added an **Apply to Current Converter** action for custom dictionary rows. Multiple custom slots are supported using
@@ -33,6 +35,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
+- Separated OpenccNetLib v1.7.0's embedded built-in dictionary from the external
+  `dicts/dictionary_maxlength.zstd` provider. The `default` setting now selects the embedded provider, while `zstd`
+  explicitly loads the external ZSTD artifact; failed external loads fall back to `default`.
 - Updated OpenccNetLib to preview version v1.7.0.
 - Changed custom dictionary rows to serve as editable runtime configuration: modifying a row does not affect the active
   converter until **Apply to Current Converter** is explicitly invoked.
@@ -44,6 +49,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Fixed
 
+- Fixed the runtime status bar retaining the built-in dictionary label after startup when an external ZSTD, `dicts`,
+  JSON, or CBOR provider was active.
 - Improved EPUB text extraction compatibility with XHTML files containing common HTML named entities such as `&nbsp;`,
   typographic spaces, dashes, quotation marks, and ellipses. These entities are normalized before XML parsing without
   enabling external DTD resolution.

@@ -16,7 +16,7 @@ namespace OpenccNetLibGui.ViewModels;
 public sealed class SettingsViewModel : ViewModelBase
 {
     private static readonly string[] ThemeModeValues = { "System", "Light", "Dark" };
-    private static readonly string[] GlobalDictionaryValues = { "zstd", "dicts", "json", "cbor" };
+    private static readonly string[] GlobalDictionaryValues = { "default", "zstd", "dicts", "json", "cbor" };
 
     private readonly ITopLevelService? _topLevelService;
     private readonly LanguageSettingsService? _languageSettingsService;
@@ -337,10 +337,12 @@ public sealed class SettingsViewModel : ViewModelBase
 
     public static string NormalizeGlobalDictionary(string? value) => value?.Trim().ToLowerInvariant() switch
     {
+        "default" => "default",
+        "zstd" => "zstd",
         "dicts" => "dicts",
         "json" => "json",
         "cbor" => "cbor",
-        _ => "zstd"
+        _ => "default"
     };
 
     private void SetSelectedThemeModeIndex(int index)
@@ -454,13 +456,13 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         foreach (var option in GlobalDictionaryOptions)
         {
-            var key = option.Value == "zstd" ? "default" : option.Value;
-            option.Content = language.Runtimes.Dictionaries.TryGetValue(key, out var label) &&
+            option.Content = language.Runtimes.Dictionaries.TryGetValue(option.Value, out var label) &&
                              !string.IsNullOrWhiteSpace(label)
                 ? label
                 : option.Value switch
                 {
-                    "zstd" => "Default dictionary",
+                    "default" => "Built-in dictionary",
+                    "zstd" => "ZSTD dictionary",
                     "dicts" => "Folder [dicts] dictionary",
                     "json" => "JSON dictionary",
                     "cbor" => "CBOR dictionary",

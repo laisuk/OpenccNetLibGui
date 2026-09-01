@@ -130,7 +130,7 @@ public class MainWindowViewModel : ViewModelBase
     private SaveTargetOption? _selectedSaveTargetOption;
     private DeTofuLevelOption? _selectedDeTofuLevelOption;
 
-    private readonly string _activeDictionary = "zstd";
+    private readonly string _activeDictionary = "default";
 
     public DictionaryGeneratorViewModel DictionaryGenerator { get; } = null!;
     public SettingsViewModel Settings { get; }
@@ -365,24 +365,33 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         var configuredDictionary =
-            SettingsViewModel.NormalizeGlobalDictionary(_languageSettings.Dictionary);
+            SettingsViewModel.NormalizeGlobalDictionary(
+                _languageSettings.Dictionary);
 
-        if (configuredDictionary is "dicts" or "json" or "cbor")
+        if (configuredDictionary is "zstd" or "dicts" or "json" or "cbor")
         {
             try
             {
                 switch (configuredDictionary)
                 {
+                    case "zstd":
+                        Opencc.UseCustomDictionary(
+                            DictionaryLib.FromZstd("dicts/dictionary_maxlength.zstd"));
+                        break;
+
                     case "dicts":
-                        Opencc.UseCustomDictionary(DictionaryLib.FromDicts());
+                        Opencc.UseCustomDictionary(
+                            DictionaryLib.FromDicts());
                         break;
 
                     case "json":
-                        Opencc.UseCustomDictionary(DictionaryLib.FromJson());
+                        Opencc.UseCustomDictionary(
+                            DictionaryLib.FromJson());
                         break;
 
                     case "cbor":
-                        Opencc.UseCustomDictionary(DictionaryLib.FromCbor());
+                        Opencc.UseCustomDictionary(
+                            DictionaryLib.FromCbor());
                         break;
                 }
 
@@ -393,17 +402,19 @@ public class MainWindowViewModel : ViewModelBase
                 // Log the custom dictionary loading error.
                 Debug.WriteLine(ex);
 
-                // A failed custom load may have changed provider state, so reset it.
+                // Failed external/custom provider -> restore embedded built-in provider.
                 Opencc.UseDefaultDictionary();
-                _activeDictionary = "zstd";
-                Settings.SetGlobalDictionaryAfterStartupFallback("zstd");
+
+                _activeDictionary = "default";
+                Settings.SetGlobalDictionaryAfterStartupFallback("default");
             }
         }
         else
         {
-            // OpenccNetLib already starts with its default Zstd provider.
-            // Unknown/default values leave that provider untouched.
-            _activeDictionary = "zstd";
+            // "default" and unknown legacy values use OpenccNetLib's
+            // embedded built-in provider.
+            Opencc.UseDefaultDictionary();
+            _activeDictionary = "default";
         }
 
         _baseOpencc = opencc;
@@ -429,8 +440,12 @@ public class MainWindowViewModel : ViewModelBase
             _activeCustomSpecs = Array.Empty<CustomDictSpec>();
             _opencc = _baseOpencc;
             DictionaryGenerator.ReportStartupApplyFailure(exception);
-            RefreshRuntimeStatus();
         }
+
+        // ApplySelectedLanguage refreshes the status before the configured dictionary
+        // is loaded. Refresh again once the active base provider and startup custom
+        // slots are final so the status bar reports the provider actually in use.
+        RefreshRuntimeStatus();
     }
 
     private void ApplyCustomSlots(CustomDictSpec[] specs)

@@ -32,8 +32,8 @@ On the release page, look for assets named:
   FMM-based dictionary matcher.
 
 - **Global Conversion Dictionary**
-  Choose the default Zstd provider or a custom `dicts`, JSON, or CBOR dictionary from Settings, with localized labels
-  and persistent advanced settings.
+  Choose the built-in provider or an external ZSTD, `dicts`, JSON, or CBOR dictionary from Settings, with localized
+  labels and persistent advanced settings.
 
 - **Single & Batch Conversion**  
   Convert individual files or entire directories in one operation.
@@ -282,17 +282,18 @@ Advanced users can configure the same setting directly in `UserLanguageSettings.
 
 Supported values are:
 
-1. `"zstd"` - default provider using `<application directory>/dicts/dictionary_maxlength.zstd`
-2. `"dicts"` - custom `*.txt` files in `<application directory>/dicts/`
-3. `"json"` - `<application directory>/dicts/dictionary_maxlength.json`
-4. `"cbor"` - `<application directory>/dicts/dictionary_maxlength.cbor`
+1. `"default"` - OpenccNetLib's embedded built-in dictionary (the application default)
+2. `"zstd"` - external `<application directory>/dicts/dictionary_maxlength.zstd`
+3. `"dicts"` - custom `*.txt` files in `<application directory>/dicts/`
+4. `"json"` - `<application directory>/dicts/dictionary_maxlength.json`
+5. `"cbor"` - `<application directory>/dicts/dictionary_maxlength.cbor`
 
 To be discovered by the conversion runtime, every custom dictionary source or generated artifact must be placed in the
 application's `dicts` directory. Dictionary files stored outside `<application directory>/dicts/` are ignored.
 
-Only `dicts`, `json`, and `cbor` trigger custom dictionary loading. A missing, empty, or unrecognized value (including
-the legacy value `default`) leaves the built-in Zstd provider untouched. If a recognized custom dictionary cannot be
-loaded, the application falls back to Zstd and reports the default provider as active.
+The `zstd`, `dicts`, `json`, and `cbor` values load an external dictionary. A missing, empty, or unrecognized value
+selects the embedded built-in provider. If an external dictionary cannot be loaded, the application falls back to the
+built-in provider and updates the setting and runtime status accordingly.
 
 The **Dictionary** tab can generate the ZSTD, JSON, or CBOR artifacts used by this setting.
 
@@ -355,4 +356,3 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
   For the fully-managed PDF text extraction engine used in the standard extraction mode.
 - **PDFium (native library + .NET bindings)**  
   For providing high-performance PDF rendering and fast CJK text extraction in Pdfium mode.
-
