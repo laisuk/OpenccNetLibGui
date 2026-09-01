@@ -451,4 +451,10 @@ public partial class MainWindow : Window
         if (sender is TextBlock textBlock)
             textBlock.ContextMenu?.Open(textBlock);
     }
+    
+    private void CmbCustom_GotFocus(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+            vm.IsRbCustom = true;
+    }
 }

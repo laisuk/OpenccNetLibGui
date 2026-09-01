@@ -254,7 +254,7 @@ public class MainWindowViewModel : ViewModelBase
         BtnDetectCommand = ReactiveCommand.CreateFromTask(BtnDetect);
         BtnMessagePreviewClearCommand = ReactiveCommand.Create(BtnMessagePreviewClear);
         BtnBatchStartCommand = ReactiveCommand.CreateFromTask(BtnBatchStart);
-        CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
+        // CmbCustomGotFocusCommand = ReactiveCommand.Create(() => { IsRbCustom = true; });
         BtnReflowCommand = ReactiveCommand.Create(ReflowCjkParagraphs);
         BtnNormCompatCommand = ReactiveCommand.Create(NormalizeCompat);
         BtnDeTofuCommand = ReactiveCommand.Create(DeTofu);
@@ -286,7 +286,7 @@ public class MainWindowViewModel : ViewModelBase
             (nameof(BtnDetectCommand), BtnDetectCommand.ThrownExceptions),
             (nameof(BtnMessagePreviewClearCommand), BtnMessagePreviewClearCommand.ThrownExceptions),
             (nameof(BtnBatchStartCommand), BtnBatchStartCommand.ThrownExceptions),
-            (nameof(CmbCustomGotFocusCommand), CmbCustomGotFocusCommand.ThrownExceptions),
+            // (nameof(CmbCustomGotFocusCommand), CmbCustomGotFocusCommand.ThrownExceptions),
             (nameof(BtnReflowCommand), BtnReflowCommand.ThrownExceptions),
             (nameof(BtnNormCompatCommand), BtnNormCompatCommand.ThrownExceptions),
             (nameof(BtnDeTofuCommand), BtnDeTofuCommand.ThrownExceptions),
@@ -1056,7 +1056,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnDetectCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnMessagePreviewClearCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnBatchStartCommand { get; }
-    public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
+    // public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnNormCompatCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnDeTofuCommand { get; }

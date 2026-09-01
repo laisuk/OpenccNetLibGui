@@ -46,6 +46,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Changed an empty custom-slot application to restore the configured base converter directly.
 - Refactored custom dictionary row parsing and validation into a shared path used by both dictionary generation and
   runtime application, keeping slot, mode, path, and file validation consistent.
+- Refactored view resolution and UI focus handling to remove unnecessary reflection and behavior-based command dispatch,
+  improving trimming and NativeAOT compatibility.
 
 ### Fixed
 
