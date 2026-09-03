@@ -460,14 +460,14 @@ public class MainWindowViewModel : ViewModelBase
     }
 
 
-    internal static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs)
+    private static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs)
     {
         ArgumentNullException.ThrowIfNull(baseOpencc);
         ArgumentNullException.ThrowIfNull(specs);
         return specs.Count == 0 ? baseOpencc : baseOpencc.WithCustomDictionary(specs);
     }
 
-    internal static void ApplyCustomSlotsDuringStartup(bool enabled, Action applyCustomSlots)
+    private static void ApplyCustomSlotsDuringStartup(bool enabled, Action applyCustomSlots)
     {
         ArgumentNullException.ThrowIfNull(applyCustomSlots);
 
@@ -1015,7 +1015,7 @@ public class MainWindowViewModel : ViewModelBase
         LblStatusBarContent = $"{runtimeLabel}: {runtimeVersion} | OpenccNetLib {openccVer} | {dictionaryLabel}";
     }
 
-    internal static string FormatDictionaryLabel(RuntimeContents runtimes, string dictionaryLabel,
+    private static string FormatDictionaryLabel(RuntimeContents runtimes, string dictionaryLabel,
         IEnumerable<CustomDictSpec> specs)
     {
         var slots = specs
@@ -1360,7 +1360,7 @@ public class MainWindowViewModel : ViewModelBase
         return StringUtils.MiddleEllipsis(fileName, maxLength, head, tail);
     }
 
-    internal async Task ReloadCurrentTextFileAsync(string encodingName)
+    private async Task ReloadCurrentTextFileAsync(string encodingName)
     {
         if (string.IsNullOrWhiteSpace(CurrentOpenFilename))
             return;
@@ -2361,7 +2361,7 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _lblStatusBarContent, value);
     }
 
-    public string? CurrentOpenFilename
+    private string? CurrentOpenFilename
     {
         get => _currentOpenFileName;
         set => this.RaiseAndSetIfChanged(ref _currentOpenFileName, value);

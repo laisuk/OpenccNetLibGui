@@ -901,12 +901,12 @@
                                       HorizontalAlignment="Left" IsChecked="{Binding IsCbConvertFilename}" />
                             <Button x:Name="BtnPreview" Content="{Binding BtnPreviewContent}" Padding="0 2" Width="70"
                                     HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,135,2"
-                                    Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26"
+                                    Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26" VerticalContentAlignment="Center"
                                     ToolTip.Tip="{Binding PreviewHint}"
                                     VerticalAlignment="Center" FontSize="14" Command="{Binding BtnPreviewCommand}" />
                             <Button x:Name="BtnDetect" Content="{Binding BtnDetectContent}" Padding="0 2" Width="70"
                                     HorizontalAlignment="Right" HorizontalContentAlignment="Center" Margin="0,2,60,2"
-                                    Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26"
+                                    Grid.Row="1" Grid.Column="0" FontWeight="SemiBold" Height="26" VerticalContentAlignment="Center"
                                     ToolTip.Tip="{Binding DetectHint}"
                                     VerticalAlignment="Center" FontSize="14" Command="{Binding BtnDetectCommand}" />
                             <Button x:Name="BtnClear" Padding="0 2" Width="50" HorizontalAlignment="Right"

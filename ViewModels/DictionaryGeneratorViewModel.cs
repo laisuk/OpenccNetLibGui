@@ -232,14 +232,14 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         var skippedInvalidSetting = false;
         foreach (var item in settings)
         {
-            if (item is null || !DictSlotExtensions.TryParse(item.Slot, out var slot) || !slot.IsActive() ||
+            if (!DictSlotExtensions.TryParse(item.Slot, out var slot) || !slot.IsActive() ||
                 !Enum.TryParse<CustomDictMode>(item.Mode, true, out var mode) || !AvailableModes.Contains(mode))
             {
                 skippedInvalidSetting = true;
                 continue;
             }
 
-            AddRow(slot, mode, item.Path);
+            _ = AddRow(slot, mode, item.Path);
         }
 
         if (skippedInvalidSetting)
