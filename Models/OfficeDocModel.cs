@@ -8,9 +8,9 @@ using OpenccNetLib;
 namespace OpenccNetLibGui.Models;
 
 /// <summary>
-/// Adapts the shared <see cref="OfficeDocConverter"/> implementation for CLI use.
-/// The document conversion pipeline lives in OpenccNetLib so the CLI does not
-/// maintain a second Office/EPUB extractor and package rebuilder.
+/// Adapts the shared <see cref="OfficeDocConverter"/> implementation for GUI use.
+/// The document conversion pipeline lives in OpenccNetLib so the GUI does not
+/// maintain a separate Office/EPUB extractor and package rebuilder.
 /// </summary>
 public static class OfficeDocModel
 {
@@ -124,14 +124,14 @@ public static class OfficeDocModel
     }
 
     /// <summary>
-    /// Converts an Office or EPUB file through OpenccNetLib's in-memory,
+    /// Converts an Office or EPUB file through OpenccNetLib's streaming,
     /// entry-by-entry package pipeline and atomically publishes the output file.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The file wrapper reads the source file, delegates package conversion to the
-    /// same in-memory <see cref="OfficeDocConverter"/> core used by the byte-array API,
-    /// validates the rebuilt package, and atomically publishes the completed output.
+    /// The shared <see cref="OfficeDocConverter"/> processes the source package
+    /// entry by entry without loading the entire container into memory, validates
+    /// the rebuilt package, and atomically publishes the completed output file.
     /// </para>
     /// <para>
     /// Cancellation is honored by the underlying async wrapper before synchronous
