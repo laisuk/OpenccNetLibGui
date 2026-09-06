@@ -2901,7 +2901,7 @@ public class MainWindowViewModel : ViewModelBase
             if (!value) return;
             IsRbZhtw = false;
             IsRbHk = false;
-            IsCbRegionalTerms = false;
+            // IsCbRegionalTerms = false;
             IsCbRegionalTermsEnabled = false;
         }
     }
