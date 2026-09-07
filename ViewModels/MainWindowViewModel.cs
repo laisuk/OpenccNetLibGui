@@ -1055,7 +1055,9 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BtnPreviewCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnDetectCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnMessagePreviewClearCommand { get; }
+
     public ReactiveCommand<Unit, Unit> BtnBatchStartCommand { get; }
+
     // public ReactiveCommand<Unit, Unit> CmbCustomGotFocusCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnReflowCommand { get; }
     public ReactiveCommand<Unit, Unit> BtnNormCompatCommand { get; }
@@ -1337,7 +1339,20 @@ public class MainWindowViewModel : ViewModelBase
 
         TbSourceTextDocument!.Text = result.Text ?? "";
         TbSourceTextDocument.UndoStack.ClearAll(); // ✅ reset undo/redo for new file
-        LblStatusBarContent = FormatRuntimeStatus("statusOpenFileLoaded", "File: {0}", result.Path);
+
+        if (result.EncodingName is not null)
+        {
+            LblStatusBarContent = result.WasAutoDetected
+                ? $"Auto-detected {result.EncodingName}: {result.Path}"
+                : $"Encoding could not be identified automatically. " +
+                  $"Loaded with UTF-8 fallback: {result.Path}";
+        }
+        else
+        {
+            LblStatusBarContent =
+                FormatRuntimeStatus("statusOpenFileLoaded", "File: {0}", result.Path);
+        }
+
         UpdateEncodeInfo(Opencc.ZhoCheck(result.Text ?? ""));
 
         var displayName = Path.GetFileName(result.Path);
@@ -1373,6 +1388,12 @@ public class MainWindowViewModel : ViewModelBase
         if (_textFileTypes == null || !_textFileTypes.Contains(extension))
             return;
 
+        if (encodingName == "auto")
+        {
+            await UpdateTbSourceFileContentsAsync(CurrentOpenFilename);
+            return;
+        }
+
         try
         {
             var encoding = encodingName switch
@@ -1380,6 +1401,7 @@ public class MainWindowViewModel : ViewModelBase
                 "utf-8" => Encoding.UTF8,
                 "gb18030" => Encoding.GetEncoding("GB18030"),
                 "big5" => Encoding.GetEncoding("Big5"),
+                "shift-jis" => Encoding.GetEncoding("shift_jis"),
                 "utf-16le" => Encoding.Unicode,
                 "utf-16be" => Encoding.BigEndianUnicode,
                 _ => Encoding.UTF8
