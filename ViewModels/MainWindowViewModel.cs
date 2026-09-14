@@ -460,14 +460,14 @@ public class MainWindowViewModel : ViewModelBase
     }
 
 
-    private static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs)
+    internal static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs)
     {
         ArgumentNullException.ThrowIfNull(baseOpencc);
         ArgumentNullException.ThrowIfNull(specs);
         return specs.Count == 0 ? baseOpencc : baseOpencc.WithCustomDictionary(specs);
     }
 
-    private static void ApplyCustomSlotsDuringStartup(bool enabled, Action applyCustomSlots)
+    internal static void ApplyCustomSlotsDuringStartup(bool enabled, Action applyCustomSlots)
     {
         ArgumentNullException.ThrowIfNull(applyCustomSlots);
 
@@ -1015,7 +1015,7 @@ public class MainWindowViewModel : ViewModelBase
         LblStatusBarContent = $"{runtimeLabel}: {runtimeVersion} | OpenccNetLib {openccVer} | {dictionaryLabel}";
     }
 
-    private static string FormatDictionaryLabel(RuntimeContents runtimes, string dictionaryLabel,
+    internal static string FormatDictionaryLabel(RuntimeContents runtimes, string dictionaryLabel,
         IEnumerable<CustomDictSpec> specs)
     {
         var slots = specs

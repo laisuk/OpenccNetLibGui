@@ -196,7 +196,7 @@ internal static class PdfiumNative
         byte[] data,
         int size,
         [MarshalAs(UnmanagedType.LPStr)] string? password);
-    
+
     // ---------------------------------------------------------------------
     // Object-level extraction (for IgnoreUntrustedPdfText)
     // ---------------------------------------------------------------------
@@ -214,7 +214,7 @@ internal static class PdfiumNative
     public static extern IntPtr FPDFPage_GetObject(IntPtr page, int index);
 
     /// <summary>
-    /// Returns the type of a page object (e.g. TEXT, PATH, IMAGE...).
+    /// Returns the type of page object (e.g. TEXT, PATH, IMAGE...).
     /// </summary>
     [DllImport(DllName, CallingConvention = CallConv)]
     public static extern int FPDFPageObj_GetType(IntPtr page_object);
@@ -245,4 +245,18 @@ internal static class PdfiumNative
         [Out] ushort[]? buffer,
         uint buflen);
 
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern uint FPDFText_GetUnicode(
+        IntPtr text_page,
+        int index);
+
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern int FPDFText_HasUnicodeMapError(
+        IntPtr text_page,
+        int index);
+
+    [DllImport(DllName, CallingConvention = CallConv)]
+    public static extern int FPDFText_IsGenerated(
+        IntPtr text_page,
+        int index);
 }
