@@ -1447,12 +1447,20 @@ public class MainWindowViewModel : ViewModelBase
 
             void Progress(int percent)
             {
+                if (percent >= 100)
+                    return;
+
                 var msg = FormatRuntimeStatus(
                     "statusPdfLoadingProgress",
                     "Loading PDF {0}  {1}%",
                     BuildProgressBar(percent),
                     percent);
-                Dispatcher.UIThread.Post(() => LblStatusBarContent = msg);
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (requestId == PdfVm.CurrentRequestId)
+                        LblStatusBarContent = msg;
+                });
             }
 
             var result = await PdfVm.LoadPdfAsync(path,
