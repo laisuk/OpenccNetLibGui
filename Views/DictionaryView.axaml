@@ -27,7 +27,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Classes="icon-font"
                                            Text="{x:Static local:Icons.FolderOpen}" />
-                                <TextBlock Text="{Binding Contents.BrowseButton}" />
+                                <TextBlock Classes="icon-text" Text="{Binding Contents.BrowseButton}" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -43,7 +43,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Classes="icon-font"
                                            Text="{x:Static local:Icons.FolderOpen}" />
-                                <TextBlock Text="{Binding Contents.BrowseButton}" />
+                                <TextBlock Classes="icon-text" Text="{Binding Contents.BrowseButton}" />
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -92,8 +92,8 @@
                                                             Spacing="6">
                                                         <TextBlock Classes="icon-font"
                                                                 Text="{x:Static local:Icons.DictionaryAdd}" />
-                                                        <TextBlock
-                                                            Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.BrowseButton, FallbackValue=Browse}" />
+                                                        <TextBlock Classes="icon-text"
+                                                                   Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.BrowseButton, FallbackValue=Browse}" />
                                                     </StackPanel>
                                                 </Button>
                                                 <Button Grid.Column="4"
@@ -104,7 +104,7 @@
                                                             Spacing="6">
                                                         <TextBlock Classes="icon-font"
                                                                 Text="{x:Static local:Icons.RemoveFrom}" />
-                                                        <TextBlock
+                                                        <TextBlock Classes="icon-text"
                                                             Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveButton, FallbackValue=Remove}" />
                                                     </StackPanel>
                                                 </Button>
@@ -119,7 +119,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <TextBlock Classes="icon-font"
                                                    Text="{x:Static local:Icons.AddTo}" />
-                                        <TextBlock Text="{Binding Contents.AddCustomDictionaryButton}" />
+                                        <TextBlock Classes="icon-text" Text="{Binding Contents.AddCustomDictionaryButton}" />
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding ApplyCustomSlotsCommand}"
@@ -127,7 +127,7 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <TextBlock Classes="icon-font"
                                                    Text="{x:Static local:Icons.ReadingMode}" />
-                                        <TextBlock Text="{Binding Contents.ApplyCustomSlotsButton}" />
+                                        <TextBlock Classes="icon-text" Text="{Binding Contents.ApplyCustomSlotsButton}" />
                                     </StackPanel>
                                 </Button>
                                 <CheckBox Content="{Binding Contents.ApplyCustomSlotsDuringStartupLabel}"
@@ -145,7 +145,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.ReadingMode}" />
-                            <TextBlock Text="{Binding Contents.GenerateZstdButton}" />
+                            <TextBlock Classes="icon-text" Text="{Binding Contents.GenerateZstdButton}" />
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding GenerateCborCommand}"
@@ -154,7 +154,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.ReadingMode}" />
-                            <TextBlock Text="{Binding Contents.GenerateCborButton}" />
+                            <TextBlock Classes="icon-text" Text="{Binding Contents.GenerateCborButton}" />
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding GenerateJsonCommand}"
@@ -163,7 +163,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.ReadingMode}" />
-                            <TextBlock Text="{Binding Contents.GenerateJsonButton}" />
+                            <TextBlock Classes="icon-text" Text="{Binding Contents.GenerateJsonButton}" />
                         </StackPanel>
                     </Button>
                     <CheckBox Content="{Binding Contents.ReadableUnicodeJsonLabel}"

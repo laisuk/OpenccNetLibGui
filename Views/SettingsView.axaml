@@ -131,7 +131,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Classes="icon-font"
                                        Text="{x:Static local:Icons.BackToWindow}" />
-                            <TextBlock Text="{Binding Settings.ResetWindowSizeContent}" />
+                            <TextBlock Classes="icon-text" Text="{Binding Settings.ResetWindowSizeContent}" />
                         </StackPanel>
                     </Button>
 
@@ -216,7 +216,7 @@
                                 ToolTip.Tip="{Binding ShortHeadingSettingsHint}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}" />
-                                <TextBlock Text="{Binding ShortHeadingSettingsContent}"
+                                <TextBlock Classes="icon-text" Text="{Binding ShortHeadingSettingsContent}"
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
@@ -255,14 +255,14 @@
                             VerticalAlignment="Center">
                     <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Edit}"
                                IsVisible="{Binding Settings.IsSettingsDirty}" />
-                    <TextBlock Text="{Binding Settings.UnsavedChangesContent}"
+                    <TextBlock Classes="icon-text" Text="{Binding Settings.UnsavedChangesContent}"
                                FontWeight="Medium"
                                VerticalAlignment="Center"
                                IsVisible="{Binding Settings.IsSettingsDirty}" />
                     <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Completed}"
                                Opacity="0.8"
                                IsVisible="{Binding !Settings.IsSettingsDirty}" FontSize="22" />
-                    <TextBlock Text="{Binding Settings.AllSettingsSavedContent}"
+                    <TextBlock Classes="icon-text" Text="{Binding Settings.AllSettingsSavedContent}"
                                Opacity="0.8"
                                VerticalAlignment="Center"
                                IsVisible="{Binding !Settings.IsSettingsDirty}" />
@@ -284,7 +284,7 @@
                         ToolTip.Tip="{Binding Settings.SaveAdvancedSettingsHint}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
-                        <TextBlock Text="{Binding Settings.BtnSaveAdvancedSettingsContent}"
+                        <TextBlock Classes="icon-text" Text="{Binding Settings.BtnSaveAdvancedSettingsContent}"
                                    VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>

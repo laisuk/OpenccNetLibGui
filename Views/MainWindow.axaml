@@ -118,7 +118,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Classes="icon-font tab-icon"
                                            Text="{x:Static local:Icons.Sync}" />
-                                <TextBlock Text="{Binding TabMainContent}" />
+                                <TextBlock Classes="icon-text" Text="{Binding TabMainContent}" />
                             </StackPanel>
                         </TabItem.Header>
                         <!-- <Grid Background="#FFE5E5E5"> -->
@@ -483,7 +483,7 @@
                                         <!-- </PathIcon> -->
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
-                                            <TextBlock Text="AC" VerticalAlignment="Center" />
+                                            <TextBlock Classes="icon-text" Text="AC" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
                                     <Button x:Name="BtnPaste" Padding="5 2" Width="80"
@@ -498,7 +498,8 @@
                                             <!--     </PathIcon.RenderTransform> -->
                                             <!-- </PathIcon> -->
                                             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Paste}" />
-                                            <TextBlock Text="{Binding BtnPasteContent}" VerticalAlignment="Center" />
+                                            <TextBlock Classes="icon-text" Text="{Binding BtnPasteContent}"
+                                                       VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
@@ -563,7 +564,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <!-- <controls:SymbolIcon Symbol="Delete" FontSize="20" /> -->
                                             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Delete}" />
-                                            <TextBlock Text="AC" VerticalAlignment="Center" />
+                                            <TextBlock Classes="icon-text" Text="AC" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
                                     <Button x:Name="BtnCopy" Padding="5 2" Width="80"
@@ -574,7 +575,8 @@
                                             <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
                                             <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Copy}"
                                                        FontSize="22" />
-                                            <TextBlock Text="{Binding BtnCopyContent}" VerticalAlignment="Center" />
+                                            <TextBlock Classes="icon-text" Text="{Binding BtnCopyContent}"
+                                                       VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
@@ -587,7 +589,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Classes="icon-font tab-icon"
                                            Text="{x:Static local:Icons.MoveToFolder}" />
-                                <TextBlock Text="{Binding TabBatchContent}" />
+                                <TextBlock Classes="icon-text" Text="{Binding TabBatchContent}" />
                             </StackPanel>
                         </TabItem.Header>
                         <!-- <Grid Background="#FFE5E5E5"> -->
@@ -826,7 +828,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <TextBlock Classes="icon-font"
                                                        Text="{x:Static local:Icons.Message}" />
-                                            <TextBlock Text="{Binding TabMessageContent}" />
+                                            <TextBlock Classes="icon-text" Text="{Binding TabMessageContent}" />
                                         </StackPanel>
                                     </TabItem.Header>
                                     <Grid>
@@ -846,7 +848,7 @@
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <TextBlock Classes="icon-font"
                                                        Text="{x:Static local:Icons.Preview}" />
-                                            <TextBlock Text="{Binding TabPreviewContent}" />
+                                            <TextBlock Classes="icon-text" Text="{Binding TabPreviewContent}" />
                                         </StackPanel>
                                     </TabItem.Header>
                                     <Grid>
@@ -957,8 +959,8 @@
                         <TabItem.Header>
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Classes="icon-font tab-icon" Text="{x:Static local:Icons.Dictionary}" />
-                                <TextBlock
-                                    Text="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.TabTitle, FallbackValue=Dictionary, TargetNullValue=Dictionary}" />
+                                <TextBlock Classes="icon-text"
+                                           Text="{Binding #TabDictionary.((vm:DictionaryGeneratorViewModel)DataContext).Contents.TabTitle, FallbackValue=Dictionary, TargetNullValue=Dictionary}" />
                             </StackPanel>
                         </TabItem.Header>
                     </TabItem>
@@ -968,7 +970,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <TextBlock Classes="icon-font tab-icon"
                                            Text="{x:Static local:Icons.Settings}" />
-                                <TextBlock Text="{Binding TabSettingsContent}" />
+                                <TextBlock Classes="icon-text" Text="{Binding TabSettingsContent}" />
                             </StackPanel>
                         </TabItem.Header>
                     </TabItem>
@@ -1032,7 +1034,7 @@
                         Classes="outline-button">
                     <StackPanel Orientation="Horizontal" Spacing="2">
                         <TextBlock Classes="icon-font" Text="{x:Static local:Icons.OpenFile}" />
-                        <TextBlock Text="{Binding BtnOpenFileContent}" VerticalAlignment="Center" />
+                        <TextBlock Classes="icon-text" Text="{Binding BtnOpenFileContent}" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
 
@@ -1099,7 +1101,7 @@
                           SelectedItem="{Binding SelectedSaveTargetOption, Mode=TwoWay}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:MainWindowViewModel+SaveTargetOption">
-                            <TextBlock Text="{Binding Content}" />
+                            <TextBlock Text="{Binding Content}" VerticalAlignment="Center" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -1117,7 +1119,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="2">
                         <!-- <controls:SymbolIcon Symbol="SaveAs" FontSize="20" /> -->
                         <TextBlock Classes="icon-font" Text="{x:Static local:Icons.SaveAs}" />
-                        <TextBlock Text="{Binding BtnSaveAsContent}" VerticalAlignment="Center" />
+                        <TextBlock Classes="icon-text" Text="{Binding BtnSaveAsContent}" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
                 <Button x:Name="BtnExit"

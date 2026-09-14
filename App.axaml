@@ -79,7 +79,7 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Padding" Value="12 6" />
-            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontSize" Value="14" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
@@ -214,6 +214,13 @@
 
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        
+        <Style Selector="TextBlock.icon-text">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="RenderTransform">
+                <TranslateTransform Y="1" />
+            </Setter>
         </Style>
 
         <Style Selector="TabItem:selected TextBlock.tab-icon">
