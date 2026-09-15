@@ -935,7 +935,7 @@
                                 </StackPanel>
                             </Button>
                             <Button x:Name="BtnOutClear" Padding="0 2" Width="50" HorizontalAlignment="Right"
-                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="26"
+                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                     Margin="0,2,5,2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
                                     FontSize="14"
                                     ToolTip.Tip="{Binding ClearDisplayHint}"
