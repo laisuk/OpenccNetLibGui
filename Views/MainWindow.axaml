@@ -533,7 +533,7 @@
                                             VerticalContentAlignment="Center"
                                             ToolTip.Tip="{Binding DeTofuHint}"
                                             Command="{Binding BtnDeTofuCommand}">
-                                        <TextBlock Classes="icon-font"
+                                        <TextBlock Classes="icon-text"
                                                    Text="豆"
                                                    FontWeight="SemiBold"
                                                    FontSize="16" />
