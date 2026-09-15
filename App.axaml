@@ -204,6 +204,8 @@
 
         <Style Selector="TextBlock.icon-font">
             <Style.Resources>
+                <!-- Keep LineHeight larger than FontSize for consistent
+                     icon/text vertical alignment across Windows and Linux. -->
                 <x:Double x:Key="ActionIconLineHeight">22</x:Double>
             </Style.Resources>
             <Setter Property="FontFamily"
@@ -221,9 +223,6 @@
 
         <Style Selector="TextBlock.icon-text">
             <Setter Property="VerticalAlignment" Value="Center" />
-            <!-- <Setter Property="RenderTransform"> -->
-            <!--     <TranslateTransform Y="0" /> -->
-            <!-- </Setter> -->
         </Style>
 
         <Style Selector="TabItem:selected TextBlock.tab-icon">
