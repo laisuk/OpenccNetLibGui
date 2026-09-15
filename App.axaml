@@ -203,6 +203,9 @@
         </Style>
 
         <Style Selector="TextBlock.icon-font">
+            <Style.Resources>
+                <x:Double x:Key="ActionIconLineHeight">22</x:Double>
+            </Style.Resources>
             <Setter Property="FontFamily"
                     Value="avares://OpenccNetLibGui/Assets/Fonts/FluentAvalonia.ttf#Symbols" />
             <Setter Property="FontSize" Value="20" />
@@ -210,17 +213,17 @@
 
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="TextWrapping" Value="NoWrap" />
-            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="LineHeight" Value="{StaticResource ActionIconLineHeight}" />
 
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
-        
+
         <Style Selector="TextBlock.icon-text">
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="RenderTransform">
-                <TranslateTransform Y="1" />
-            </Setter>
+            <!-- <Setter Property="RenderTransform"> -->
+            <!--     <TranslateTransform Y="0" /> -->
+            <!-- </Setter> -->
         </Style>
 
         <Style Selector="TabItem:selected TextBlock.tab-icon">
@@ -243,7 +246,7 @@
         <Style Selector="NumericUpDown">
             <Setter Property="Background" Value="{DynamicResource EditorSurfaceBackgroundBrush}" />
         </Style>
-        
+
         <Style Selector="TextBox.go-to-line.invalid">
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
             <Setter Property="BorderThickness" Value="2" />
@@ -321,6 +324,8 @@
             </StreamGeometry>
 
         </ResourceDictionary>
+
+        <x:Double x:Key="ActionIconLineHeight">22</x:Double>
     </Application.Resources>
 
 </Application>

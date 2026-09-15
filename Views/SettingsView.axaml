@@ -283,7 +283,7 @@
                         IsEnabled="{Binding Settings.IsSettingsDirty}"
                         ToolTip.Tip="{Binding Settings.SaveAdvancedSettingsHint}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" />
+                        <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Save}" FontSize="22" />
                         <TextBlock Classes="icon-text" Text="{Binding Settings.BtnSaveAdvancedSettingsContent}"
                                    VerticalAlignment="Center" />
                     </StackPanel>

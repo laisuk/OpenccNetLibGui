@@ -450,7 +450,7 @@
                                     </Button>
                                     <Button x:Name="BtnNormDialogQuotes" Padding="0 2" Width="40"
                                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                            FontWeight="SemiBold" FontSize="16"
                                             ToolTip.Tip="{Binding NormalizeDialogQuotesHint}"
                                             Command="{Binding BtnNormDialogQuotesCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
@@ -459,7 +459,7 @@
                                     </Button>
                                     <Button x:Name="BtnValidateDialogSourceQuotes" Padding="0 2" Width="40"
                                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                            FontWeight="SemiBold" FontSize="16"
                                             ToolTip.Tip="{Binding ValidateDialogQuotesHint}"
                                             Command="{Binding BtnValidateDialogQuotesSourceCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
@@ -488,7 +488,7 @@
                                     </Button>
                                     <Button x:Name="BtnPaste" Padding="5 2" Width="80"
                                             HorizontalContentAlignment="Center"
-                                            FontWeight="SemiBold" Height="26" FontSize="14"
+                                            FontWeight="SemiBold" FontSize="14"
                                             Command="{Binding BtnPasteCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <!-- <PathIcon Classes="toolbar-icon" -->
@@ -531,19 +531,16 @@
                                             Height="26"
                                             HorizontalContentAlignment="Center"
                                             VerticalContentAlignment="Center"
-                                            FontWeight="SemiBold"
-                                            FontSize="16"
                                             ToolTip.Tip="{Binding DeTofuHint}"
                                             Command="{Binding BtnDeTofuCommand}">
-                                        <TextBlock Text="豆"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   TextAlignment="Center">
-                                        </TextBlock>
+                                        <TextBlock Classes="icon-font"
+                                                   Text="豆"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="16" />
                                     </Button>
                                     <Button x:Name="BtnValidateDialogDestinationQuotes" Padding="0 2" Width="40"
                                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                            FontWeight="SemiBold" FontSize="16" Height="26"
+                                            FontWeight="SemiBold" FontSize="16"
                                             ToolTip.Tip="{Binding ValidateDialogQuotesHint}"
                                             Command="{Binding BtnValidateDialogQuotesDestinationCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
@@ -569,7 +566,7 @@
                                     </Button>
                                     <Button x:Name="BtnCopy" Padding="5 2" Width="80"
                                             HorizontalContentAlignment="Center"
-                                            FontWeight="SemiBold" FontSize="14" Height="26"
+                                            FontWeight="SemiBold" FontSize="14"
                                             Command="{Binding BtnCopyCommand}">
                                         <StackPanel Orientation="Horizontal" Spacing="3">
                                             <!-- <controls:SymbolIcon Symbol="Copy" FontSize="20" /> -->
