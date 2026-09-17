@@ -34,9 +34,10 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added a text-encoding menu to opened filenames, allowing plain-text files to be reloaded explicitly with a selected
   encoding.
 - Added an optional, persisted **Auto-detect Legacy CJK Encoding** setting for plain-text files in Batch Conversion.
-  When enabled, batch input reuses the existing CJK-aware text-decoding path to detect and decode legacy Big5 and
-  GB18030-family encodings before conversion, while the existing UTF-8 batch behavior remains the default.
-- Added localized settings, tooltips, and Batch Conversion log output for legacy CJK encoding auto-detection.
+  When enabled, batch conversion and language detection reuse the existing CJK-aware text-decoding path to detect and
+  decode legacy Big5 and GB18030-family encodings before conversion or zh-Hans/zh-Hant detection, while the existing
+  UTF-8 behavior remains the default when disabled.
+- Added localized settings, tooltips, and batch log output for legacy CJK encoding auto-detection.
 
 ### Changed
 

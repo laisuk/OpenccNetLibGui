@@ -2186,6 +2186,13 @@ public class MainWindowViewModel : ViewModelBase
 
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
+        
+        var log = _selectedLanguage.BatchLogContents;
+        var isAutoDetectCjkEncoding =
+            IsCbAutoDetectCjkEncoding ? "✔️ Yes" : "✖️ No";
+
+        LbxDestinationItems.Add(
+            $"{log.AutoDetectCjkEncoding} => {isAutoDetectCjkEncoding}");
 
         var counter = 0;
 
@@ -2200,15 +2207,35 @@ public class MainWindowViewModel : ViewModelBase
                 string inputText;
                 try
                 {
-                    inputText = await File.ReadAllTextAsync(item);
+                    if (IsCbAutoDetectCjkEncoding)
+                    {
+                        var result = await FileOpenViewModel.OpenTextFileAsync(item);
+
+                        if (result.Error is not null)
+                        {
+                            LbxDestinationItems.Add(
+                                $"({counter}) {item} -> ❌ {result.Error}");
+                            continue;
+                        }
+
+                        inputText = result.Text ?? string.Empty;
+                    }
+                    else
+                    {
+                        inputText = await File.ReadAllTextAsync(item);
+                    }
                 }
                 catch (Exception)
                 {
-                    LbxDestinationItems.Add($"({counter}) " + item + " -> ❌ File read error.");
+                    LbxDestinationItems.Add(
+                        $"({counter}) {item} -> ❌ File read error.");
                     continue;
                 }
 
-                var textCode = GetLanguageName(_selectedLanguage, Opencc.ZhoCheck(inputText));
+                var textCode = GetLanguageName(
+                    _selectedLanguage,
+                    Opencc.ZhoCheck(inputText));
+
                 LbxDestinationItems.Add($"({counter}) [{textCode}] {item}");
             }
             else
@@ -3222,10 +3249,10 @@ public class MainWindowViewModel : ViewModelBase
         get => _isCbAutoDetectCjkEncoding;
         set
         {
+            if (IsCbAutoDetectCjkEncoding == value) return;
+            _languageSettings!.AutoDetectCjkEncoding = value;
             this.RaiseAndSetIfChanged(ref _isCbAutoDetectCjkEncoding, value);
-
-            if (_languageSettings is not null)
-                _languageSettings.AutoDetectCjkEncoding = value;
+            Settings.RefreshDirtyState();
         }
     }
 
