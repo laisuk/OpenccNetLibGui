@@ -39,7 +39,7 @@ internal static class FileOpenViewModel
         }
     }
 
-    private static async Task<FileOpenResult> OpenTextFileAsync(string path)
+    internal static async Task<FileOpenResult> OpenTextFileAsync(string path)
     {
         var bytes = await File.ReadAllBytesAsync(path);
         var detected = CjkEncodingDetector.Detect(bytes);

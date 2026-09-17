@@ -24,6 +24,7 @@ public class LanguageSettings
     public double EditorFontSize { get; set; } = 14;
     public bool Punctuation { get; set; }
     public bool ConvertFilename { get; set; }
+    public bool AutoDetectCjkEncoding { get; set; }
     public bool ExtendUnicodeCompat { get; set; }
     public string DeTofuLevel { get; set; } = "B";
     public List<CustomDictionarySetting> CustomDictionaries { get; set; } = new();
@@ -98,6 +99,7 @@ public class Language
     public string FilenameContent { get; set; } = "Filename";
     public string ConversionSettingsContent { get; set; } = "Conversion Settings";
     public string ConvertFilenameContent { get; set; } = "Convert filename";
+    public string AutoDetectCjkEncodingContent { get; set; } = "Auto-detect Legacy CJK Encoding for Plain Text (Batch Mode)";
     public string ExtendUnicodeCompatContent { get; set; } = "Extend Unicode Compatibility for CJK text normalization";
     public string DeTofuLevelContent { get; set; } = "DeTofu level";
     public string EditorFontContent { get; set; } = "Editor Font";
@@ -281,6 +283,7 @@ public sealed class BatchLogContents
     public string ZhtwIdioms { get; set; } = "";
     public string Punctuations { get; set; } = "";
     public string ConvertFilename { get; set; } = "";
+    public string AutoDetectCjkEncoding { get; set; } = "";
     public string OutputFolder { get; set; } = "";
 }
 

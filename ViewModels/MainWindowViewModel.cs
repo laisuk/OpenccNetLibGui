@@ -83,6 +83,7 @@ public class MainWindowViewModel : ViewModelBase
     private string? _outputContent = "Output:";
     private string? _filenameContent = "Filename";
     private string? _convertFilenameContent = "Convert filename";
+    private string? _autoDetectCjkEncodingContent = "Auto-detect Legacy CJK Encoding for Plain Text (Batch Mode)";
     private string? _extendUnicodeCompatContent = "Extend Unicode Compatibility for CJK text normalization";
     private string? _deTofuLevelContent = "DeTofu level";
     private string? _pdfOptionsContent = "PDF Options";
@@ -120,6 +121,7 @@ public class MainWindowViewModel : ViewModelBase
     private Opencc? _opencc;
     private CustomDictSpec[] _activeCustomSpecs = Array.Empty<CustomDictSpec>();
     private bool _isCbConvertFilename;
+    private bool _isCbAutoDetectCjkEncoding;
     private bool _isCbExtendUnicodeCompat;
     private PdfViewModel PdfVm { get; }
     private readonly int _sentenceBoundaryLevel;
@@ -162,6 +164,7 @@ public class MainWindowViewModel : ViewModelBase
         nameof(AddFileHint),
         nameof(RemoveFileHint),
         nameof(ConvertFilenameHint),
+        nameof(AutoDetectCjkEncodingHint),
         nameof(ExtendUnicodeCompatHint),
         nameof(PreviewHint),
         nameof(DetectHint),
@@ -335,6 +338,7 @@ public class MainWindowViewModel : ViewModelBase
         IsCbPunctuation = _languageSettings.Punctuation;
         IsCbConvertFilename = _languageSettings.ConvertFilename;
         IsCbExtendUnicodeCompat = _languageSettings.ExtendUnicodeCompat;
+        IsCbAutoDetectCjkEncoding = _languageSettings.AutoDetectCjkEncoding;
 
         // PDF Options (from pdfOptions)
         var po = _languageSettings.PdfOptions;
@@ -734,6 +738,9 @@ public class MainWindowViewModel : ViewModelBase
         ConvertFilenameContent = string.IsNullOrWhiteSpace(language.ConvertFilenameContent)
             ? "Convert filename"
             : language.ConvertFilenameContent;
+        AutoDetectCjkEncodingContent = string.IsNullOrWhiteSpace(language.AutoDetectCjkEncodingContent)
+            ? "Auto-detect Legacy CJK Encoding for Plain Text (Batch Mode)"
+            : language.AutoDetectCjkEncodingContent;
         ExtendUnicodeCompatContent = string.IsNullOrWhiteSpace(language.ExtendUnicodeCompatContent)
             ? "Extend Unicode Compatibility for CJK text normalization"
             : language.ExtendUnicodeCompatContent;
@@ -942,6 +949,10 @@ public class MainWindowViewModel : ViewModelBase
 
     public string ConvertFilenameHint =>
         GetHint("convertFilenameHint", "Convert output filename using current configuration.");
+
+    public string AutoDetectCjkEncodingHint =>
+        GetHint("autoDetectCjkEncodingHint",
+            "Automatically detect legacy Big5 and GB18030-family encodings for plain-text files during batch conversion.");
 
     public string ExtendUnicodeCompatHint =>
         GetHint("extendUnicodeCompatHint", "Extend Unicode Compatibility for CJK text normalization");
@@ -1863,8 +1874,9 @@ public class MainWindowViewModel : ViewModelBase
                 ? RbHkContent
                 : RbZhtwContent;
         var isZhTwIdioms = IsCbRegionalTerms ? "✔️ Yes" : "✖️ No";
-        var isPunctuations = IsCbPunctuation ? "✔️ Yes" : "️✖️  ️No";
+        var isPunctuations = IsCbPunctuation ? "✔️ Yes" : "️✖️ No";
         var isConvertFilename = IsCbConvertFilename ? "✔️ Yes" : "✖️ No";
+        var isAutoDetectCjkEncoding = IsCbAutoDetectCjkEncoding ? "✔️ Yes" : "✖️ No";
 
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
@@ -1880,6 +1892,7 @@ public class MainWindowViewModel : ViewModelBase
 
         LbxDestinationItems.Add($"{log.Punctuations} => {isPunctuations}");
         LbxDestinationItems.Add($"{log.ConvertFilename} => {isConvertFilename}");
+        LbxDestinationItems.Add($"{log.AutoDetectCjkEncoding} => {isAutoDetectCjkEncoding}");
         LbxDestinationItems.Add($"{log.OutputFolder} => {TbOutFolderText}");
 
         var count = 0;
@@ -1986,11 +1999,28 @@ public class MainWindowViewModel : ViewModelBase
                 string inputText;
                 try
                 {
-                    inputText = await File.ReadAllTextAsync(sourceFilePath);
+                    if (IsCbAutoDetectCjkEncoding)
+                    {
+                        var result = await FileOpenViewModel.OpenTextFileAsync(sourceFilePath);
+
+                        if (result.Error is not null)
+                        {
+                            LbxDestinationItems.Add(
+                                $"({count}) {sourceFilePath} -> ❌ {result.Error}");
+                            continue;
+                        }
+
+                        inputText = result.Text ?? string.Empty;
+                    }
+                    else
+                    {
+                        inputText = await File.ReadAllTextAsync(sourceFilePath);
+                    }
                 }
                 catch (Exception)
                 {
-                    LbxDestinationItems.Add($"({count}) {sourceFilePath} -> ❌ Conversion error.");
+                    LbxDestinationItems.Add(
+                        $"({count}) {sourceFilePath} -> ❌ Conversion error.");
                     continue;
                 }
 
@@ -2645,6 +2675,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _convertFilenameContent, value);
     }
 
+    public string? AutoDetectCjkEncodingContent
+    {
+        get => _autoDetectCjkEncodingContent;
+        set => this.RaiseAndSetIfChanged(ref _autoDetectCjkEncodingContent, value);
+    }
+
     public string? ExtendUnicodeCompatContent
     {
         get => _extendUnicodeCompatContent;
@@ -3178,6 +3214,18 @@ public class MainWindowViewModel : ViewModelBase
             _languageSettings!.ConvertFilename = value;
             this.RaiseAndSetIfChanged(ref _isCbConvertFilename, value);
             Settings.RefreshDirtyState();
+        }
+    }
+
+    public bool IsCbAutoDetectCjkEncoding
+    {
+        get => _isCbAutoDetectCjkEncoding;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isCbAutoDetectCjkEncoding, value);
+
+            if (_languageSettings is not null)
+                _languageSettings.AutoDetectCjkEncoding = value;
         }
     }
 

@@ -31,7 +31,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added regression tests covering runtime custom dictionaries, base-converter isolation, repeated application without
   custom-slot stacking, reset to the base converter, failed-apply atomicity, runtime status formatting, and custom-row
   persistence and dirty-state tracking.
-- feat: add text encoding menu to opened filename, enable file to be reloaded with the selected encoding.
+- Added a text-encoding menu to opened filenames, allowing plain-text files to be reloaded explicitly with a selected
+  encoding.
+- Added an optional, persisted **Auto-detect Legacy CJK Encoding** setting for plain-text files in Batch Conversion.
+  When enabled, batch input reuses the existing CJK-aware text-decoding path to detect and decode legacy Big5 and
+  GB18030-family encodings before conversion, while the existing UTF-8 batch behavior remains the default.
+- Added localized settings, tooltips, and Batch Conversion log output for legacy CJK encoding auto-detection.
 
 ### Changed
 
