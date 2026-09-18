@@ -15,20 +15,27 @@ jobs:
       contents: read
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
             rid: win-x64
+
           - os: windows-latest
             rid: win-x86
+
           - os: windows-latest
             rid: win-arm64
+
           - os: ubuntu-latest
             rid: linux-x64
+
           - os: ubuntu-24.04-arm
             rid: linux-arm64
+
           - os: macos-latest
             rid: osx-arm64
+
           - os: macos-15-intel
             rid: osx-x64
 
@@ -47,38 +54,79 @@ jobs:
         run: dotnet restore OpenccNetLibGui.sln
 
       - name: Build
-        run: dotnet build OpenccNetLibGui.sln --configuration Release --no-restore
+        run: >
+          dotnet build OpenccNetLibGui.sln
+          --configuration Release
+          --no-restore
 
-      - name: Publish
-        run: dotnet publish OpenccNetLibGui.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/ --no-self-contained -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
+      # Standard framework-dependent single-file build.
+      - name: Publish (Standard)
+        run: >
+          dotnet publish OpenccNetLibGui.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --output publish-standard/
+          --no-self-contained
+          -p:PublishSingleFile=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
 
-      # Package per-OS
+      # NativeAOT standalone build.
+      - name: Publish (NativeAOT)
+        run: >
+          dotnet publish OpenccNetLibGui.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --output publish-aot/
+          -p:PublishAot=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          $folder = "OpenccNetLibGui-$tag-${{ matrix.rid }}"
-          Rename-Item -Path publish -NewName $folder
-          Compress-Archive -Path "$folder\*" -DestinationPath "$folder.zip"
+          $rid = "${{ matrix.rid }}"
+
+          $standard = "OpenccNetLibGui-$tag-$rid"
+          $aot = "OpenccNetLibGui-$tag-$rid-aot"
+
+          Rename-Item -Path publish-standard -NewName $standard
+          Rename-Item -Path publish-aot -NewName $aot
+
+          Compress-Archive `
+            -Path "$standard\*" `
+            -DestinationPath "$standard.zip"
+
+          Compress-Archive `
+            -Path "$aot\*" `
+            -DestinationPath "$aot.zip"
 
       - name: Package (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
         run: |
           tag="${{ github.ref_name }}"
-          folder="OpenccNetLibGui-$tag-${{ matrix.rid }}"
-          mv publish "$folder"
-          tar -czf "$folder.tar.gz" "$folder"
+          rid="${{ matrix.rid }}"
 
-      # Upload artifacts for the release job
+          standard="OpenccNetLibGui-$tag-$rid"
+          aot="OpenccNetLibGui-$tag-$rid-aot"
+
+          mv publish-standard "$standard"
+          mv publish-aot "$aot"
+
+          tar -czf "$standard.tar.gz" "$standard"
+          tar -czf "$aot.tar.gz" "$aot"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: OpenccNetLibGui-${{ matrix.rid }}
           path: |
-            OpenccNetLibGui-*-*.zip
-            OpenccNetLibGui-*-*.tar.gz
+            OpenccNetLibGui-*.zip
+            OpenccNetLibGui-*.tar.gz
+          if-no-files-found: error
 
   release:
     name: Create GitHub Release
@@ -93,11 +141,11 @@ jobs:
         with:
           path: artifacts
 
-      - name: Show downloaded files (debug)
+      - name: Show downloaded files
         run: ls -R artifacts
 
       - name: Create / update release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           files: artifacts/**/*

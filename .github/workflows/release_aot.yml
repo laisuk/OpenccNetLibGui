@@ -46,7 +46,6 @@ jobs:
           dotnet publish OpenccNetLibGui.csproj
           --configuration Release
           --runtime ${{ matrix.rid }}
-          --self-contained true
           --output publish/
           -p:PublishAot=true
           -p:DebugType=None
