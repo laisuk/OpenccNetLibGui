@@ -15,15 +15,26 @@ Always get the **latest version** of `OpenccNetLibGui` from the GitHub Releases 
 
 - 🔖 **[Latest release (all platforms)](https://github.com/laisuk/OpenccNetLibGui/releases/latest)**
 
-On the release page, look for assets named:
+Each supported platform is available in two build variants:
 
-- `OpenccNetLibGui-vX.Y.Z-win-x64.zip` – **Windows (win-x64)**
-- `OpenccNetLibGui-vX.Y.Z-linux-x64.tar.gz` – **Linux (linux-x64)**
-- `OpenccNetLibGui-vX.Y.Z-osx-arm64.tar.gz` – **macOS (Apple Silicon, osx-arm64)**
+- **Standard** – files without the `-aot` suffix. These are **framework-dependent builds** targeting **.NET 10** and
+  require the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/runtime).
+- **NativeAOT** – files with the `-aot` suffix. These are **standalone native builds** and do **not** require the
+  .NET runtime to be installed.
 
-> 📦 These are **framework-dependent builds** targeting **.NET 10** (starting from **v1.4.0**).
-> The **.NET 10 Runtime** must be installed on your system to run these builds:  
-> [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/runtime)
+Both variants provide the same `OpenccNetLibGui` features.
+
+For example:
+
+- `OpenccNetLibGui-vX.Y.Z-win-x64.zip` – **Windows x64 (Standard)**
+- `OpenccNetLibGui-vX.Y.Z-win-x64-aot.zip` – **Windows x64 (NativeAOT)**
+- `OpenccNetLibGui-vX.Y.Z-linux-x64.tar.gz` – **Linux x64 (Standard)**
+- `OpenccNetLibGui-vX.Y.Z-linux-x64-aot.tar.gz` – **Linux x64 (NativeAOT)**
+- `OpenccNetLibGui-vX.Y.Z-osx-arm64.tar.gz` – **macOS Apple Silicon (Standard)**
+- `OpenccNetLibGui-vX.Y.Z-osx-arm64-aot.tar.gz` – **macOS Apple Silicon (NativeAOT)**
+
+> 📦 **Not sure which one to download?** Choose the `-aot` build if you want a standalone application without
+> installing the .NET 10 Desktop Runtime.
 
 ## Features
 
