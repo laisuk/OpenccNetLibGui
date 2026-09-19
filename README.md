@@ -197,6 +197,21 @@ cd OpenccNetLibGui
 dotnet restore
 ```
 
+> [!NOTE]
+> The development branch may reference a pre-release version of **OpenccNetLib**.
+> If that package is unavailable, you can change the OpenccNetLib package reference
+> to the latest stable version, currently **v1.7.0**. The current GUI code remains
+> API-compatible with v1.7.0, although dictionary data and conversion results may
+> differ from the development version.
+>
+> To build the exact source used for the stable **OpenccNetLibGui v1.7.0** release,
+> check out the corresponding tag instead:
+>
+> ```bash
+> git checkout v1.7.0
+> dotnet restore
+> ```
+
 4. **Build the project**:
 
 ```bash
@@ -208,6 +223,8 @@ dotnet build
 ```bash
 dotnet run
 ```
+
+---
 
 ## Usage
 

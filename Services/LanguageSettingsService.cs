@@ -629,6 +629,7 @@ public class LanguageSettingsService
         ""themeModeHint"": ""System follows the operating system theme."",
         ""globalDictionaryHint"": ""Changes take effect after restarting the application."",
         ""openFileHint"": ""Open file for source text box contents."",
+        ""reloadFileEncodingHint"": ""Click to select text encoding."",
         ""saveTargetHint"": ""Select target textbox contents to save as text file."",
         ""saveFileHint"": ""Save selected target as text file."",
         ""exitHint"": ""Exit program""
@@ -896,6 +897,7 @@ public class LanguageSettingsService
         ""themeModeHint"": ""系統模式會跟隨作業系統主題。"",
         ""globalDictionaryHint"": ""變更將在重新啟動應用程式後生效。"",
         ""openFileHint"": ""開啟檔案並載入來源文字框。"",
+        ""reloadFileEncodingHint"": ""點擊選擇文字編碼。"",
         ""saveTargetHint"": ""選擇要另存為文字檔的目標文字框內容。"",
         ""saveFileHint"": ""將選取的目標另存為文字檔。"",
         ""exitHint"": ""結束程式""
@@ -1163,6 +1165,7 @@ public class LanguageSettingsService
         ""themeModeHint"": ""系统模式会跟随操作系统主题。"",
         ""globalDictionaryHint"": ""更改将在重新启动应用程序后生效。"",
         ""openFileHint"": ""打开文件并载入来源文本框。"",
+        ""reloadFileEncodingHint"": ""点击选择文本编码。"",
         ""saveTargetHint"": ""选择要另存为文本文件的目标文本框内容。"",
         ""saveFileHint"": ""将选中的目标另存为文本文件。"",
         ""exitHint"": ""退出程序""

@@ -7,45 +7,167 @@
         mc:Ignorable="d"
         x:Class="OpenccNetLibGui.Views.AboutDialog"
         Classes="dialog-surface"
-        Width="420"
-        Height="300"
+        Width="520"
+        SizeToContent="Height"
+        MinHeight="420"
         Title="About"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         x:DataType="vm:AboutViewModel">
 
-    <StackPanel Margin="20" Spacing="10">
-        <TextBlock Text="{Binding AppName}" FontSize="20" FontWeight="Bold" />
-        <TextBlock Text="{Binding Version}" />
-        <TextBlock Text="{Binding Description}" />
-        <StackPanel Orientation="Horizontal" Spacing="6">
-            <TextBlock Classes="icon-font" Text="{x:Static local:Icons.Home}"/>
-            <TextBlock Text=":" />
-            <TextBlock Text="https://github.com/laisuk/OpenccNetLibGui"
-                       Cursor="Hand"
-                       Foreground="{DynamicResource SystemAccentColor}"
-                       PointerPressed="OnGitHubLinkClicked">
-                <TextBlock.Styles>
-                    <Style Selector="TextBlock:pointerover">
-                        <Setter Property="TextDecorations" Value="Underline" />
-                    </Style>
-                </TextBlock.Styles>
-            </TextBlock>
+    <Grid RowDefinitions="Auto,Auto,Auto"
+          Margin="28">
+
+        <!-- =========================================================
+             Application identity
+             ========================================================= -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*"
+              ColumnSpacing="18">
+
+            <!-- Application icon -->
+            <Image Width="64"
+                   Height="64"
+                   Source="/Assets/Icons/openccnetlib.ico"
+                   Stretch="Uniform"
+                   VerticalAlignment="Stretch" />
+
+            <StackPanel Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Spacing="4">
+
+                <TextBlock Text="{Binding AppName}"
+                           FontSize="24"
+                           FontWeight="SemiBold" />
+
+                <TextBlock Text="{Binding Version}"
+                           FontSize="13"
+                           Opacity="0.72" />
+
+                <TextBlock Text="{Binding Description}"
+                           Margin="0,4,0,0"
+                           FontSize="13"
+                           Opacity="0.82"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+
+
+        <!-- =========================================================
+             Product information
+             ========================================================= -->
+        <StackPanel Grid.Row="1"
+                    Margin="0,26,0,0"
+                    Spacing="14">
+
+            <Separator />
+
+            <!-- Capabilities -->
+            <StackPanel Spacing="6">
+                <TextBlock Text="Chinese Text Conversion"
+                           FontSize="15"
+                           FontWeight="SemiBold" />
+
+                <TextBlock
+                    Text="Simplified ↔ Traditional Chinese · Custom dictionaries · Unicode normalization · DeToFu"
+                    FontSize="12.5"
+                    Opacity="0.72"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    Text="Plain text · Office · EPUB · PDF · Batch processing"
+                    FontSize="12.5"
+                    Opacity="0.72"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Runtime information -->
+            <Border Padding="14,12"
+                    CornerRadius="8"
+                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+
+                <Grid ColumnDefinitions="Auto,*"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="18"
+                      RowSpacing="7">
+
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="0"
+                               Text="Powered by"
+                               Opacity="0.65" />
+
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="1"
+                               Text="OpenccNetLib"
+                               FontWeight="SemiBold" />
+
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Text="PDF Engine"
+                               Opacity="0.65" />
+
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="1"
+                               Text="{Binding PdfEngine}"
+                               FontWeight="SemiBold" />
+                </Grid>
+            </Border>
+
+            <!-- Repository -->
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="8">
+
+                <TextBlock Grid.Column="0"
+                           Classes="icon-font"
+                           Text="{x:Static local:Icons.Home}"
+                           VerticalAlignment="Center"
+                           Opacity="0.8" />
+
+                <TextBlock Grid.Column="1"
+                           Text="github.com/laisuk/OpenccNetLibGui"
+                           Cursor="Hand"
+                           Foreground="{DynamicResource SystemAccentColor}"
+                           VerticalAlignment="Center"
+                           PointerPressed="OnGitHubLinkClicked">
+
+                    <TextBlock.Styles>
+                        <Style Selector="TextBlock:pointerover">
+                            <Setter Property="TextDecorations"
+                                    Value="Underline" />
+                        </Style>
+                    </TextBlock.Styles>
+                </TextBlock>
+            </Grid>
         </StackPanel>
 
-        <Separator />
 
-        <TextBlock Text="PDF Engine" FontWeight="Bold" />
-        <TextBlock Text="{Binding PdfEngine}" />
+        <!-- =========================================================
+             Footer
+             ========================================================= -->
+        <Grid Grid.Row="2"
+              Margin="0,24,0,0"
+              RowDefinitions="Auto,Auto">
 
-        <Separator />
+            <Separator />
 
-        <Grid Margin="0,8,0,0"
-              ColumnDefinitions="*,Auto">
-            <Button Grid.Column="1"
-                    Content="Close"
-                    HorizontalAlignment="Right"
-                    Command="{Binding CloseCommand}" />
+            <Grid Grid.Row="1"
+                  Margin="0,16,0,0"
+                  ColumnDefinitions="*,Auto">
+
+                <TextBlock Grid.Column="0"
+                           Text="Open source · Cross-platform"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Opacity="0.55" />
+
+                <Button Grid.Column="1"
+                        Content="Close"
+                        MinWidth="88"
+                        HorizontalAlignment="Right"
+                        HorizontalContentAlignment="Center"
+                        Command="{Binding CloseCommand}" />
+            </Grid>
         </Grid>
-    </StackPanel>
+
+    </Grid>
 </Window>

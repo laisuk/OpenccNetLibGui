@@ -172,6 +172,8 @@ public class MainWindowViewModel : ViewModelBase
         nameof(SelectOutputFolderHint),
         nameof(ClearDisplayHint),
         nameof(OpenFileHint),
+        nameof(OpenFileEncodingHint),
+        nameof(ReloadFileEncodingHint),
         nameof(SaveTargetHint),
         nameof(SaveFileHint),
         nameof(ExitHint)
@@ -974,6 +976,9 @@ public class MainWindowViewModel : ViewModelBase
 
     public string OpenFileHint =>
         GetHint("openFileHint", "Open file for source text box contents.");
+    
+    public string ReloadFileEncodingHint =>
+        GetHint("reloadFileEncodingHint", "Open file for source text box contents.");
 
     public string SaveTargetHint =>
         GetHint("saveTargetHint", "Select target textbox contents to save as text file.");
@@ -2474,7 +2479,7 @@ public class MainWindowViewModel : ViewModelBase
             var extension = Path.GetExtension(CurrentOpenFilename);
 
             return _textFileTypes?.Contains(extension) == true
-                ? "Click to select text encoding"
+                ? ReloadFileEncodingHint
                 : null;
         }
     }

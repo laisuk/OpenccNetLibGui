@@ -30,6 +30,7 @@
 
     <ItemGroup>
         <!--        <AvaloniaResource Include="Assets\**"/>-->
+        <AvaloniaResource Include="Assets\Icons\openccnetlib.ico" />
         <AvaloniaResource Include="Assets\openccnetlib.ico"/>
         <AvaloniaResource Include="Assets\Fonts\FluentAvalonia.ttf"/>
     </ItemGroup>
@@ -49,7 +50,7 @@
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.22" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
-        <PackageReference Include="OpenccNetLib" Version="1.7.0" />
+        <PackageReference Include="OpenccNetLib" Version="1.7.1-beta1" />
         <PackageReference Include="PdfPig" Version="0.1.16" />
         <PackageReference Include="ReactiveUI.Reactive" Version="24.2.0" />
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.7" />
