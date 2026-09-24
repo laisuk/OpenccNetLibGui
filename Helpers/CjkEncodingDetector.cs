@@ -53,7 +53,7 @@ namespace OpenccNetLibGui.Helpers
     /// </remarks>
     public static class CjkEncodingDetector
     {
-        private const int MaxLegacySampleSize = 128 * 1024;
+        private const int MaxHeuristicSampleSize = 128 * 1024;
         private const float MinLegacyConfidence = 0.20F;
         private const float MinLegacyMargin = 0.05F;
 
@@ -95,19 +95,12 @@ namespace OpenccNetLibGui.Helpers
             {
                 get
                 {
-                    switch (Encoding)
+                    return Encoding switch
                     {
-                        case EncodingKind.Ascii:
-                        case EncodingKind.Utf8:
-                        case EncodingKind.Utf8Bom:
-                        case EncodingKind.Utf16Le:
-                        case EncodingKind.Utf16LeBom:
-                        case EncodingKind.Utf16Be:
-                        case EncodingKind.Utf16BeBom:
-                            return true;
-                        default:
-                            return false;
-                    }
+                        EncodingKind.Ascii or EncodingKind.Utf8 or EncodingKind.Utf8Bom or EncodingKind.Utf16Le
+                            or EncodingKind.Utf16LeBom or EncodingKind.Utf16Be or EncodingKind.Utf16BeBom => true,
+                        _ => false
+                    };
                 }
             }
 
@@ -148,13 +141,11 @@ namespace OpenccNetLibGui.Helpers
             if (StartsWith(data, offset, count, 0xFE, 0xFF))
                 return new Result(EncodingKind.Utf16BeBom, 2, 1.0F);
 
-            // 2. Pure ASCII.
-            if (IsAscii(data, offset, count))
-                return new Result(EncodingKind.Ascii, 0, 1.0F);
-
-            // 3. Strict UTF-8.
-            if (IsValidUtf8(data, offset, count))
-                return new Result(EncodingKind.Utf8, 0, 1.0F);
+            // 2-3. Classify ASCII / strict UTF-8 in one full-range pass.
+            // UTF-8 remains an exact result: the entire requested range is validated.
+            var utf8Kind = ClassifyUtf8(data, offset, count);
+            if (utf8Kind != EncodingKind.Unknown)
+                return new Result(utf8Kind, 0, 1.0F);
 
             // 4. UTF-16 without BOM.
             if (LooksLikeUtf16Le(data, offset, count))
@@ -208,74 +199,60 @@ namespace OpenccNetLibGui.Helpers
                    data[offset + 2] == b2;
         }
 
-        private static bool IsAscii(byte[] data, int offset, int count)
-        {
-            var end = offset + count;
-            for (var i = offset; i < end; i++)
-            {
-                if (data[i] >= 0x80)
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static bool IsValidUtf8(byte[] data, int offset, int count)
+        private static EncodingKind ClassifyUtf8(byte[] data, int offset, int count)
         {
             var i = offset;
             var end = offset + count;
+            var ascii = true;
 
             while (i < end)
             {
                 var c0 = data[i];
 
+                if (c0 <= 0x7F)
+                {
+                    i++;
+                    continue;
+                }
+
+                ascii = false;
+
                 switch (c0)
                 {
-                    case <= 0x7F:
-                        i++;
-                        continue;
-                    // C2..DF 80..BF. C0/C1 would be overlong.
-                    case >= 0xC2 and <= 0xDF when i + 1 >= end:
-                        return false;
+                    case >= 0xC2 and <= 0xDF when i + 1 >= end || (data[i + 1] & 0xC0) != 0x80:
+                        return EncodingKind.Unknown;
                     case >= 0xC2 and <= 0xDF:
-                    {
-                        var c1 = data[i + 1];
-                        if ((c1 & 0xC0) != 0x80)
-                            return false;
-
                         i += 2;
                         continue;
-                    }
                     case >= 0xE0 and <= 0xEF when i + 2 >= end:
-                        return false;
+                        return EncodingKind.Unknown;
                     case >= 0xE0 and <= 0xEF:
                     {
                         var c1 = data[i + 1];
                         var c2 = data[i + 2];
-
                         if ((c2 & 0xC0) != 0x80)
-                            return false;
+                            return EncodingKind.Unknown;
 
                         switch (c0)
                         {
                             case 0xE0:
                             {
-                                if (c1 < 0xA0 || c1 > 0xBF)
-                                    return false;
+                                if (c1 is < 0xA0 or > 0xBF)
+                                    return EncodingKind.Unknown;
                                 break;
                             }
                             case 0xED:
                             {
-                                // Reject UTF-16 surrogate range U+D800..U+DFFF.
+                                // Reject UTF-16 surrogate range U+D800 to U+DFFF.
                                 if (c1 is < 0x80 or > 0x9F)
-                                    return false;
+                                    return EncodingKind.Unknown;
                                 break;
                             }
                             default:
                             {
                                 if ((c1 & 0xC0) != 0x80)
                                 {
-                                    return false;
+                                    return EncodingKind.Unknown;
                                 }
 
                                 break;
@@ -286,38 +263,34 @@ namespace OpenccNetLibGui.Helpers
                         continue;
                     }
                     case >= 0xF0 and <= 0xF4 when i + 3 >= end:
-                        return false;
+                        return EncodingKind.Unknown;
                     case >= 0xF0 and <= 0xF4:
                     {
                         var c1 = data[i + 1];
                         var c2 = data[i + 2];
                         var c3 = data[i + 3];
-
-                        if ((c2 & 0xC0) != 0x80 ||
-                            (c3 & 0xC0) != 0x80)
-                        {
-                            return false;
-                        }
+                        if ((c2 & 0xC0) != 0x80 || (c3 & 0xC0) != 0x80)
+                            return EncodingKind.Unknown;
 
                         switch (c0)
                         {
                             case 0xF0:
                             {
-                                if (c1 < 0x90 || c1 > 0xBF)
-                                    return false;
+                                if (c1 is < 0x90 or > 0xBF)
+                                    return EncodingKind.Unknown;
                                 break;
                             }
                             case 0xF4:
                             {
-                                if (c1 < 0x80 || c1 > 0x8F)
-                                    return false;
+                                if (c1 is < 0x80 or > 0x8F)
+                                    return EncodingKind.Unknown;
                                 break;
                             }
                             default:
                             {
                                 if ((c1 & 0xC0) != 0x80)
                                 {
-                                    return false;
+                                    return EncodingKind.Unknown;
                                 }
 
                                 break;
@@ -328,62 +301,60 @@ namespace OpenccNetLibGui.Helpers
                         continue;
                     }
                     default:
-                        return false;
+                        return EncodingKind.Unknown;
                 }
             }
 
-            return true;
+            return ascii ? EncodingKind.Ascii : EncodingKind.Utf8;
+        }
+
+        private static bool IsValidUtf8(byte[] data, int offset, int count)
+        {
+            var kind = ClassifyUtf8(data, offset, count);
+            return kind is EncodingKind.Ascii or EncodingKind.Utf8;
         }
 
         private static bool LooksLikeUtf16Le(byte[] data, int offset, int count)
         {
-            if (count < 4 || (count & 1) != 0)
-                return false;
-
-            var zeroHighBytes = 0;
-            var pairs = 0;
-            var end = offset + count;
-
-            for (var i = offset; i + 1 < end; i += 2)
-            {
-                var lo = data[i];
-                var hi = data[i + 1];
-
-                if (hi == 0 && lo != 0)
-                    zeroHighBytes++;
-
-                pairs++;
-            }
-
-            return pairs != 0 && zeroHighBytes * 100 / pairs >= 60;
+            return LooksLikeUtf16(data, offset, count, 1);
         }
 
         private static bool LooksLikeUtf16Be(byte[] data, int offset, int count)
         {
+            return LooksLikeUtf16(data, offset, count, 0);
+        }
+
+        private static bool LooksLikeUtf16(byte[] data, int offset, int count, int zeroByteIndex)
+        {
+            // Preserve the whole-range structural requirement, but bound the
+            // statistical zero-byte heuristic so huge files are not rescanned.
             if (count < 4 || (count & 1) != 0)
                 return false;
 
-            var zeroLowBytes = 0;
+            var sampleCount = Math.Min(count, MaxHeuristicSampleSize) & ~1;
+            var end = offset + sampleCount;
+            var zeroBytes = 0;
             var pairs = 0;
-            var end = offset + count;
 
-            for (var i = offset; i + 1 < end; i += 2)
+            for (var i = offset; i < end; i += 2)
             {
-                var hi = data[i];
-                var lo = data[i + 1];
+                var first = data[i];
+                var second = data[i + 1];
+                var zeroByte = zeroByteIndex == 0 ? first : second;
+                var otherByte = zeroByteIndex == 0 ? second : first;
 
-                if (hi == 0 && lo != 0)
-                    zeroLowBytes++;
+                if (zeroByte == 0 && otherByte != 0)
+                    zeroBytes++;
 
                 pairs++;
             }
 
-            return pairs != 0 && zeroLowBytes * 100 / pairs >= 60;
+            return pairs != 0 && zeroBytes * 100 / pairs >= 60;
         }
 
         private static Result DetectChineseLegacy(byte[] data, int offset, int count)
         {
-            var sampleCount = Math.Min(count, MaxLegacySampleSize);
+            var sampleCount = Math.Min(count, MaxHeuristicSampleSize);
 
             var big5Confidence = ProbeBig5(data, offset, sampleCount);
             var gb18030Confidence = ProbeGb18030(data, offset, sampleCount);

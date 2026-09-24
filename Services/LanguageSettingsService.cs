@@ -669,7 +669,11 @@ public class LanguageSettingsService
         ""hk2t"",
         ""hk2tp"",
         ""t2jp"",
-        ""jp2t""
+        ""jp2t"",
+        ""s2seal"",
+        ""t2seal"",
+        ""seal2s"",
+        ""seal2t""
       ],
       ""dictionaryGeneratorContents"": {
         ""tabTitle"": ""Dictionary"",
@@ -937,7 +941,11 @@ public class LanguageSettingsService
         ""hk2t (繁港→繁)"",
         ""hk2tp (繁港→繁/詞)"",
         ""t2jp (日舊→日新)"",
-        ""jp2t (日新→日舊)""
+        ""jp2t (日新→日舊)"",
+        ""s2seal (簡→小篆)"",
+        ""t2seal (繁→小篆)"",
+        ""seal2s (小篆→簡)"",
+        ""seal2t (小篆→繁)""
       ],
       ""dictionaryGeneratorContents"": {
         ""tabTitle"": ""字典"",
@@ -1205,7 +1213,11 @@ public class LanguageSettingsService
         ""hk2t (繁港→繁)"",
         ""hk2tp (繁港→繁/词)"",
         ""t2jp (日旧→日新)"",
-        ""jp2t (日新→日旧)""
+        ""jp2t (日新→日旧)"",
+        ""s2seal (简→小篆)"",
+        ""t2seal (繁→小篆)"",
+        ""seal2s (小篆→简)"",
+        ""seal2t (小篆→繁)""
       ],
       ""dictionaryGeneratorContents"": {
         ""tabTitle"": ""字典"",
