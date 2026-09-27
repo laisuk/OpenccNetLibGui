@@ -7,6 +7,26 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [1.8.0] - Unreleased
+
+### Added
+
+- Added Seal script conversion configurations from `OpenccNetLib` v1.8.0.
+
+### Changed
+
+- Refined and polished the `AboutDialog` UI.
+- Improved source-text character counting by using the document's maintained text length directly.
+
+### Fixed
+
+- Fixed a UI hang when reloading large UTF-8 text files with an incompatible UTF-16 LE/BE encoding. Pathologically long
+  decoded lines are now rejected before reaching AvaloniaEdit, preventing excessive visual-line layout work and memory
+  usage.
+- Fixed manual encoding reload status reporting to reflect the actual encoding selected after BOM detection.
+
+---
+
 ## [1.7.0] - 2026-09-18
 
 ### Added

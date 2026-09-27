@@ -141,3 +141,38 @@ internal sealed class FileOpenResult
         Path = path ?? throw new ArgumentNullException(nameof(path));
     }
 }
+
+/// <summary>
+/// Provides safeguards against decoded text that can cause pathological
+/// layout behavior when displayed in AvaloniaEdit.
+/// </summary>
+internal static class TextDisplaySafety
+{
+    // Conservative cap to bound AvaloniaEdit's work on a single logical line.
+    private const int MaxLogicalLineLength = 10_000;
+
+    /// <summary>
+    /// Determines whether the text contains a logical line that is too long
+    /// to display safely in AvaloniaEdit.
+    /// </summary>
+    /// <param name="text">The decoded text to inspect.</param>
+    /// <returns>
+    /// <see langword="true"/> if a logical line exceeds the display limit;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    internal static bool HasOversizedLogicalLine(string text)
+    {
+        var lineLength = 0;
+
+        foreach (var character in text)
+        {
+            // Resetting on both characters also handles CRLF without counting either.
+            if (character is '\r' or '\n')
+                lineLength = 0;
+            else if (++lineLength > MaxLogicalLineLength)
+                return true;
+        }
+
+        return false;
+    }
+}

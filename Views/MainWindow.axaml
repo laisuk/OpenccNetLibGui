@@ -1043,7 +1043,7 @@
                            VerticalAlignment="Center"
                            FontSize="14"
                            Cursor="Hand"
-                           PointerPressed="LblFileName_PointerPressed">
+                           ContextRequested="LblFileName_ContextRequested">
 
                     <TextBlock.ContextMenu>
                         <ContextMenu>

@@ -442,14 +442,12 @@ public partial class MainWindow : Window
         editor.TextArea.Caret.BringCaretToView();
     }
 
-    private void LblFileName_PointerPressed(object? sender, PointerPressedEventArgs e)
+    private void LblFileName_ContextRequested(
+        object? sender,
+        ContextRequestedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm ||
-            !vm.CanReloadOpenFileEncoding)
-            return;
-
-        if (sender is TextBlock textBlock)
-            textBlock.ContextMenu?.Open(textBlock);
+        if (DataContext is not MainWindowViewModel { CanReloadOpenFileEncoding: true })
+            e.Handled = true;
     }
 
     private void CmbCustom_GotFocus(object? sender, RoutedEventArgs e)

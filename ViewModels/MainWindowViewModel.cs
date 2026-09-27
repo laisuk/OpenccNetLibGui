@@ -25,6 +25,9 @@ namespace OpenccNetLibGui.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    // Conservative cap to bound AvaloniaEdit's work on a single logical line.
+    // private const int MaxDisplayableLogicalLineLength = 10_000;
+
     private readonly LanguageSettings? _languageSettings;
     private Language _selectedLanguage = new();
     private readonly List<string> _codeNames = new();
@@ -976,7 +979,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public string OpenFileHint =>
         GetHint("openFileHint", "Open file for source text box contents.");
-    
+
     public string ReloadFileEncodingHint =>
         GetHint("reloadFileEncodingHint", "Open file for source text box contents.");
 
@@ -1351,9 +1354,20 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        var text = result.Text ?? string.Empty;
+
+        /*
+        if (TextDisplaySafety.HasOversizedLogicalLine(text))
+        {
+            LblStatusBarContent =
+                "Cannot display the file: the decoded text contains an excessively long line.";
+            return;
+        }
+        */
+
         CurrentOpenFilename = result.Path;
 
-        TbSourceTextDocument!.Text = result.Text ?? "";
+        TbSourceTextDocument!.Text = text;
         TbSourceTextDocument.UndoStack.ClearAll(); // ✅ reset undo/redo for new file
 
         if (result.EncodingName is not null)
@@ -1430,19 +1444,43 @@ public class MainWindowViewModel : ViewModelBase
 
             var text = await reader.ReadToEndAsync();
 
+            if (TextDisplaySafety.HasOversizedLogicalLine(text))
+            {
+                LblStatusBarContent =
+                    $"Cannot display text decoded as {reader.CurrentEncoding.WebName}: " +
+                    "the decoded text contains an excessively long line. Try another encoding.";
+                return;
+            }
+
             TbSourceTextDocument!.Text = text;
             TbSourceTextDocument.UndoStack.ClearAll();
 
-            UpdateEncodeInfo(Opencc.ZhoCheck(text));
+            var code = Opencc.ZhoCheck(text);
+            UpdateEncodeInfo(code);
 
             LblStatusBarContent =
-                $"Reloaded as {encoding.WebName}: {Path.GetFileName(CurrentOpenFilename)}";
+                $"Reloaded as {reader.CurrentEncoding.WebName}: {Path.GetFileName(CurrentOpenFilename)}";
         }
         catch (Exception ex)
         {
             LblStatusBarContent = $"Error decoding file: {ex.Message}";
         }
     }
+
+    // private static bool HasOversizedLogicalLine(string text)
+    // {
+    //     var lineLength = 0;
+    //     foreach (var character in text)
+    //     {
+    //         // Resetting on both characters also handles CRLF without counting either.
+    //         if (character is '\r' or '\n')
+    //             lineLength = 0;
+    //         else if (++lineLength > MaxDisplayableLogicalLineLength)
+    //             return true;
+    //     }
+    //
+    //     return false;
+    // }
 
     #endregion // File Open Region
 
@@ -2191,7 +2229,7 @@ public class MainWindowViewModel : ViewModelBase
 
         IsTabMessage = true;
         LbxDestinationItems!.Clear();
-        
+
         var log = _selectedLanguage.BatchLogContents;
         var isAutoDetectCjkEncoding =
             IsCbAutoDetectCjkEncoding ? "✔️ Yes" : "✖️ No";
@@ -2380,7 +2418,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public void TbSourceTextChanged()
     {
-        LblTotalCharsContent = $"[ Chars: {TbSourceTextDocument!.Text!.Length:N0} ]";
+        LblTotalCharsContent = $"[ Chars: {TbSourceTextDocument!.TextLength:N0} ]";
     }
 
     private async Task ShowShortHeadingDialogAsync()
