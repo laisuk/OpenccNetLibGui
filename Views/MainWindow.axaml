@@ -1042,7 +1042,6 @@
                            IsVisible="{Binding IsLblFileNameVisible}"
                            VerticalAlignment="Center"
                            FontSize="14"
-                           Cursor="Hand"
                            ContextRequested="LblFileName_ContextRequested">
 
                     <TextBlock.ContextMenu>
