@@ -981,7 +981,7 @@ public class MainWindowViewModel : ViewModelBase
         GetHint("openFileHint", "Open file for source text box contents.");
 
     public string ReloadFileEncodingHint =>
-        GetHint("reloadFileEncodingHint", "Open file for source text box contents.");
+        GetHint("reloadFileEncodingHint", "Right-click to select text encoding.");
 
     public string SaveTargetHint =>
         GetHint("saveTargetHint", "Select target textbox contents to save as text file.");
