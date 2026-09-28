@@ -1046,6 +1046,13 @@
 
                     <TextBlock.ContextMenu>
                         <ContextMenu>
+                            <MenuItem Header="Auto-Detect"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="auto" />
+                                
+                            <Separator />
+
                             <MenuItem Header="UTF-8"
                                       Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
                                 FallbackValue={x:Null}}"
