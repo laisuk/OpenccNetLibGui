@@ -1444,11 +1444,12 @@ public class MainWindowViewModel : ViewModelBase
 
             var text = await reader.ReadToEndAsync();
 
-            if (TextDisplaySafety.HasOversizedLogicalLine(text))
+            if (encodingName is "utf-16le" or "utf-16be" &&
+                TextDisplaySafety.HasOversizedLogicalLine(text))
             {
                 LblStatusBarContent =
-                    $"Cannot display text decoded as {reader.CurrentEncoding.WebName}: " +
-                    "the decoded text contains an excessively long line. Try another encoding.";
+                    $"Text decoded as {reader.CurrentEncoding.WebName} appears invalid: " +
+                    "it contains an excessively long line. Try another encoding.";
                 return;
             }
 

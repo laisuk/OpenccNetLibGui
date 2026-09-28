@@ -160,17 +160,16 @@ internal static class TextDisplaySafety
     /// <see langword="true"/> if a logical line exceeds the display limit;
     /// otherwise, <see langword="false"/>.
     /// </returns>
-    internal static bool HasOversizedLogicalLine(string text)
+    internal static bool HasOversizedLogicalLine(ReadOnlySpan<char> text)
     {
-        var lineLength = 0;
-
-        foreach (var character in text)
+        while (text.Length > MaxLogicalLineLength)
         {
-            // Resetting on both characters also handles CRLF without counting either.
-            if (character is '\r' or '\n')
-                lineLength = 0;
-            else if (++lineLength > MaxLogicalLineLength)
+            var newline = text.IndexOfAny('\r', '\n');
+
+            if (newline is < 0 or > MaxLogicalLineLength)
                 return true;
+
+            text = text[(newline + 1)..];
         }
 
         return false;
