@@ -27,6 +27,8 @@
                             Background="{DynamicResource SystemAccentColor}">
                         <TextBlock
                             Text="{Binding ActiveDictionaryLabel, FallbackValue='Built-in dictionary'}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap"
                             FontSize="12"
                             FontWeight="SemiBold"
                             Foreground="White"
