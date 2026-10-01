@@ -14,7 +14,25 @@
             BorderThickness="2" CornerRadius="6">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="18" Margin="0,0,18,0" x:DataType="vm:DictionaryGeneratorViewModel">
-                <TextBlock Text="{Binding Contents.PageTitle}" FontSize="20" FontWeight="Bold" />
+                <!-- <TextBlock Text="{Binding Contents.PageTitle}" FontSize="20" FontWeight="Bold" /> -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Contents.PageTitle}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center" />
+                    <Border Grid.Column="1"
+                            Padding="10,4"
+                            CornerRadius="12"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource SystemAccentColor}">
+                        <TextBlock
+                            Text="{Binding ActiveDictionaryLabel, FallbackValue='Built-in dictionary'}"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="White"
+                            VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
                 <StackPanel Spacing="6" IsEnabled="{Binding !IsGenerating}">
                     <TextBlock Text="{Binding Contents.BaseDirectoryLabel}" FontWeight="SemiBold" />
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -89,9 +107,9 @@
                                                         Command="{Binding BrowseCommand}"
                                                         ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.BrowseDictionaryFileToolTip, FallbackValue='Select a custom dictionary text file.'}">
                                                     <StackPanel Orientation="Horizontal"
-                                                            Spacing="6">
+                                                                Spacing="6">
                                                         <TextBlock Classes="icon-font"
-                                                                Text="{x:Static local:Icons.DictionaryAdd}" />
+                                                                   Text="{x:Static local:Icons.DictionaryAdd}" />
                                                         <TextBlock Classes="icon-text"
                                                                    Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.BrowseButton, FallbackValue=Browse}" />
                                                     </StackPanel>
@@ -101,11 +119,11 @@
                                                         Classes="outline-button danger-outline-button"
                                                         ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveRowToolTip, FallbackValue='Remove this custom dictionary row.'}">
                                                     <StackPanel Orientation="Horizontal"
-                                                            Spacing="6">
+                                                                Spacing="6">
                                                         <TextBlock Classes="icon-font"
-                                                                Text="{x:Static local:Icons.RemoveFrom}" />
+                                                                   Text="{x:Static local:Icons.RemoveFrom}" />
                                                         <TextBlock Classes="icon-text"
-                                                            Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveButton, FallbackValue=Remove}" />
+                                                                   Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveButton, FallbackValue=Remove}" />
                                                     </StackPanel>
                                                 </Button>
                                             </Grid>
@@ -119,7 +137,8 @@
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <TextBlock Classes="icon-font"
                                                    Text="{x:Static local:Icons.AddTo}" />
-                                        <TextBlock Classes="icon-text" Text="{Binding Contents.AddCustomDictionaryButton}" />
+                                        <TextBlock Classes="icon-text"
+                                                   Text="{Binding Contents.AddCustomDictionaryButton}" />
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding ApplyCustomSlotsCommand}"

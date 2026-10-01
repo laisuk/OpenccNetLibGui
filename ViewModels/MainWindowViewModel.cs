@@ -1031,6 +1031,8 @@ public class MainWindowViewModel : ViewModelBase
 
         dictionaryLabel = FormatDictionaryLabel(runtimes, dictionaryLabel, _activeCustomSpecs);
 
+        DictionaryGenerator.ActiveDictionaryLabel = dictionaryLabel;
+
         LblStatusBarContent = $"{runtimeLabel}: {runtimeVersion} | OpenccNetLib {openccVer} | {dictionaryLabel}";
     }
 

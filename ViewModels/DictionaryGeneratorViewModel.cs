@@ -30,6 +30,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     private DictionaryGeneratorContents _contents = new();
     private string? _lastGeneratedOutputPath;
     private GenerationStatusKind _generationStatusKind;
+    private string _activeDictionaryLabel = string.Empty;
 
     public DictionaryGeneratorViewModel(ITopLevelService topLevelService, IDictionaryGeneratorService generatorService,
         LanguageSettingsService languageSettingsService)
@@ -145,6 +146,12 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     }
 
     public static string ResolvePath(string path) => Path.GetFullPath(path, AppContext.BaseDirectory);
+
+    public string ActiveDictionaryLabel
+    {
+        get => _activeDictionaryLabel;
+        internal set => this.RaiseAndSetIfChanged(ref _activeDictionaryLabel, value);
+    }
 
     private static DictSlot[] GetSlotsInDisplayOrder()
     {

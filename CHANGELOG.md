@@ -17,6 +17,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - Refined and polished the `AboutDialog` UI.
 - Improved source-text character counting by using the document's maintained text length directly.
+- UI: Added an accent-styled active dictionary badge to the Dictionary Generation header for at-a-glance dictionary
+  state.
 
 ### Fixed
 
