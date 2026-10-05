@@ -2500,14 +2500,27 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentOpenFileName, value);
     }
 
+    private const int MaxFileNameDisplayLength = 25;
+
     public string? LblFileNameContent
     {
-        get => _lblFilenameContent;
+        get => TrimFileName(_lblFilenameContent);
         set
         {
             this.RaiseAndSetIfChanged(ref _lblFilenameContent, value);
             this.RaisePropertyChanged(nameof(OpenFileEncodingHint));
         }
+    }
+
+    private static string? TrimFileName(string? value)
+    {
+        if (string.IsNullOrEmpty(value) ||
+            value.Length <= MaxFileNameDisplayLength)
+        {
+            return value;
+        }
+
+        return value[..(MaxFileNameDisplayLength - 3)] + "...";
     }
 
     public string? OpenFileEncodingHint
