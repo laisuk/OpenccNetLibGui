@@ -86,6 +86,9 @@ internal static class FileOpenViewModel
 
             CjkEncodingDetector.EncodingKind.Gb18030
                 => Encoding.GetEncoding("GB18030"),
+            
+            CjkEncodingDetector.EncodingKind.ShiftJis
+                => Encoding.GetEncoding(932),
 
             _ => null
         };
@@ -114,6 +117,9 @@ internal static class FileOpenViewModel
             CjkEncodingDetector.EncodingKind.Gb18030
                 => "GB18030",
 
+            CjkEncodingDetector.EncodingKind.ShiftJis
+                => "Shift-JIS",
+            
             _ => "UTF-8"
         };
     }
