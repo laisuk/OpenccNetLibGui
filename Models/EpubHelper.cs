@@ -270,9 +270,12 @@ public static class EpubHelper
                         sb.Append('\n');
                     break;
                 }
-                case XmlNodeType.Text or XmlNodeType.SignificantWhitespace when skipDepth > 0:
+                case XmlNodeType.Text or XmlNodeType.SignificantWhitespace
+                    or XmlNodeType.Whitespace when skipDepth > 0:
                     continue;
-                case XmlNodeType.Text or XmlNodeType.SignificantWhitespace:
+
+                case XmlNodeType.Text or XmlNodeType.SignificantWhitespace
+                    or XmlNodeType.Whitespace:
                 {
                     var t = reader.Value;
                     if (!string.IsNullOrEmpty(t))

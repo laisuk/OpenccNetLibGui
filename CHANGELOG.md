@@ -27,6 +27,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   decoded lines are now rejected before reaching AvaloniaEdit, preventing excessive visual-line layout work and memory
   usage.
 - Fixed manual encoding reload status reporting to reflect the actual encoding selected after BOM detection.
+- Fixed EPUB text extraction dropping whitespace-only XML nodes between inline elements, preserving spaces between
+  adjacent text spans and improving fidelity to the original XHTML content.
 
 ---
 
