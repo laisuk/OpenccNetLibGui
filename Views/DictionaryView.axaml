@@ -133,7 +133,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
-                            <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
                                 <Button Command="{Binding AddCustomDictionaryCommand}"
                                         ToolTip.Tip="{Binding Contents.AddRowToolTip}">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -143,18 +143,22 @@
                                                    Text="{Binding Contents.AddCustomDictionaryButton}" />
                                     </StackPanel>
                                 </Button>
-                                <Button Command="{Binding ApplyCustomSlotsCommand}"
-                                        ToolTip.Tip="{Binding Contents.ApplyCustomSlotsToolTip}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Classes="icon-font"
-                                                   Text="{x:Static local:Icons.ReadingMode}" />
-                                        <TextBlock Classes="icon-text" Text="{Binding Contents.ApplyCustomSlotsButton}" />
-                                    </StackPanel>
-                                </Button>
-                                <CheckBox Content="{Binding Contents.ApplyCustomSlotsDuringStartupLabel}"
-                                          IsChecked="{Binding ApplyCustomSlotsDuringStartup, Mode=TwoWay}"
-                                          VerticalAlignment="Center" />
-                            </StackPanel>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                                            VerticalAlignment="Center">
+                                    <Button Command="{Binding ApplyCustomSlotsCommand}"
+                                            ToolTip.Tip="{Binding Contents.ApplyCustomSlotsToolTip}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Classes="icon-font"
+                                                       Text="{x:Static local:Icons.ReadingMode}" />
+                                            <TextBlock Classes="icon-text"
+                                                       Text="{Binding Contents.ApplyCustomSlotsButton}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <CheckBox Content="{Binding Contents.ApplyCustomSlotsDuringStartupLabel}"
+                                              IsChecked="{Binding ApplyCustomSlotsDuringStartup, Mode=TwoWay}"
+                                              VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
                 </StackPanel>
