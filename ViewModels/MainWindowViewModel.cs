@@ -2455,7 +2455,7 @@ public class MainWindowViewModel : ViewModelBase
 
         var dlg = new AboutDialog
         {
-            DataContext = new AboutViewModel()
+            DataContext = new AboutViewModel(_languageSettings!.PdfiumVersion)
         };
 
         await dlg.ShowDialog(owner);

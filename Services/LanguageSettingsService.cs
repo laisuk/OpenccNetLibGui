@@ -1404,6 +1404,7 @@ public class LanguageSettingsService
       ""customTitleHeadingRegex"": """"
     }
   },
+  ""pdfiumVersion"": ""159.0.8152.0"",
   ""sentenceBoundaryMode"": {
     ""info"": ""1 = lenient, 2 = balanced (default), 3 = strict"",
     ""value"": 2

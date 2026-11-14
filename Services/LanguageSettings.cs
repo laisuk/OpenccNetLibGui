@@ -32,6 +32,7 @@ public class LanguageSettings
 
     // -------------------- NEW preferred shape --------------------
     public PdfOptions PdfOptions { get; set; } = new();
+    public string PdfiumVersion { get; set; } = string.Empty;
     public SentenceBoundaryModeSetting? SentenceBoundaryMode { get; set; } = new();
 }
 
