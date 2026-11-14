@@ -190,9 +190,8 @@
                                             </MenuItem>
 
                                             <!-- 📝 Convert filename -->
-                                            <!-- IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay}"> -->
                                             <MenuItem ToggleType="CheckBox"
-                                                      IsChecked="{Binding DataContext.IsCbConvertFilename, ElementName=MainWindowRoot, Mode=TwoWay, FallbackValue=false}">
+                                                      IsChecked="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).IsCbConvertFilename, Mode=TwoWay, FallbackValue=false}">
                                                 <MenuItem.Header>
                                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                                         <TextBlock Text="📝" />
