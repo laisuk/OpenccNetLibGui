@@ -52,7 +52,7 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15" />
         <PackageReference Include="OpenccNetLib" Version="1.8.0" />
         <PackageReference Include="PdfPig" Version="0.1.16" />
-        <PackageReference Include="ReactiveUI.Reactive" Version="26.0.1" />
+        <PackageReference Include="ReactiveUI.Reactive" Version="27.0.1" />
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.1.5" />
     </ItemGroup>
 
