@@ -2025,7 +2025,7 @@ public class MainWindowViewModel : ViewModelBase
                     continue;
                 }
 
-                // Convert with OpenCC on a background thread (if not "_Other")
+                // Convert with `OpenCC` on a background thread (if not "_Other")
                 var convertedText =
                     suffix != "_Other"
                         ? await Task.Run(() => _opencc.Convert(pdfText, IsCbPunctuation))
