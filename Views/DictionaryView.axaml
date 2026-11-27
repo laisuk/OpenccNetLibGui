@@ -88,7 +88,7 @@
                             </Grid>
                             <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled">
-                                <ItemsControl ItemsSource="{Binding CustomDictionaries}">
+                                <ItemsControl ItemsSource="{Binding CustomDictionaries}" Margin="0,0,16,0">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:CustomDictionaryRowViewModel">
                                             <Grid ColumnDefinitions="190,130,*,Auto,Auto" RowDefinitions="Auto,Auto"
