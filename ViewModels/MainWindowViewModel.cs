@@ -461,7 +461,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         ArgumentNullException.ThrowIfNull(specs);
         var appliedSpecs = specs.ToArray();
-        var candidate = CreateAppliedConverter(_baseOpencc!, appliedSpecs);
+        var candidate = CreateAppliedConverter(_baseOpencc!, appliedSpecs, _opencc);
 
         _opencc = candidate;
         _activeCustomSpecs = appliedSpecs;
@@ -469,11 +469,20 @@ public class MainWindowViewModel : ViewModelBase
     }
 
 
-    internal static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs)
+    internal static Opencc CreateAppliedConverter(Opencc baseOpencc, IReadOnlyCollection<CustomDictSpec> specs,
+        Opencc? activeOpencc = null)
     {
         ArgumentNullException.ThrowIfNull(baseOpencc);
         ArgumentNullException.ThrowIfNull(specs);
-        return specs.Count == 0 ? baseOpencc : baseOpencc.WithCustomDictionary(specs);
+        var candidate = specs.Count == 0 ? baseOpencc : baseOpencc.WithCustomDictionary(specs);
+        if (activeOpencc is not null && candidate != activeOpencc)
+        {
+            if (candidate.GetConfigId() != activeOpencc.GetConfigId())
+                candidate.SetConfig(activeOpencc.GetConfigId());
+            candidate.IsPreserveIds = activeOpencc.IsPreserveIds;
+        }
+
+        return candidate;
     }
 
     internal static void ApplyCustomSlotsDuringStartup(bool enabled, Action applyCustomSlots)

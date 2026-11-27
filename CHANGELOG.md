@@ -7,9 +7,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.8.0] - Unreleased
+## \[1.8.0] - Unreleased
 
 ### Added
+
+- Added inline custom dictionary entries alongside file-backed slots for runtime Apply, startup, and dictionary
+  generation.
 
 - Added Seal script conversion configurations from `OpenccNetLib` v1.8.0.
 
@@ -32,7 +35,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.7.0] - 2026-09-18
+## \[1.7.0] - 2026-09-18
 
 ### Added
 
@@ -93,7 +96,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.6.2] - 2026-08-15
+## \[1.6.2] - 2026-08-15
 
 ### Added
 
@@ -176,7 +179,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.6.1] - 2026-07-15
+## \[1.6.1] - 2026-07-15
 
 ### Changed
 
@@ -198,7 +201,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.6.0] - 2026-06-20
+## \[1.6.0] - 2026-06-20
 
 ### Changed
 
@@ -208,7 +211,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.5.1] - 2026-05-25
+## \[1.5.1] - 2026-05-25
 
 ### Changed
 
@@ -220,7 +223,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.5.0] - 2026-05-07
+## \[1.5.0] - 2026-05-07
 
 ### Changed
 
@@ -232,7 +235,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.2] – 2026-04-08
+## \[1.4.2] – 2026-04-08
 
 ### Added
 
@@ -252,7 +255,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.1] – 2026-01-30
+## \[1.4.1] – 2026-01-30
 
 ### Changed
 
@@ -262,7 +265,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.4.0] – 2026-01-07
+## \[1.4.0] – 2026-01-07
 
 ### Added
 
@@ -302,7 +305,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Handles paragraphs, numbered and bulleted lists, tables (flattened as TSV), headers/footers, footnotes, and
       comments.
     - Formatting is intentionally stripped to produce clean, editable plain text suitable for reflow processing and
-      OpenCC conversion.
+      `OpenCC` conversion.
 
 - **ODT (.odt) plain-text import support**
     - Extracts text from OpenDocument Text files via `content.xml`.
@@ -316,7 +319,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Ignores CSS and presentation-only markup; text is extracted based on semantic structure (paragraphs, headings,
       block elements, and line breaks).
     - Skips non-content sections such as scripts, styles, and navigation documents (ToC) by default.
-    - Output is normalized into clean, reflow-friendly plain text suitable for further paragraph reflow and OpenCC
+    - Output is normalized into clean, reflow-friendly plain text suitable for further paragraph reflow and `OpenCC`
       conversion.
 
 - **About dialog**
@@ -367,7 +370,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - This release focuses on **correctness, configurability, and long-term maintainability**
   of text reflow and document import.
 - DOCX and ODT are treated as **input formats only**; all content is converted to plain text before editing, reflow, or
-  Opencc conversion.
+  `Opencc` conversion.
 - Existing behavior remains compatible; legacy `ShortHeadingMaxLen` is internally synchronized with the new settings
   model.
 - The reflow engine is now suitable for reuse across PDF, Office documents, EPUB, CLI tools, batch processing, and
@@ -375,7 +378,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.3.2] - 2025-12-07
+## \[1.3.2] - 2025-12-07
 
 ### Added
 
@@ -400,7 +403,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
     - Reflows only the affected paragraph range.
 - **PDF Options context menu**:
     - Toggle reflow, compact mode, page headers, and PDF engine directly from the UI.
-- **PDF text extraction + Opencc conversion** in both **Main Conversion** and **Batch Conversion** modes.
+- **PDF text extraction + `Opencc` conversion** in both **Main Conversion** and **Batch Conversion** modes.
 - **Runtime PDF engine bindings included**:
     - `win-x64`, `win-x86`, `linux-x64`, `osx-x64`, `osx-arm64` native Pdfium binaries.
 
@@ -438,7 +441,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.3.1] - 2025-11-20
+## \[1.3.1] - 2025-11-20
 
 ### Added
 
@@ -492,7 +495,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.3.0] - 2025-10-21
+## \[1.3.0] - 2025-10-21
 
 ### Added
 
@@ -509,7 +512,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.2.0] 2025-10.01
+## \[1.2.0] 2025-10.01
 
 ### Added
 
@@ -530,13 +533,13 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.1.0] - 2025-08-18
+## \[1.1.0] - 2025-08-18
 
 ### Changed
 
 - Update OpenccNetLib to v1.1.0
 
-## [1.0.3] - 2025-07-29
+## \[1.0.3] - 2025-07-29
 
 ### Added
 
@@ -548,7 +551,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.0.2.1] - 2025-07-09
+## \[1.0.2.1] - 2025-07-09
 
 ### Fixed
 
@@ -557,7 +560,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.0.2] - 2025-07-09
+## \[1.0.2] - 2025-07-09
 
 ### Changed
 
@@ -571,7 +574,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.0.1] – 2025-06-25
+## \[1.0.1] – 2025-06-25
 
 ### Added
 
@@ -589,7 +592,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [1.0.0] – 2025-06-18
+## \[1.0.0] – 2025-06-18
 
 ### Added
 

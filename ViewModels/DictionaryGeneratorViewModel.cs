@@ -41,7 +41,8 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         _applyCustomSlotsDuringStartup = languageSettingsService.LanguageSettings.ApplyCustomSlotsDuringStartup;
         AvailableSlots = GetSlotsInDisplayOrder();
         AvailableModes = Enum.GetValues<CustomDictMode>();
-        AddCustomDictionaryCommand = ReactiveCommand.Create(AddCustomDictionary);
+        AddCustomDictionaryCommand = ReactiveCommand.Create(() => AddCustomDictionary(DictionarySourceKind.File));
+        AddInlineCustomDictionaryCommand = ReactiveCommand.Create(() => AddCustomDictionary(DictionarySourceKind.Inline));
         ApplyCustomSlotsCommand = ReactiveCommand.CreateFromTask(ApplyCustomSlotsAsync);
         BrowseBaseDirectoryCommand = ReactiveCommand.CreateFromTask(() => BrowseDirectoryAsync(true));
         BrowseOutputDirectoryCommand = ReactiveCommand.CreateFromTask(() => BrowseDirectoryAsync(false));
@@ -52,6 +53,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         TrackSubscription(ReactiveCommandExceptionObserver.Subscribe(
             HandleUnexpectedCommandException,
             (nameof(AddCustomDictionaryCommand), AddCustomDictionaryCommand.ThrownExceptions),
+            (nameof(AddInlineCustomDictionaryCommand), AddInlineCustomDictionaryCommand.ThrownExceptions),
             (nameof(ApplyCustomSlotsCommand), ApplyCustomSlotsCommand.ThrownExceptions),
             (nameof(BrowseBaseDirectoryCommand), BrowseBaseDirectoryCommand.ThrownExceptions),
             (nameof(BrowseOutputDirectoryCommand), BrowseOutputDirectoryCommand.ThrownExceptions),
@@ -69,6 +71,7 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     private IReadOnlyList<DictSlot> AvailableSlots { get; }
     private IReadOnlyList<CustomDictMode> AvailableModes { get; }
     public ReactiveCommand<Unit, Unit> AddCustomDictionaryCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddInlineCustomDictionaryCommand { get; }
     public ReactiveCommand<Unit, Unit> BrowseBaseDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> ApplyCustomSlotsCommand { get; }
     public ReactiveCommand<Unit, Unit> BrowseOutputDirectoryCommand { get; }
@@ -195,24 +198,24 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
             .ToArray();
     }
 
-    private void AddCustomDictionary()
+    private void AddCustomDictionary(DictionarySourceKind sourceKind)
     {
-        AddRow();
+        AddRow(sourceKind);
         PersistCustomDictionaries();
     }
 
-    private CustomDictionaryRowViewModel AddRow(DictSlot? slot = null, CustomDictMode? mode = null,
-        string? path = null)
+    private void AddRow(DictionarySourceKind sourceKind, DictSlot? slot = null, CustomDictMode? mode = null,
+        string? path = null, string? inlineText = null)
     {
         var row = new CustomDictionaryRowViewModel(
             _topLevelService, AvailableSlots, AvailableModes, () => Contents,
-            RemoveCustomDictionary, HandleUnexpectedCommandException);
+            RemoveCustomDictionary, HandleUnexpectedCommandException, sourceKind);
         if (slot.HasValue) row.SelectedSlot = slot.Value;
         if (mode.HasValue) row.SelectedMode = mode.Value;
         if (path is not null) row.DictionaryPath = path;
+        if (inlineText is not null) row.InlineText = inlineText;
         row.PropertyChanged += CustomDictionaryRowOnPropertyChanged;
         CustomDictionaries.Add(row);
-        return row;
     }
 
     private void RemoveCustomDictionary(CustomDictionaryRowViewModel row)
@@ -229,28 +232,29 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
     {
         if (e.PropertyName is nameof(CustomDictionaryRowViewModel.SelectedSlot) or
             nameof(CustomDictionaryRowViewModel.SelectedMode) or
-            nameof(CustomDictionaryRowViewModel.DictionaryPath))
+            nameof(CustomDictionaryRowViewModel.DictionaryPath) or
+            nameof(CustomDictionaryRowViewModel.InlineText))
             PersistCustomDictionaries();
     }
 
     private void RestoreCustomDictionaries()
     {
         var settings = _languageSettingsService.LanguageSettings.CustomDictionaries;
-        var skippedInvalidSetting = false;
+        if (settings is null)
+            return;
+
         foreach (var item in settings)
         {
-            if (!DictSlotExtensions.TryParse(item.Slot, out var slot) || !slot.IsActive() ||
-                !Enum.TryParse<CustomDictMode>(item.Mode, true, out var mode) || !AvailableModes.Contains(mode))
-            {
-                skippedInvalidSetting = true;
-                continue;
-            }
-
-            _ = AddRow(slot, mode, item.Path);
+            // Retain invalid rows so startup validation cannot silently apply a subset.
+            var sourceKind = Enum.TryParse<DictionarySourceKind>(item.SourceKind, true, out var kind)
+                ? kind
+                : (DictionarySourceKind)(-1);
+            var slot = DictSlotExtensions.TryParse(item.Slot, out var parsedSlot) ? parsedSlot : (DictSlot)(-1);
+            var mode = Enum.TryParse<CustomDictMode>(item.Mode, true, out var parsedMode)
+                ? parsedMode
+                : (CustomDictMode)(-1);
+            AddRow(sourceKind, slot, mode, item.Path, item.InlineText);
         }
-
-        if (skippedInvalidSetting)
-            PersistCustomDictionaries();
     }
 
     private void PersistCustomDictionaries()
@@ -258,9 +262,11 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
         _languageSettingsService.LanguageSettings.CustomDictionaries = CustomDictionaries
             .Select(row => new CustomDictionarySetting
             {
-                Slot = row.SelectedSlot.ToCanonicalName(),
+                Slot = row.SelectedSlot.IsActive() ? row.SelectedSlot.ToCanonicalName() : row.SelectedSlot.ToString(),
                 Mode = row.SelectedMode.ToString(),
-                Path = row.DictionaryPath
+                SourceKind = row.SourceKind.ToString(),
+                Path = row.IsInline ? null : row.DictionaryPath,
+                InlineText = row.IsFile ? null : row.InlineText
             })
             .ToList();
         CustomDictionarySettingsChanged?.Invoke();
@@ -360,6 +366,19 @@ public sealed class DictionaryGeneratorViewModel : ViewModelBase
                 throw new ArgumentException(string.Format(Contents.UnsupportedSlotFormat, rowNumber, row.SelectedSlot));
             if (!activeModes.Contains(row.SelectedMode))
                 throw new ArgumentException(string.Format(Contents.UnsupportedModeFormat, rowNumber, row.SelectedMode));
+            if (row.IsInline)
+            {
+                specs[index] = new CustomDictSpec
+                {
+                    Slot = row.SelectedSlot,
+                    Mode = row.SelectedMode,
+                    Pairs = InlineDictionaryParser.Parse(row.InlineText, rowNumber, Contents)
+                };
+                continue;
+            }
+
+            if (!row.IsFile)
+                throw new ArgumentException(string.Format(Contents.UnsupportedSourceFormat, rowNumber));
             if (string.IsNullOrWhiteSpace(row.DictionaryPath))
                 throw new ArgumentException(string.Format(Contents.RowFileRequiredFormat, rowNumber));
             var path = ResolvePath(row.DictionaryPath.Trim());

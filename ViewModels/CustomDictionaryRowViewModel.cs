@@ -18,12 +18,15 @@ public sealed class CustomDictionaryRowViewModel : ViewModelBase
     private DictSlot _selectedSlot;
     private CustomDictMode _selectedMode = CustomDictMode.Append;
     private string _dictionaryPath = string.Empty;
+    private string _inlineText = string.Empty;
 
     public CustomDictionaryRowViewModel(ITopLevelService topLevelService, IReadOnlyList<DictSlot> availableSlots,
         IReadOnlyList<CustomDictMode> availableModes, Func<DictionaryGeneratorContents> contentsProvider,
-        Action<CustomDictionaryRowViewModel> remove, Action<CommandExceptionInfo> handleCommandException)
+        Action<CustomDictionaryRowViewModel> remove, Action<CommandExceptionInfo> handleCommandException,
+        DictionarySourceKind sourceKind = DictionarySourceKind.File)
     {
         _topLevelService = topLevelService;
+        SourceKind = sourceKind;
         AvailableSlots = availableSlots;
         AvailableModes = availableModes;
         _contentsProvider = contentsProvider;
@@ -37,6 +40,9 @@ public sealed class CustomDictionaryRowViewModel : ViewModelBase
             ($"{nameof(CustomDictionaryRowViewModel)}.{nameof(RemoveCommand)}", RemoveCommand.ThrownExceptions)));
     }
 
+    public DictionarySourceKind SourceKind { get; }
+    public bool IsFile => SourceKind == DictionarySourceKind.File;
+    public bool IsInline => SourceKind == DictionarySourceKind.Inline;
     public IReadOnlyList<DictSlot> AvailableSlots { get; }
     public IReadOnlyList<CustomDictMode> AvailableModes { get; }
     public ReactiveCommand<Unit, Unit> BrowseCommand { get; }
@@ -58,6 +64,12 @@ public sealed class CustomDictionaryRowViewModel : ViewModelBase
     {
         get => _dictionaryPath;
         set => this.RaiseAndSetIfChanged(ref _dictionaryPath, value);
+    }
+
+    public string InlineText
+    {
+        get => _inlineText;
+        set => this.RaiseAndSetIfChanged(ref _inlineText, value);
     }
 
     private async Task BrowseAsync()

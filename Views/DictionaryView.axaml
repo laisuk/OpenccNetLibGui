@@ -91,21 +91,21 @@
                                 <ItemsControl ItemsSource="{Binding CustomDictionaries}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:CustomDictionaryRowViewModel">
-                                            <Grid ColumnDefinitions="190,130,*,Auto,Auto"
+                                            <Grid ColumnDefinitions="190,130,*,Auto,Auto" RowDefinitions="Auto,Auto"
                                                   ColumnSpacing="8" Margin="0,0,0,8">
                                                 <ComboBox ItemsSource="{Binding AvailableSlots}"
                                                           SelectedItem="{Binding SelectedSlot, Mode=TwoWay}"
                                                           ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.SlotToolTip, FallbackValue='Select the dictionary slot to customize.'}" />
-                                                <ComboBox Grid.Column="1"
+                                                <ComboBox Grid.Row="0" Grid.Column="1"
                                                           ItemsSource="{Binding AvailableModes}"
                                                           SelectedItem="{Binding SelectedMode, Mode=TwoWay}"
                                                           ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.ModeToolTip, FallbackValue='Append merges entries; Override replaces the selected slot.'}" />
-                                                <TextBox Grid.Column="2"
+                                                <TextBox Grid.Row="0" Grid.Column="2" IsVisible="{Binding IsFile}"
                                                          Text="{Binding DictionaryPath, Mode=TwoWay}"
                                                          VerticalContentAlignment="Center"
                                                          PlaceholderText="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.DictionaryFilePlaceholder, FallbackValue='Dictionary file path'}"
                                                          ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.DictionaryFileToolTip, FallbackValue='Path to a custom dictionary text file.'}" />
-                                                <Button Grid.Column="3"
+                                                <Button Grid.Row="0" Grid.Column="3" IsVisible="{Binding IsFile}"
                                                         Command="{Binding BrowseCommand}"
                                                         ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.BrowseDictionaryFileToolTip, FallbackValue='Select a custom dictionary text file.'}">
                                                     <StackPanel Orientation="Horizontal"
@@ -116,7 +116,7 @@
                                                                    Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.BrowseButton, FallbackValue=Browse}" />
                                                     </StackPanel>
                                                 </Button>
-                                                <Button Grid.Column="4"
+                                                <Button Grid.Row="0" Grid.Column="4"
                                                         Command="{Binding RemoveCommand}"
                                                         Classes="outline-button danger-outline-button"
                                                         ToolTip.Tip="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveRowToolTip, FallbackValue='Remove this custom dictionary row.'}">
@@ -128,13 +128,31 @@
                                                                    Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.RemoveButton, FallbackValue=Remove}" />
                                                     </StackPanel>
                                                 </Button>
+                                                <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Grid.Column="0"
+                                                            IsVisible="{Binding IsInline}"
+                                                            Margin="0,6,0,0" Spacing="4">
+                                                    <TextBlock
+                                                        Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.InlineDictionaryEntriesLabel, FallbackValue='Inline Dictionary Entries'}"
+                                                        FontWeight="SemiBold" />
+                                                    <TextBlock
+                                                        Text="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.InlineDictionaryFormatHint, FallbackValue='Enter one source and target per line, separated by a Tab.'}"
+                                                        TextWrapping="Wrap" />
+                                                    <TextBox Text="{Binding InlineText, Mode=TwoWay}"
+                                                             AutomationProperties.Name="{Binding #DictionaryViewRoot.((vm:DictionaryGeneratorViewModel)DataContext).Contents.InlineDictionaryEntriesLabel, FallbackValue='Inline Dictionary Entries'}"
+                                                             AcceptsReturn="True" AcceptsTab="True"
+                                                             TextWrapping="NoWrap"
+                                                             FontFamily="Cascadia Mono, Consolas, DejaVu Sans Mono, Menlo"
+                                                             Height="96"
+                                                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                             ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                                </StackPanel>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
-                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
-                                <Button Command="{Binding AddCustomDictionaryCommand}"
+                            <WrapPanel>
+                                <Button Command="{Binding AddCustomDictionaryCommand}" Margin="0,0,8,6"
                                         ToolTip.Tip="{Binding Contents.AddRowToolTip}">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <TextBlock Classes="icon-font"
@@ -143,7 +161,15 @@
                                                    Text="{Binding Contents.AddCustomDictionaryButton}" />
                                     </StackPanel>
                                 </Button>
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                                <Button Command="{Binding AddInlineCustomDictionaryCommand}" Margin="0,0,24,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Classes="icon-font"
+                                                   Text="{x:Static local:Icons.AddTo}" />
+                                        <TextBlock Classes="icon-text"
+                                                   Text="{Binding Contents.AddInlineCustomDictionaryButton}" />
+                                    </StackPanel>
+                                </Button>
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,6"
                                             VerticalAlignment="Center">
                                     <Button Command="{Binding ApplyCustomSlotsCommand}"
                                             ToolTip.Tip="{Binding Contents.ApplyCustomSlotsToolTip}">
@@ -158,7 +184,7 @@
                                               IsChecked="{Binding ApplyCustomSlotsDuringStartup, Mode=TwoWay}"
                                               VerticalAlignment="Center" />
                                 </StackPanel>
-                            </Grid>
+                            </WrapPanel>
                         </StackPanel>
                     </Border>
                 </StackPanel>

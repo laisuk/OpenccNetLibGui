@@ -39,7 +39,7 @@ For example:
 ## Features
 
 - **Chinese Conversion**  
-  Convert text between Simplified and Traditional Chinese using optimized OpenCC lexicons combined with an efficient
+  Convert text between Simplified and Traditional Chinese using optimized `OpenCC` lexicons combined with an efficient
   FMM-based dictionary matcher.
 
 - **Global Conversion Dictionary**
@@ -59,7 +59,7 @@ For example:
 
 - **PDF Extraction & CJK Reflow**  
   Import PDF files and automatically:
-    - Extract text using **Pdfium** or **PdfPig**
+    - Extract text using **`Pdfium`** or **PdfPig**
     - Remove repetitive headers and footers (optional)
     - Merge broken lines across pages (e.g., `面` + `容` → `面容`)
     - Preserve chapter titles and headings
@@ -101,7 +101,7 @@ Such files require OCR (Optical Character Recognition), which is **not included*
 
 `OpenccNetLibGui` offers two selectable engines for PDF text extraction:
 
-- **Pdfium (native)**  
+- **`Pdfium` (native)**  
   A high-accuracy native engine with superior handling of:
     - CJK characters
     - complex layouts
@@ -154,7 +154,7 @@ recommended.
   A performant text editor control with syntax-highlighting, line numbers, and virtualization support.
 
 - **[OpenccNetLib](https://github.com/laisuk/OpenccNet)**  
-  Core conversion engine providing optimized OpenCC dictionary handling, FMM segmentation and multi-stage dictionary
+  Core conversion engine providing optimized `OpenCC` dictionary handling, FMM segmentation and multi-stage dictionary
   pipelines for Simplified/Traditional conversion.
 
 - **System.Text.Json**
@@ -316,8 +316,8 @@ Supported values are:
 4. `"json"` - `<application directory>/dicts/dictionary_maxlength.json`
 5. `"cbor"` - `<application directory>/dicts/dictionary_maxlength.cbor`
 
-To be discovered by the conversion runtime, every custom dictionary source or generated artifact must be placed in the
-application's `dicts` directory. Dictionary files stored outside `<application directory>/dicts/` are ignored.
+The global dictionary setting looks for base files and generated artifacts in the application's `dicts` directory.
+Custom Dictionary Slots can also use TXT files from other locations.
 
 The `zstd`, `dicts`, `json`, and `cbor` values load an external dictionary. A missing, empty, or unrecognized value
 selects the embedded built-in provider. If an external dictionary cannot be loaded, the application falls back to the
@@ -334,8 +334,21 @@ Before modifying these text dictionaries, create a backup or keep them under ver
 artifacts are built from these source files, so accidental edits or deletions will also affect subsequently generated
 JSON, CBOR, and ZSTD dictionaries.
 
-For safer customization, keep the original text dictionaries unchanged and place custom entries in separate files. Use
-the Dictionary generators' **Append** or **Override** modes to apply those custom entries when generating an artifact.
+Use **Custom Dictionary Slots** in the **Dictionary** tab to customize the base:
+
+- **Add Custom Dictionary** opens a row for a separate TXT file.
+- **Add Inline Custom Dictionary** opens a row where you can type or paste one mapping per line. Press Tab between the
+  source and target. Blank lines without a Tab and lines starting with '#' are ignored. Like TXT files, inline input
+  preserves leading whitespace, ignores trailing whitespace, and uses the first target token. The last entry for a
+  repeated source wins. Inline input reports malformed mappings and requires at least one valid entry.
+- **Append** merges entries into the selected slot. **Override** replaces the slot. File and inline rows can share
+  a slot and are applied from top to bottom.
+- **Apply to Converter** applies the current rows to the configured base for this session. Editing rows leaves the
+  active converter as it was until you apply again. Applying an empty list restores the base.
+- To reuse the rows on launch, enable **Apply to Converter during startup** and save advanced settings.
+- **Generate ZSTD**, **Generate CBOR**, and **Generate JSON** build an artifact from the selected base directory and
+  the current rows, including mixed sources. **Readable Unicode JSON** controls JSON escaping. Generation leaves
+  the active converter as it was.
 
 ---
 
@@ -362,6 +375,8 @@ Options are:
 
 ## Contributing
 
+Run the inline dictionary regressions with `dotnet run --project Tests/InlineDictionaryRegression.csproj`.
+
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
 ## License
@@ -373,7 +388,7 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
 - **[OpenCC](https://github.com/BYVoid/OpenCC)**  
   For providing the high-quality Chinese conversion lexicons.
 - **[OpenccNet](https://github.com/laisuk/OpenccNet)**  
-  For the optimized .NET implementation of OpenCC used as the core engine.
+  For the optimized .NET implementation of `OpenCC` used as the core engine.
 - **[Avalonia](https://avaloniaui.net/)**  
   For the modern, cross-platform UI framework powering the application.
 - **[AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)**  
@@ -383,4 +398,4 @@ This project is licensed under the MIT License. See the [LICENSE](./LICENSE) fil
 - **[PdfPig](https://github.com/UglyToad/PdfPig)**  
   For the fully-managed PDF text extraction engine used in the standard extraction mode.
 - **PDFium (native library + .NET bindings)**  
-  For providing high-performance PDF rendering and fast CJK text extraction in Pdfium mode.
+  For providing high-performance PDF rendering and fast CJK text extraction in `Pdfium` mode.

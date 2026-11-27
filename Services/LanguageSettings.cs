@@ -36,14 +36,22 @@ public class LanguageSettings
     public SentenceBoundaryModeSetting? SentenceBoundaryMode { get; set; } = new();
 }
 
+public enum DictionarySourceKind
+{
+    File,
+    Inline
+}
 
 [Serializable]
 public sealed class CustomDictionarySetting
 {
     public string Slot { get; set; } = string.Empty;
     public string Mode { get; set; } = nameof(OpenccNetLib.CustomDictMode.Append);
-    public string Path { get; set; } = string.Empty;
+    public string SourceKind { get; set; } = nameof(DictionarySourceKind.File);
+    public string? Path { get; set; }
+    public string? InlineText { get; set; }
 }
+
 [Serializable]
 public sealed class PdfOptions
 {
@@ -100,7 +108,10 @@ public class Language
     public string FilenameContent { get; set; } = "Filename";
     public string ConversionSettingsContent { get; set; } = "Conversion Settings";
     public string ConvertFilenameContent { get; set; } = "Convert filename";
-    public string AutoDetectCjkEncodingContent { get; set; } = "Auto-detect Legacy CJK Encoding for Plain Text (Batch Mode)";
+
+    public string AutoDetectCjkEncodingContent { get; set; } =
+        "Auto-detect Legacy CJK Encoding for Plain Text (Batch Mode)";
+
     public string ExtendUnicodeCompatContent { get; set; } = "Extend Unicode Compatibility for CJK text normalization";
     public string DeTofuLevelContent { get; set; } = "DeTofu level";
     public string EditorFontContent { get; set; } = "Editor Font";
@@ -144,6 +155,31 @@ public sealed class DictionaryGeneratorContents
     public string BrowseButton { get; set; } = "Browse";
     public string RemoveButton { get; set; } = "Remove";
     public string AddCustomDictionaryButton { get; set; } = "Add Custom Dictionary";
+
+    public string AddInlineCustomDictionaryButton { get; set; } =
+        "Add Inline Custom Dictionary";
+
+    public string InlineDictionaryEntriesLabel { get; set; } =
+        "Inline Dictionary Entries";
+
+    public string InlineDictionaryFormatHint { get; set; } =
+        "Enter one source and target per line, separated by a Tab.";
+
+    public string UnsupportedSourceFormat { get; set; } =
+        "Custom dictionary row {0} has an unsupported source. Remove and re-add the row.";
+
+    public string InlineMissingTabFormat { get; set; } =
+        "Inline dictionary row {0}, line {1}: separate the source and target with a Tab.";
+
+    public string InlineEmptySourceFormat { get; set; } =
+        "Inline dictionary row {0}, line {1}: enter a source before the Tab.";
+
+    public string InlineEmptyTargetFormat { get; set; } =
+        "Inline dictionary row {0}, line {1}: enter a target after the Tab.";
+
+    public string InlineEmptyDictionaryFormat { get; set; } =
+        "Inline dictionary row {0}: enter at least one source and target mapping.";
+
     public string GenerateZstdButton { get; set; } = "Generate ZSTD";
     public string GenerateCborButton { get; set; } = "Generate CBOR";
     public string ApplyCustomSlotsButton { get; set; } = "Apply to Current Converter";
@@ -165,6 +201,7 @@ public sealed class DictionaryGeneratorContents
     public string AddRowToolTip { get; set; } = "Add a custom dictionary row at the end.";
     public string GenerateZstdToolTip { get; set; } = "Generate dictionary_maxlength.zstd.";
     public string GenerateCborToolTip { get; set; } = "Generate dictionary_maxlength.cbor.";
+
     public string ApplyCustomSlotsToolTip { get; set; } =
         "Apply these custom slots to the current converter without saving settings.";
 
@@ -183,9 +220,12 @@ public sealed class DictionaryGeneratorContents
     public string GenerationFailedFormat { get; set; } = "Dictionary generation failed: {0}";
     public string BaseDirectoryRequired { get; set; } = "Base dictionary directory is required.";
     public string BaseDirectoryNotFoundFormat { get; set; } = "Base dictionary directory not found: {0}";
+
     public string ApplySuccess { get; set; } =
         "Custom dictionary slots applied to the current converter.";
+
     public string ApplyFailedFormat { get; set; } = "Could not apply custom dictionary slots: {0}";
+
     public string StartupApplyFailedFormat { get; set; } =
         "Saved custom dictionary slots could not be applied; the base dictionary is active: {0}";
 
@@ -204,6 +244,7 @@ public sealed class RuntimeContents
     public string Label { get; set; } = "Runtime";
 
     public string CustomSlotsFormat { get; set; } = "{0} + Custom Slots ({1})";
+
     public Dictionary<string, string> Dictionaries { get; set; } = new()
     {
         ["default"] = "Built-in dictionary",

@@ -29,6 +29,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Remove="Tests/**/*.cs" />
         <!--        <AvaloniaResource Include="Assets\**"/>-->
         <AvaloniaResource Include="Assets\Icons\openccnetlib.ico" />
         <AvaloniaResource Include="Assets\openccnetlib.ico"/>
