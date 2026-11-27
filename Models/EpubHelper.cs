@@ -38,6 +38,12 @@ public static class EpubHelper
     {
         using var zip = ZipFile.OpenRead(epubPath);
 
+        return ExtractEpubAllText(zip, includePartHeadings, normalizeNewlines, skipNavDocuments);
+    }
+
+    private static string ExtractEpubAllText(
+        ZipArchive zip, bool includePartHeadings, bool normalizeNewlines, bool skipNavDocuments)
+    {
         var opfPath = FindOpfPath(zip);
         if (opfPath == null)
             throw new InvalidOperationException("container.xml has no OPF rootfile. Not a valid .epub?");
@@ -46,7 +52,10 @@ public static class EpubHelper
 
         var (manifest, spine) = LoadOpf(zip, opfPath);
 
-        var sb = new StringBuilder(256 * 1024);
+        var output = new EpubTextAccumulator(normalizeNewlines);
+        var chapter = new StringBuilder();
+        var entityBuffer = new char[XhtmlEntityTextReader.BufferSize];
+        var textBuffer = new char[4096];
 
         foreach (var idref in spine)
         {
@@ -66,24 +75,26 @@ public static class EpubHelper
 
             if (includePartHeadings)
             {
-                if (sb.Length > 0 && !EndsWithNewline(sb)) sb.AppendLine();
-                sb.AppendLine($"=== {fullName} ===");
+                if (!output.EndsWithNewline) output.Append(Environment.NewLine);
+                output.Append($"=== {fullName} ===");
+                output.Append(Environment.NewLine);
             }
 
-            using var s = entry.Open();
-            var chapterText = ExtractXhtmlText(s);
+            ExtractXhtmlText(entry.Open(), chapter, entityBuffer, textBuffer);
+            foreach (var chunk in chapter.GetChunks())
+                output.Append(chunk.Span, removeSoftHyphens: true);
 
-            sb.Append(chapterText);
-            if (!EndsWithNewline(sb)) sb.AppendLine();
-            sb.AppendLine(); // blank line between spine docs
+            if (!output.EndsWithNewline) output.Append(Environment.NewLine);
+            output.Append(Environment.NewLine); // blank line between spine docs
+
+            // Keep a small chapter buffer for reuse without retaining very large chapters.
+            if (chapter.Capacity <= 8192)
+                chapter.Clear();
+            else
+                chapter = new StringBuilder();
         }
 
-        var text = sb.ToString();
-        if (normalizeNewlines)
-            text = text.Replace("\r\n", "\n").Replace("\r", "\n");
-
-        text = NormalizeExcessBlankLines(text);
-        return text;
+        return output.ToString();
     }
 
     // ---------------------------- container.xml ----------------------------
@@ -204,22 +215,12 @@ public static class EpubHelper
 
     // ---------------------------- XHTML -> plain text ----------------------------
 
-    private static string ExtractXhtmlText(Stream xhtmlStream)
+    private static void ExtractXhtmlText(
+        Stream xhtmlStream, StringBuilder sb, char[] entityBuffer, char[] textBuffer)
     {
-        using var sr = new StreamReader(
-            xhtmlStream,
-            Encoding.UTF8,
-            detectEncodingFromByteOrderMarks: true);
-
-        var xhtml = sr.ReadToEnd();
-
-        // XHTML commonly contains HTML's &nbsp;, which is not a
-        // predefined XML entity when the DTD is deliberately ignored.
-        xhtml = NormalizeXhtmlEntities(xhtml);
-
-        using var textReader = new StringReader(xhtml);
-
-        var sb = new StringBuilder(32 * 1024);
+        using var textReader = new XhtmlEntityTextReader(
+            new StreamReader(xhtmlStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+            entityBuffer);
 
         // Stackless simple state is enough for plain text.
         var skipDepth = 0; // inside script/style/head/svg/math etc.
@@ -253,15 +254,7 @@ public static class EpubHelper
                         continue;
                     }
 
-                    if (skipDepth > 0)
-                    {
-                        if (reader.IsEmptyElement)
-                        {
-                            /* no-op */
-                        }
-
-                        continue;
-                    }
+                    if (skipDepth > 0) continue;
 
                     if (IsBlockElement(name))
                         EnsureParagraphBreak(sb);
@@ -277,9 +270,9 @@ public static class EpubHelper
                 case XmlNodeType.Text or XmlNodeType.SignificantWhitespace
                     or XmlNodeType.Whitespace:
                 {
-                    var t = reader.Value;
-                    if (!string.IsNullOrEmpty(t))
-                        AppendNormalizedText(sb, t);
+                    int count;
+                    while ((count = reader.ReadValueChunk(textBuffer, 0, textBuffer.Length)) > 0)
+                        AppendNormalizedText(sb, textBuffer.AsSpan(0, count));
                     break;
                 }
                 case XmlNodeType.EndElement:
@@ -299,107 +292,6 @@ public static class EpubHelper
                 }
             }
         }
-
-        var text = sb.ToString();
-        text = text.Replace("\u00AD", ""); // soft hyphen
-        text = text.Replace("\u00A0", " "); // nbsp
-        return text;
-    }
-
-    private static string NormalizeXhtmlEntities(ReadOnlySpan<char> xhtmlSpan)
-    {
-        var pos = 0;
-        var copyFrom = 0;
-        StringBuilder? sb = null;
-
-        while (pos < xhtmlSpan.Length)
-        {
-            var offset = xhtmlSpan[pos..].IndexOf('&');
-            if (offset < 0)
-                break;
-
-            var i = pos + offset;
-            var remaining = xhtmlSpan[i..];
-
-            ReadOnlySpan<char> replacement = default;
-            var consumed = 0;
-
-            if (remaining.StartsWith("&nbsp;"))
-            {
-                replacement = "&#160;";
-                consumed = 6;
-            }
-            else if (remaining.StartsWith("&ensp;"))
-            {
-                replacement = "&#8194;";
-                consumed = 6;
-            }
-            else if (remaining.StartsWith("&emsp;"))
-            {
-                replacement = "&#8195;";
-                consumed = 6;
-            }
-            else if (remaining.StartsWith("&thinsp;"))
-            {
-                replacement = "&#8201;";
-                consumed = 8;
-            }
-            else if (remaining.StartsWith("&ndash;"))
-            {
-                replacement = "&#8211;";
-                consumed = 7;
-            }
-            else if (remaining.StartsWith("&mdash;"))
-            {
-                replacement = "&#8212;";
-                consumed = 7;
-            }
-            else if (remaining.StartsWith("&lsquo;"))
-            {
-                replacement = "&#8216;";
-                consumed = 7;
-            }
-            else if (remaining.StartsWith("&rsquo;"))
-            {
-                replacement = "&#8217;";
-                consumed = 7;
-            }
-            else if (remaining.StartsWith("&ldquo;"))
-            {
-                replacement = "&#8220;";
-                consumed = 7;
-            }
-            else if (remaining.StartsWith("&rdquo;"))
-            {
-                replacement = "&#8221;";
-                consumed = 7;
-            }
-            else if (remaining.StartsWith("&hellip;"))
-            {
-                replacement = "&#8230;";
-                consumed = 8;
-            }
-
-            if (consumed == 0)
-            {
-                pos = i + 1;
-                continue;
-            }
-
-            sb ??= new StringBuilder(xhtmlSpan.Length + 32);
-
-            sb.Append(xhtmlSpan[copyFrom..i]);
-            sb.Append(replacement);
-
-            copyFrom = i + consumed;
-            pos = copyFrom;
-        }
-
-        if (sb == null)
-            return xhtmlSpan.ToString();
-
-        sb.Append(xhtmlSpan[copyFrom..]);
-        return sb.ToString();
     }
 
     private static bool IsSkipElement(string localName)
@@ -431,7 +323,7 @@ public static class EpubHelper
                localName.Equals("hr", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void AppendNormalizedText(StringBuilder sb, string t)
+    private static void AppendNormalizedText(StringBuilder sb, ReadOnlySpan<char> t)
     {
         // Preserve internal spaces but avoid runaway whitespace.
         // Note: we do NOT “CJK smart spacing” here; reflow handles later.
@@ -484,13 +376,6 @@ public static class EpubHelper
         }
     }
 
-    private static bool EndsWithNewline(StringBuilder sb)
-    {
-        if (sb.Length == 0) return true;
-        var c = sb[^1];
-        return c is '\n' or '\r';
-    }
-
     private static string GetDir(string path)
     {
         var idx = path.LastIndexOf('/');
@@ -527,26 +412,60 @@ public static class EpubHelper
         return string.Join("/", stack);
     }
 
-    private static string NormalizeExcessBlankLines(string s)
+    private sealed class EpubTextAccumulator
     {
-        // Keep at most 2 consecutive newlines.
-        var sb = new StringBuilder(s.Length);
-        var nl = 0;
-        for (var i = 0; i < s.Length; i++)
+        private readonly StringBuilder _text = new();
+        private readonly bool _normalizeNewlines;
+        private bool _previousWasCarriageReturn;
+        private int _newlines;
+
+        public EpubTextAccumulator(bool normalizeNewlines) => _normalizeNewlines = normalizeNewlines;
+
+        public bool EndsWithNewline => _text.Length == 0 || _text[^1] is '\n' or '\r';
+
+        public void Append(ReadOnlySpan<char> text, bool removeSoftHyphens = false)
         {
-            var c = s[i];
-            if (c == '\n')
+            // Soft hyphens influence chapter-local whitespace decisions before removal.
+            // Non-breaking spaces have already been collapsed by AppendNormalizedText.
+            while (!text.IsEmpty)
             {
-                nl++;
-                if (nl <= 2) sb.Append(c);
-            }
-            else
-            {
-                nl = 0;
-                sb.Append(c);
+                var special = removeSoftHyphens
+                    ? text.IndexOfAny('\r', '\n', '\u00AD')
+                    : text.IndexOfAny('\r', '\n');
+                if (special < 0) special = text.Length;
+                if (special > 0)
+                {
+                    _text.Append(text[..special]);
+                    _previousWasCarriageReturn = false;
+                    _newlines = 0;
+                }
+
+                if (special == text.Length) return;
+                var current = text[special];
+                text = text[(special + 1)..];
+                if (current == '\u00AD') continue;
+
+                var followsCarriageReturn = _previousWasCarriageReturn;
+                _previousWasCarriageReturn = current == '\r';
+                if (_normalizeNewlines)
+                {
+                    if (current == '\n' && followsCarriageReturn) continue;
+                    current = '\n';
+                }
+
+                if (current == '\r')
+                {
+                    _text.Append(current);
+                    _newlines = 0;
+                }
+                else if (_newlines < 2)
+                {
+                    _text.Append(current);
+                    _newlines++;
+                }
             }
         }
 
-        return sb.ToString();
+        public override string ToString() => _text.ToString();
     }
 }

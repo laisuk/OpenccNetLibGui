@@ -30,6 +30,7 @@
 
     <ItemGroup>
         <Compile Remove="Tests/**/*.cs" />
+        <None Remove="Tests/56-books.epub" />
         <!--        <AvaloniaResource Include="Assets\**"/>-->
         <AvaloniaResource Include="Assets\Icons\openccnetlib.ico" />
         <AvaloniaResource Include="Assets\openccnetlib.ico"/>

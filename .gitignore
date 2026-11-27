@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Added
 .idea/
+
+# Local EPUB benchmark fixture
+/Tests/56-books.epub
