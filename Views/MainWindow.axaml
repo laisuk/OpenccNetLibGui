@@ -1083,6 +1083,16 @@
                                       Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
                                 FallbackValue={x:Null}}"
                                       CommandParameter="utf-16be" />
+
+                            <MenuItem Header="UTF-32 LE"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="utf-32le" />
+
+                            <MenuItem Header="UTF-32 BE"
+                                      Command="{Binding #MainWindowRoot.((vm:MainWindowViewModel)DataContext).ReloadEncodingCommand,
+                                FallbackValue={x:Null}}"
+                                      CommandParameter="utf-32be" />
                         </ContextMenu>
                     </TextBlock.ContextMenu>
                 </TextBlock>

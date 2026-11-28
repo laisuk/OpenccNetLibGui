@@ -1445,6 +1445,8 @@ public class MainWindowViewModel : ViewModelBase
                 "shift-jis" => Encoding.GetEncoding("shift_jis"),
                 "utf-16le" => Encoding.Unicode,
                 "utf-16be" => Encoding.BigEndianUnicode,
+                "utf-32le" => Encoding.UTF32,
+                "utf-32be" => new UTF32Encoding(bigEndian: true, byteOrderMark: true),
                 _ => Encoding.UTF8
             };
 
@@ -1455,7 +1457,7 @@ public class MainWindowViewModel : ViewModelBase
 
             var text = await reader.ReadToEndAsync();
 
-            if (encodingName is "utf-16le" or "utf-16be" &&
+            if (encodingName is "utf-16le" or "utf-16be" or "utf-32le" or "utf-32be" &&
                 TextDisplaySafety.HasOversizedLogicalLine(text))
             {
                 LblStatusBarContent =

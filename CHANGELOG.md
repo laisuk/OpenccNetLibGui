@@ -15,6 +15,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   generation.
 
 - Added Seal script conversion configurations from `OpenccNetLib` v1.8.0.
+- Added automatic detection of UTF-32 LE and BE files with BOMs and manual reload options for both encodings in the
+  filename context menu.
 
 ### Changed
 
@@ -30,6 +32,9 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
   decoded lines are now rejected before reaching AvaloniaEdit, preventing excessive visual-line layout work and memory
   usage.
 - Fixed manual encoding reload status reporting to reflect the actual encoding selected after BOM detection.
+- Fixed BOM-less UTF-16 detection for text that also passes ASCII or UTF-8 validation.
+- Legacy CJK detection now stops probing an encoding as soon as its state machine rejects the byte sequence.
+- Extended the oversized-line safeguard to manual UTF-32 LE and BE reloads.
 - Fixed EPUB text extraction dropping whitespace-only XML nodes between inline elements, preserving spaces between
   adjacent text spans and improving fidelity to the original XHTML content.
 

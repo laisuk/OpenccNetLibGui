@@ -81,12 +81,18 @@ internal static class FileOpenViewModel
                 or CjkEncodingDetector.EncodingKind.Utf16BeBom
                 => Encoding.BigEndianUnicode,
 
+            CjkEncodingDetector.EncodingKind.Utf32LeBom
+                => new UTF32Encoding(bigEndian: false, byteOrderMark: true),
+
+            CjkEncodingDetector.EncodingKind.Utf32BeBom
+                => new UTF32Encoding(bigEndian: true, byteOrderMark: true),
+
             CjkEncodingDetector.EncodingKind.Big5
                 => Encoding.GetEncoding("Big5"),
 
             CjkEncodingDetector.EncodingKind.Gb18030
                 => Encoding.GetEncoding("GB18030"),
-            
+
             CjkEncodingDetector.EncodingKind.ShiftJis
                 => Encoding.GetEncoding(932),
 
@@ -111,6 +117,12 @@ internal static class FileOpenViewModel
                 or CjkEncodingDetector.EncodingKind.Utf16BeBom
                 => "UTF-16BE",
 
+            CjkEncodingDetector.EncodingKind.Utf32LeBom
+                => "UTF-32LE",
+
+            CjkEncodingDetector.EncodingKind.Utf32BeBom
+                => "UTF-32BE",
+
             CjkEncodingDetector.EncodingKind.Big5
                 => "Big5",
 
@@ -119,7 +131,7 @@ internal static class FileOpenViewModel
 
             CjkEncodingDetector.EncodingKind.ShiftJis
                 => "Shift-JIS",
-            
+
             _ => "UTF-8"
         };
     }

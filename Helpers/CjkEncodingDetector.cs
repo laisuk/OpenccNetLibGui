@@ -45,8 +45,8 @@ namespace OpenccNetLibGui.Helpers
     /// </summary>
     /// <remarks>
     /// Detection order:
-    /// BOM -> ASCII -> strict UTF-8 -> BOM-less UTF-16 heuristic ->
-    /// Big5/GB18030/Shift-JIS statistical fallback -> Unknown.
+    /// UTF-32/UTF-8/UTF-16 BOM -> BOM-less UTF-16 heuristic ->
+    /// ASCII/strict UTF-8 -> Big5/GB18030/Shift-JIS statistical fallback -> Unknown.
     ///
     /// GB2312 and GBK are reported as GB18030 because GB18030 is the decoder
     /// superset used by the caller.
@@ -73,7 +73,11 @@ namespace OpenccNetLibGui.Helpers
             Utf16BeBom,
             Big5,
             Gb18030,
-            ShiftJis
+            ShiftJis,
+
+            // Append to preserve existing enum values.
+            Utf32LeBom,
+            Utf32BeBom
         }
 
         public readonly struct Result
@@ -99,7 +103,8 @@ namespace OpenccNetLibGui.Helpers
                     return Encoding switch
                     {
                         EncodingKind.Ascii or EncodingKind.Utf8 or EncodingKind.Utf8Bom or EncodingKind.Utf16Le
-                            or EncodingKind.Utf16LeBom or EncodingKind.Utf16Be or EncodingKind.Utf16BeBom => true,
+                            or EncodingKind.Utf16LeBom or EncodingKind.Utf16Be or EncodingKind.Utf16BeBom
+                            or EncodingKind.Utf32LeBom or EncodingKind.Utf32BeBom => true,
                         _ => false
                     };
                 }
@@ -132,7 +137,13 @@ namespace OpenccNetLibGui.Helpers
             if (count == 0)
                 return Unknown();
 
-            // 1. BOM detection.
+            // 1. Longest BOMs first: UTF-32 LE starts with the UTF-16 LE BOM.
+            if (StartsWith(data, offset, count, 0xFF, 0xFE, 0x00, 0x00))
+                return new Result(EncodingKind.Utf32LeBom, 4, 1.0F);
+
+            if (StartsWith(data, offset, count, 0x00, 0x00, 0xFE, 0xFF))
+                return new Result(EncodingKind.Utf32BeBom, 4, 1.0F);
+
             if (StartsWith(data, offset, count, 0xEF, 0xBB, 0xBF))
                 return new Result(EncodingKind.Utf8Bom, 3, 1.0F);
 
@@ -142,20 +153,19 @@ namespace OpenccNetLibGui.Helpers
             if (StartsWith(data, offset, count, 0xFE, 0xFF))
                 return new Result(EncodingKind.Utf16BeBom, 2, 1.0F);
 
-            // 2-3. Classify ASCII / strict UTF-8 in one full-range pass.
-            // UTF-8 remains an exact result: the entire requested range is validated.
-            var utf8Kind = ClassifyUtf8(data, offset, count);
-            if (utf8Kind != EncodingKind.Unknown)
-                return new Result(utf8Kind, 0, 1.0F);
-
-            // 4. UTF-16 without BOM.
+            // 2. BOM-less UTF-16 can look like valid ASCII/UTF-8 due to NUL bytes.
             if (LooksLikeUtf16Le(data, offset, count))
                 return new Result(EncodingKind.Utf16Le, 0, 0.90F);
 
             if (LooksLikeUtf16Be(data, offset, count))
                 return new Result(EncodingKind.Utf16Be, 0, 0.90F);
 
-            // 5. CJK legacy fallback.
+            // 3. Validate the complete byte range (not just the heuristic sample).
+            var utf8Kind = ClassifyUtf8(data, offset, count);
+            if (utf8Kind != EncodingKind.Unknown)
+                return new Result(utf8Kind, 0, 1.0F);
+
+            // 4. CJK legacy fallback.
             return DetectCjkLegacy(data, offset, count);
         }
 
@@ -170,6 +180,8 @@ namespace OpenccNetLibGui.Helpers
                 EncodingKind.Utf16LeBom => "UTF-16 LE BOM",
                 EncodingKind.Utf16Be => "UTF-16 BE",
                 EncodingKind.Utf16BeBom => "UTF-16 BE BOM",
+                EncodingKind.Utf32LeBom => "UTF-32 LE BOM",
+                EncodingKind.Utf32BeBom => "UTF-32 BE BOM",
                 EncodingKind.Big5 => "Big5",
                 EncodingKind.Gb18030 => "GB18030",
                 EncodingKind.ShiftJis => "Shift-JIS",
@@ -199,6 +211,17 @@ namespace OpenccNetLibGui.Helpers
                    data[offset] == b0 &&
                    data[offset + 1] == b1 &&
                    data[offset + 2] == b2;
+        }
+
+        private static bool StartsWith(
+            byte[] data, int offset, int count,
+            byte b0, byte b1, byte b2, byte b3)
+        {
+            return count >= 4 &&
+                   data[offset] == b0 &&
+                   data[offset + 1] == b1 &&
+                   data[offset + 2] == b2 &&
+                   data[offset + 3] == b3;
         }
 
         private static EncodingKind ClassifyUtf8(byte[] data, int offset, int count)
@@ -310,12 +333,6 @@ namespace OpenccNetLibGui.Helpers
             return ascii ? EncodingKind.Ascii : EncodingKind.Utf8;
         }
 
-        private static bool IsValidUtf8(byte[] data, int offset, int count)
-        {
-            var kind = ClassifyUtf8(data, offset, count);
-            return kind is EncodingKind.Ascii or EncodingKind.Utf8;
-        }
-
         private static bool LooksLikeUtf16Le(byte[] data, int offset, int count)
         {
             return LooksLikeUtf16(data, offset, count, 1);
@@ -418,8 +435,9 @@ namespace OpenccNetLibGui.Helpers
                 0.75F,
                 GetBig5Order);
 
-            FeedProber(data, offset, count, stateMachine, distribution);
-            return distribution.GetConfidence();
+            return FeedProber(data, offset, count, stateMachine, distribution)
+                ? distribution.GetConfidence()
+                : 0.01F;
         }
 
         private static float ProbeGb18030(byte[] data, int offset, int count)
@@ -436,8 +454,9 @@ namespace OpenccNetLibGui.Helpers
                 0.90F,
                 GetGb2312Order);
 
-            FeedProber(data, offset, count, stateMachine, distribution);
-            return distribution.GetConfidence();
+            return FeedProber(data, offset, count, stateMachine, distribution)
+                ? distribution.GetConfidence()
+                : 0.01F;
         }
 
         private static float ProbeShiftJis(byte[] data, int offset, int count)
@@ -460,6 +479,9 @@ namespace OpenccNetLibGui.Helpers
             for (var i = offset; i < end; i++)
             {
                 var state = stateMachine.NextState(data[i]);
+
+                if (state == StateError)
+                    return 0.01F;
 
                 if (state == StateItsMe)
                     break;
@@ -487,7 +509,7 @@ namespace OpenccNetLibGui.Helpers
             return Math.Max(context.GetConfidence(), distribution.GetConfidence());
         }
 
-        private static void FeedProber(
+        private static bool FeedProber(
             byte[] data,
             int offset,
             int count,
@@ -500,6 +522,9 @@ namespace OpenccNetLibGui.Helpers
             {
                 var state = stateMachine.NextState(data[i]);
 
+                if (state == StateError)
+                    return false;
+
                 if (state == StateItsMe)
                     break;
 
@@ -511,6 +536,8 @@ namespace OpenccNetLibGui.Helpers
                 if (charLen == 2 && i > offset)
                     distribution.HandleOneChar(data[i - 1], data[i]);
             }
+
+            return true;
         }
 
         private delegate int OrderGetter(byte first, byte second);
