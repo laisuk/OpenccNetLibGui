@@ -36,6 +36,7 @@
  */
 
 using System;
+using System.Text;
 
 namespace OpenccNetLibGui.Helpers
 {
@@ -379,7 +380,8 @@ namespace OpenccNetLibGui.Helpers
             {
                 new LegacyCandidate(EncodingKind.Big5, ProbeBig5(data, offset, sampleCount)),
                 new LegacyCandidate(EncodingKind.Gb18030, ProbeGb18030(data, offset, sampleCount)),
-                new LegacyCandidate(EncodingKind.ShiftJis, ProbeShiftJis(data, offset, sampleCount))
+                new LegacyCandidate(EncodingKind.ShiftJis,
+                    ProbeShiftJis(data, offset, sampleCount, sampleCount < count))
             };
 
             var best = candidates[0];
@@ -459,7 +461,7 @@ namespace OpenccNetLibGui.Helpers
                 : 0.01F;
         }
 
-        private static float ProbeShiftJis(byte[] data, int offset, int count)
+        private static float ProbeShiftJis(byte[] data, int offset, int count, bool sampleClipped)
         {
             var stateMachine = new CodingStateMachine(
                 ShiftJisClassTable,
@@ -475,10 +477,30 @@ namespace OpenccNetLibGui.Helpers
 
             var context = new JapaneseContextAnalysis();
             var end = offset + count;
+            var state = StateStart;
 
             for (var i = offset; i < end; i++)
             {
-                var state = stateMachine.NextState(data[i]);
+                var value = data[i];
+                if (state == StateStart && value is (0x87 or 0xED or 0xEE or >= 0xF0 and <= 0xFC))
+                {
+                    if (i + 1 == end)
+                    {
+                        // A lead at the sample limit may have its trail outside the sample.
+                        if (!sampleClipped)
+                            return 0.01F;
+                        break;
+                    }
+
+                    if (!Cp932Extensions.IsAssigned(value, data[i + 1]))
+                        return 0.01F;
+
+                    context.HandleNonHiragana();
+                    i++;
+                    continue;
+                }
+
+                state = stateMachine.NextState(value);
 
                 if (state == StateError)
                     return 0.01F;
@@ -506,7 +528,60 @@ namespace OpenccNetLibGui.Helpers
                 }
             }
 
+            if (state != StateStart && state != StateItsMe && !sampleClipped)
+                return 0.01F;
+
             return Math.Max(context.GetConfidence(), distribution.GetConfidence());
+        }
+
+        private static class Cp932Extensions
+        {
+            private static readonly Encoding StrictWithMarker = CodePagesEncodingProvider.Instance.GetEncoding(
+                932, EncoderFallback.ExceptionFallback, new DecoderReplacementFallback("\uFFFD"))!;
+
+            public static bool IsAssigned(byte lead, byte trail)
+            {
+                if (trail is < 0x40 or 0x7F or > 0xFC)
+                    return false;
+
+                if (lead is 0xED or 0xEE)
+                    return NecAliases.Assigned[(lead - 0xED) * 256 + trail];
+
+                Span<byte> pair = stackalloc byte[] { lead, trail };
+                Span<char> decoded = stackalloc char[1];
+                return StrictWithMarker.GetChars(pair, decoded) == 1 && decoded[0] != '\uFFFD';
+            }
+
+            private static class NecAliases
+            {
+                public static readonly bool[] Assigned = BuildAssigned();
+
+                private static bool[] BuildAssigned()
+                {
+                    // .NET keeps these aliases in its best-fit table. Cache the
+                    // result so the decoder's fallback buffer is only used here.
+                    // Unassigned pairs return U+30FB, whose assigned pair is 81 45.
+                    var encoding = CodePagesEncodingProvider.Instance.GetEncoding(932)!;
+                    var assigned = new bool[2 * 256];
+                    Span<byte> pair = stackalloc byte[2];
+                    Span<char> decoded = stackalloc char[1];
+                    for (var lead = 0xED; lead <= 0xEE; lead++)
+                    {
+                        pair[0] = (byte)lead;
+                        for (var trail = 0x40; trail <= 0xFC; trail++)
+                        {
+                            if (trail == 0x7F)
+                                continue;
+
+                            pair[1] = (byte)trail;
+                            assigned[(lead - 0xED) * 256 + trail] =
+                                encoding.GetChars(pair, decoded) == 1 && decoded[0] != '\u30FB';
+                        }
+                    }
+
+                    return assigned;
+                }
+            }
         }
 
         private static bool FeedProber(
